@@ -1,0 +1,44 @@
+.slidersuccess {
+    background: #7FBF7F;
+    border: 1px solid green;
+    border-radius: 3px;
+    color: #FFFFFF;
+	padding: 10px;
+	font-weight: 700;
+	clear:both;
+	margin-bottom: 20px;
+}
+.slidererror {
+	background: #FF7F7F;
+    border: 1px solid red;
+    border-radius: 3px;
+    color: #FFFFFF;
+	padding: 10px;
+	font-weight: 700;
+	clear:both;
+	margin-bottom: 20px;
+}
+
+#slidermenu{
+margin-bottom: 20px;
+clear:both
+}
+
+#slidermenu ul{
+overflow:hidden;
+background: #000;
+margin:0;
+padding:0;
+
+}
+#slidermenu li{
+float:left;
+padding: 10px 40px;
+}
+#slidermenu li.current{
+background: #2EB0E4
+}
+#slidermenu li a{
+color: #FFFFFF;
+font-weight: 700;
+}

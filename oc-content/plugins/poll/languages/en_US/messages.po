@@ -1,0 +1,340 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Poll & Feedback Plugin\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-01-29 11:52+0100\n"
+"PO-Revision-Date: 2025-01-29 11:52+0100\n"
+"Last-Translator: Miso <miso546@azet.sk>\n"
+"Language-Team: MB Themes <info@mb-themes.com>\n"
+"Language: en_US\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 3.5\n"
+"X-Poedit-KeywordsList: __;_e;_m\n"
+"X-Poedit-Basepath: ../..\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+"X-Poedit-SearchPath-0: languages/en_US\n"
+"X-Poedit-SearchPath-1: .\n"
+
+#: admin/configure.php:3 admin/configure.php:273 admin/stats.php:3
+#: index.php:121 index.php:130 index.php:161
+msgid "Configure"
+msgstr ""
+
+#: admin/configure.php:21
+msgid "Settings were successfully saved"
+msgstr ""
+
+#: admin/configure.php:62
+msgid "Poll successfully updated"
+msgstr ""
+
+#: admin/configure.php:80
+msgid "Poll removed successfully"
+msgstr ""
+
+#: admin/configure.php:89
+msgid "Poll created successfully"
+msgstr ""
+
+#: admin/configure.php:104
+msgid "Polls & Feedback forms"
+msgstr ""
+
+#: admin/configure.php:110
+msgid "Plugin generates backlink link added to footer."
+msgstr ""
+
+#: admin/configure.php:111
+#, php-format
+msgid ""
+"You can use plugin for free with link in footer, or purchase \"%s\" for this "
+"product and disable link."
+msgstr ""
+
+#: admin/configure.php:112
+msgid ""
+"Removal of link without link remover service purchased violates product "
+"license!"
+msgstr ""
+
+#: admin/configure.php:116
+msgid "OsclassPoint Order Id"
+msgstr ""
+
+#: admin/configure.php:119
+msgid ""
+"Enter valid OsclassPoint order ID that contains \"Link removal service\" "
+"product."
+msgstr ""
+
+#: admin/configure.php:124
+msgid "Remove Backlink from Footer"
+msgstr ""
+
+#: admin/configure.php:128
+msgid ""
+"When checked, footer backlink will be removed from footer. It require valid "
+"OsclassPoint order ID."
+msgstr ""
+
+#: admin/configure.php:129
+msgid ""
+"This plugin license allows to remove link just in case \"Link remover "
+"service\" was purchased for it."
+msgstr ""
+
+#: admin/configure.php:130
+msgid ""
+"By selecting this option to remove the link, you confirm that you have "
+"purchased the license removal service and that your saved order includes "
+"this service."
+msgstr ""
+
+#: admin/configure.php:157 admin/stats.php:42 functions.php:37
+msgid "New poll"
+msgstr ""
+
+#: admin/configure.php:165
+msgid "values"
+msgstr ""
+
+#: admin/configure.php:172
+msgid "Poll Id"
+msgstr ""
+
+#: admin/configure.php:177
+msgid "Active"
+msgstr ""
+
+#: admin/configure.php:182
+msgid "Poll Name"
+msgstr ""
+
+#: admin/configure.php:187 functions.php:249
+msgid "Description"
+msgstr ""
+
+#: admin/configure.php:192
+msgid "Successful message"
+msgstr ""
+
+#: admin/configure.php:197
+msgid "Type"
+msgstr ""
+
+#: admin/configure.php:199
+msgid "Radio Vertical"
+msgstr ""
+
+#: admin/configure.php:200
+msgid "Radio Horizontal"
+msgstr ""
+
+#: admin/configure.php:201
+msgid "Checkbox"
+msgstr ""
+
+#: admin/configure.php:202
+msgid "Stars"
+msgstr ""
+
+#: admin/configure.php:208
+msgid "Allowed Pages"
+msgstr ""
+
+#: admin/configure.php:217
+msgid "If not page is selected, poll will be shown on all pages."
+msgstr ""
+
+#: admin/configure.php:221
+msgid "Position"
+msgstr ""
+
+#: admin/configure.php:223
+msgid "Top Left"
+msgstr ""
+
+#: admin/configure.php:224
+msgid "Top Right"
+msgstr ""
+
+#: admin/configure.php:225
+msgid "Bottom Left"
+msgstr ""
+
+#: admin/configure.php:226
+msgid "Bottom Right"
+msgstr ""
+
+#: admin/configure.php:233
+msgid "Poll values"
+msgstr ""
+
+#: admin/configure.php:234
+msgid "No values added yet"
+msgstr ""
+
+#: admin/configure.php:241
+msgid "Add new value"
+msgstr ""
+
+#: admin/configure.php:248 admin/configure.php:250
+msgid "Delete poll"
+msgstr ""
+
+#: admin/configure.php:250
+msgid "Are you sure you want to remove this poll? Action cannot be undone"
+msgstr ""
+
+#: admin/configure.php:253
+msgid "Update poll"
+msgstr ""
+
+#: admin/configure.php:260
+msgid "You have not created any poll yet"
+msgstr ""
+
+#: admin/configure.php:263
+msgid "Add new poll"
+msgstr ""
+
+#: admin/configure.php:283
+msgid "Open Poll by Default"
+msgstr ""
+
+#: admin/configure.php:286
+msgid ""
+"When enabled, poll will be opened when user land on your page. Note that if "
+"user close poll, it will not be automatically opened next time for this user."
+msgstr ""
+
+#: admin/configure.php:290
+msgid "Only Logged Users"
+msgstr ""
+
+#: admin/configure.php:293
+msgid "When enabled, only logged-in users will see poll"
+msgstr ""
+
+#: admin/configure.php:297
+msgid "Label color"
+msgstr ""
+
+#: admin/configure.php:300
+msgid "Enter HEX code of color that will be used on label in front"
+msgstr ""
+
+#: admin/configure.php:308
+msgid "This is demo site"
+msgstr ""
+
+#: admin/configure.php:308 admin/configure.php:310
+msgid "Save"
+msgstr ""
+
+#: admin/configure.php:321
+msgid "Plugin Setup"
+msgstr ""
+
+#: admin/configure.php:325
+msgid "No theme modification are required to use all functions of plugin."
+msgstr ""
+
+#: admin/configure.php:339
+msgid "Success!"
+msgstr ""
+
+#: admin/configure.php:340
+msgid "Updating, please wait..."
+msgstr ""
+
+#: admin/configure.php:341
+msgid "Error!"
+msgstr ""
+
+#: admin/stats.php:34 index.php:131 index.php:162
+msgid "Statistics"
+msgstr ""
+
+#: admin/stats.php:38
+msgid "Select Poll"
+msgstr ""
+
+#: admin/stats.php:51
+msgid "Question:"
+msgstr ""
+
+#: form/poll.php:30
+msgid "Survey"
+msgstr ""
+
+#: form/poll.php:80
+msgid "Submit"
+msgstr ""
+
+#: form/poll.php:81
+msgid "You must select value"
+msgstr ""
+
+#: form/poll.php:101
+msgid "Thanks for your vote!"
+msgstr ""
+
+#: form/poll.php:116
+msgid "Results"
+msgstr ""
+
+#: form/poll.php:133
+msgid "Your vote"
+msgstr ""
+
+#: functions.php:73
+msgid "New value"
+msgstr ""
+
+#: functions.php:218
+msgid "All pages"
+msgstr ""
+
+#: functions.php:219
+msgid "Home page"
+msgstr ""
+
+#: functions.php:220
+msgid "Search page"
+msgstr ""
+
+#: functions.php:221
+msgid "Item pages"
+msgstr ""
+
+#: functions.php:222
+msgid "User pages"
+msgstr ""
+
+#: functions.php:223
+msgid "Custom pages"
+msgstr ""
+
+#: functions.php:248
+msgid "Name"
+msgstr ""
+
+#: functions.php:254
+msgid "Remove"
+msgstr ""
+
+#: index.php:146
+msgid "Report Bug"
+msgstr ""
+
+#: index.php:147
+msgid "Support Forums"
+msgstr ""
+
+#: index.php:148
+msgid "Contact Us"
+msgstr ""
