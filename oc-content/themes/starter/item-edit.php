@@ -275,7 +275,7 @@
           
             <div class="row">
               <label for="phone"><?php _e('Mobile Phone', 'starter'); ?><?php if(strpos($required_fields, 'phone') !== false) { ?><span class="req">*</span><?php } ?></label>
-              <div class="input-box"><input type="tel" id="sPhone" name="sPhone" value="<?php echo $prepare['s_phone']; ?>" /><i class="fa fa-phone"></i></div>
+              <div class="input-box"><input type="tel" id="sPhone" name="sPhone" value="<?php echo osc_esc_html($prepare['s_phone']); ?>" /><i class="fa fa-phone"></i></div>
             </div>
 
             <div class="row user-email">

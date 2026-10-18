@@ -840,3 +840,44 @@ h1, h2, h3, .al-display {
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35) !important;
 }
 .mobile-bottom-dock .dock-item .cta-circle i { color: #FFFFFF !important; }
+
+/* ---------- International phone input (intl-tel-input) ---------- */
+/* flag replaces the theme phone icon (legacy shows .input-box i with !important) */
+html body .input-box.al-phone-box > i.fa,
+#i-forms .input-box.al-phone-box > i.fa,
+#body-item-post .content.add_item .input-box.al-phone-box > i.fa,
+#body-item-edit .content.add_item .input-box.al-phone-box > i.fa { display: none !important; }
+.al-phone-box .iti { display: block; width: 100%; }
+/* legacy floats inputs inside .input-box, which collapses the .iti wrapper;
+   legacy padding !important also beats the padding intl-tel-input sets inline */
+html body .al-phone-box .iti input.iti__tel-input,
+#i-forms .input-box.al-phone-box .iti input.iti__tel-input:not([type="radio"]):not([type="checkbox"]):not([type="file"]),
+#body-item-post .content.add_item .al-phone-box .iti input.iti__tel-input,
+#body-item-edit .content.add_item .al-phone-box .iti input.iti__tel-input {
+  float: none !important;
+  display: block !important;
+  width: 100% !important;
+  padding-left: 88px !important;
+}
+/* legacy button styles (margins, padding, backgrounds) reach the flag button */
+html body .al-phone-box .iti__selected-country,
+html body #i-forms .al-phone-box .iti__selected-country,
+#body-item-post .content.add_item .al-phone-box .iti__selected-country,
+#body-item-edit .content.add_item .al-phone-box .iti__selected-country {
+  display: flex !important;
+  align-items: center !important;
+  height: 100% !important;
+  width: auto !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 8px 0 12px !important;
+  border: 0 !important;
+  border-radius: var(--al-radius) 0 0 var(--al-radius) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: var(--al-ink) !important;
+  font-size: 14px !important;
+  line-height: 1 !important;
+}
+.iti__dropdown-content { z-index: 1200; border-color: var(--al-line); box-shadow: var(--al-shadow); font-family: var(--al-font-ui); }
+.al-phone-error { margin-top: 6px; color: var(--al-danger); font-size: 13px; font-weight: 600; }
