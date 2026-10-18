@@ -1,4 +1,7 @@
 <?php
+// Upper limit for a single bid (LKR) - blocks absurd bids that would hijack an auction
+define('ANTIQUE_BIDS_MAX_BID', 100000000);
+
 class ModelBids extends DAO {
     private static $instance;
 
@@ -44,6 +47,18 @@ class ModelBids extends DAO {
             return $result->row();
         }
         return false;
+    }
+
+    /**
+     * Whether any bid (active, won or withdrawn) exists for an item
+     */
+    public function hasBids($itemId) {
+        $this->dao->select('pk_i_id');
+        $this->dao->from(DB_TABLE_PREFIX . 't_item_bids');
+        $this->dao->where('fk_i_item_id', (int)$itemId);
+        $this->dao->limit(1);
+        $result = $this->dao->get();
+        return ($result && $result->numRows() > 0);
     }
 
     /**
@@ -105,6 +120,9 @@ class ModelBids extends DAO {
             $minNextBid = $currentHighest + $auction['d_min_increment'];
 
             // 3. Validate user bid amount
+            if (!is_finite($amount) || $amount > ANTIQUE_BIDS_MAX_BID) {
+                throw new Exception("Bid cannot exceed LKR " . number_format(ANTIQUE_BIDS_MAX_BID, 2));
+            }
             if ($amount < $minNextBid) {
                 throw new Exception("Bid must be at least LKR " . number_format($minNextBid, 2));
             }
@@ -137,10 +155,23 @@ class ModelBids extends DAO {
      */
     public function saveAuction($itemId, $startingPrice, $minIncrement, $durationDays, $active) {
         $prefix = DB_TABLE_PREFIX;
+        if (!in_array((int)$durationDays, array(3, 5, 7, 10, 14, 30))) {
+            $durationDays = 7;
+        }
+        $startingPrice = min(max(0, (float)$startingPrice), ANTIQUE_BIDS_MAX_BID);
+        $minIncrement = min(max(1, (float)$minIncrement), ANTIQUE_BIDS_MAX_BID);
         $endDate = date('Y-m-d H:i:s', time() + ((int)$durationDays * 24 * 60 * 60));
-        
+
         $exists = $this->getAuction($itemId);
-        if ($exists) {
+        if ($exists && $this->hasBids($itemId)) {
+            // Once bidding has started the terms are locked: editing the listing
+            // must not restart the timer or re-open a finished auction.
+            return $this->dao->update(
+                $prefix . 't_item_auctions',
+                array('b_active' => $active ? 1 : 0),
+                array('fk_i_item_id' => (int)$itemId)
+            );
+        } elseif ($exists) {
             return $this->dao->update(
                 $prefix . 't_item_auctions',
                 array(

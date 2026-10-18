@@ -496,7 +496,14 @@ function antique_bids_ajax_history() {
     ob_clean();
     header('Content-Type: application/json');
     $itemId = (int)Params::getParam('itemId');
-    $history = ModelBids::newInstance()->getBids($itemId, 5);
+    $history = array();
+    // Public endpoint: only expose what the widget displays (no IPs / user IDs)
+    foreach (ModelBids::newInstance()->getBids($itemId, 5) as $bid) {
+        $history[] = array(
+            'user_name' => $bid['user_name'],
+            'd_amount'  => $bid['d_amount']
+        );
+    }
     echo json_encode($history);
     exit;
 }
@@ -762,7 +769,7 @@ function antique_bids_send_winner_emails($itemId, $highest) {
     
     // 1. Email to Winner
     $winnerSubject = "Congratulations! You won the auction for " . $item['s_title'];
-    $winnerBody = "Hello {$winnerName},<br/><br/>";
+    $winnerBody = "Hello " . osc_esc_html($winnerName) . ",<br/><br/>";
     $winnerBody .= "Congratulations! You won the live bidding auction for the antique <strong>" . osc_esc_html($item['s_title']) . "</strong>.<br/>";
     $winnerBody .= "Your winning bid amount: <strong>{$bidAmountStr}</strong>.<br/><br/>";
     $winnerBody .= "Please complete your payment and shipping coordination with the seller within 24 hours.<br/>";
@@ -784,10 +791,10 @@ function antique_bids_send_winner_emails($itemId, $highest) {
     $sellerName = $item['s_contact_name'];
     
     $sellerSubject = "Auction Ended: Your item " . $item['s_title'] . " has been sold!";
-    $sellerBody = "Hello {$sellerName},<br/><br/>";
+    $sellerBody = "Hello " . osc_esc_html($sellerName) . ",<br/><br/>";
     $sellerBody .= "The live bidding auction for your antique listing <strong>" . osc_esc_html($item['s_title']) . "</strong> has ended.<br/>";
     $sellerBody .= "Winning Bid Amount: <strong>{$bidAmountStr}</strong>.<br/>";
-    $sellerBody .= "Winner Name: <strong>" . osc_esc_html($winnerName) . "</strong> (Email: {$winnerEmail}).<br/><br/>";
+    $sellerBody .= "Winner Name: <strong>" . osc_esc_html($winnerName) . "</strong> (Email: " . osc_esc_html($winnerEmail) . ").<br/><br/>";
     $sellerBody .= "Please contact the winner to finalize the transaction. If the winner fails to pay within 24 hours, you can cancel their bid and offer the item to the 2nd highest bidder directly from your listing details page.<br/><br/>";
     $sellerBody .= "Thank you,<br/>AntiqueLanka Team";
     
@@ -813,7 +820,7 @@ function antique_bids_send_no_bids_email($itemId) {
     $sellerName = $item['s_contact_name'];
     
     $sellerSubject = "Auction Ended: No bids placed for " . $item['s_title'];
-    $sellerBody = "Hello {$sellerName},<br/><br/>";
+    $sellerBody = "Hello " . osc_esc_html($sellerName) . ",<br/><br/>";
     $sellerBody .= "The live bidding auction for your antique listing <strong>" . osc_esc_html($item['s_title']) . "</strong> has ended.<br/>";
     $sellerBody .= "Unfortunately, no bids were placed on this item during the auction duration.<br/>";
     $sellerBody .= "You can re-list or adjust the starting price by editing your item details here: <a href='" . osc_item_edit_url('', $itemId) . "'>Edit Listing</a>.<br/><br/>";
@@ -916,7 +923,7 @@ function antique_bids_send_second_chance_emails($itemId, $oldBid, $newBid) {
     $oldWinner = User::newInstance()->findByPrimaryKey($oldBid['fk_i_user_id']);
     if ($oldWinner) {
         $oldSubject = "Auction Update: Your winning bid for " . $item['s_title'] . " has been cancelled";
-        $oldBody = "Hello " . $oldWinner['s_name'] . ",<br/><br/>";
+        $oldBody = "Hello " . osc_esc_html($oldWinner['s_name']) . ",<br/><br/>";
         $oldBody .= "Your winning bid of <strong>" . number_format($oldBid['d_amount'], 2) . " LKR</strong> for the antique <strong>" . osc_esc_html($item['s_title']) . "</strong> has been cancelled by the seller.<br/>";
         $oldBody .= "This action was taken due to a payment timeout (non-payment within the 24-hour limit).<br/><br/>";
         $oldBody .= "Thank you,<br/>AntiqueLanka Team";
@@ -935,7 +942,7 @@ function antique_bids_send_second_chance_emails($itemId, $oldBid, $newBid) {
     $newWinner = User::newInstance()->findByPrimaryKey($newBid['fk_i_user_id']);
     if ($newWinner) {
         $newSubject = "Second Chance Offer: You won the auction for " . $item['s_title'] . "!";
-        $newBody = "Hello " . $newWinner['s_name'] . ",<br/><br/>";
+        $newBody = "Hello " . osc_esc_html($newWinner['s_name']) . ",<br/><br/>";
         $newBody .= "Good news! The previous highest bidder did not finalize payment, and the seller of <strong>" . osc_esc_html($item['s_title']) . "</strong> has offered the item to you as the next highest bidder.<br/>";
         $newBody .= "Your bid amount: <strong>" . number_format($newBid['d_amount'], 2) . " LKR</strong>.<br/><br/>";
         $newBody .= "Please complete payment and coordinate shipping with the seller within 24 hours.<br/>";
@@ -954,9 +961,9 @@ function antique_bids_send_second_chance_emails($itemId, $oldBid, $newBid) {
     }
 
     $sellerSubject = "Seller Update: Winner cancelled, offered to next bidder";
-    $sellerBody = "Hello " . $item['s_contact_name'] . ",<br/><br/>";
+    $sellerBody = "Hello " . osc_esc_html($item['s_contact_name']) . ",<br/><br/>";
     $sellerBody .= "You have successfully cancelled the winning bid of <strong>" . number_format($oldBid['d_amount'], 2) . " LKR</strong> due to non-payment.<br/>";
-    $sellerBody .= "The item <strong>" . osc_esc_html($item['s_title']) . "</strong> has been offered to the 2nd highest bidder: <strong>" . osc_esc_html($newBid['user_name']) . "</strong> (Email: " . $newWinner['s_email'] . ") at their bid price of <strong>" . number_format($newBid['d_amount'], 2) . " LKR</strong>.<br/><br/>";
+    $sellerBody .= "The item <strong>" . osc_esc_html($item['s_title']) . "</strong> has been offered to the 2nd highest bidder: <strong>" . osc_esc_html($newBid['user_name']) . "</strong> (Email: " . osc_esc_html($newWinner['s_email']) . ") at their bid price of <strong>" . number_format($newBid['d_amount'], 2) . " LKR</strong>.<br/><br/>";
     $sellerBody .= "Please wait for the new winner to coordinate payment.<br/><br/>";
     $sellerBody .= "Thank you,<br/>AntiqueLanka Team";
 
@@ -981,7 +988,7 @@ function antique_bids_send_cancellation_no_bidders_emails($itemId, $oldBid) {
     $oldWinner = User::newInstance()->findByPrimaryKey($oldBid['fk_i_user_id']);
     if ($oldWinner) {
         $oldSubject = "Auction Update: Your winning bid for " . $item['s_title'] . " has been cancelled";
-        $oldBody = "Hello " . $oldWinner['s_name'] . ",<br/><br/>";
+        $oldBody = "Hello " . osc_esc_html($oldWinner['s_name']) . ",<br/><br/>";
         $oldBody .= "Your winning bid of <strong>" . number_format($oldBid['d_amount'], 2) . " LKR</strong> for the antique <strong>" . osc_esc_html($item['s_title']) . "</strong> has been cancelled by the seller due to non-payment.<br/><br/>";
         $oldBody .= "Thank you,<br/>AntiqueLanka Team";
         
@@ -997,7 +1004,7 @@ function antique_bids_send_cancellation_no_bidders_emails($itemId, $oldBid) {
     }
 
     $sellerSubject = "Seller Update: Winner cancelled, no other bidders";
-    $sellerBody = "Hello " . $item['s_contact_name'] . ",<br/><br/>";
+    $sellerBody = "Hello " . osc_esc_html($item['s_contact_name']) . ",<br/><br/>";
     $sellerBody .= "You have successfully cancelled the winning bid of <strong>" . number_format($oldBid['d_amount'], 2) . " LKR</strong> due to non-payment.<br/>";
     $sellerBody .= "There are no other active bids on the listing <strong>" . osc_esc_html($item['s_title']) . "</strong>.<br/>";
     $sellerBody .= "You may re-list the auction or adjust its starting price here: <a href='" . osc_item_edit_url('', $itemId) . "'>Edit Listing</a>.<br/><br/>";
