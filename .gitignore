@@ -14,3 +14,6 @@ oc-content/explain_queries.log
 
 # macOS
 .DS_Store
+
+# Local-only helper scripts (debug / FTP) - must never be deployed to public_html
+_local_tools/
