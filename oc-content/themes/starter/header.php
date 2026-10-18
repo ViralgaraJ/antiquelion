@@ -16,149 +16,113 @@
 ?>
 
 
-<div id="header-bar">
-  <!-- VERIFIED UPDATED HEADER v2.0 -->
-  <div class="inside">
-    <?php osc_run_hook('header_top'); ?>
+<?php
+  $al_country = antique_visitor_country();
+  $al_categories = osc_get_categories();
+  $al_search_cat = osc_search_category_id();
+  $al_search_cat = isset($al_search_cat[0]) ? (int)$al_search_cat[0] : 0;
+  $al_auctions_active = (osc_is_search_page() && Params::getParam('sAuction') == '1');
+?>
+<header id="al-header">
+  <?php osc_run_hook('header_top'); ?>
 
-    <!-- 1. Logo Block (Left) -->
-    <div class="middle-block logo">
-      <a class="resp-logo" href="<?php echo osc_base_url(); ?>">
-        <?php echo logo_header(); ?>
-        <div class="loader"></div>
-      </a>
-    </div>
-
-    <!-- 2. Navigation Links (Center) -->
-    <div class="left-block">
-      <!-- Home -->
-      <a href="<?php echo osc_base_url(); ?>" class="le-btn home<?php if(osc_is_home_page()) { ?> active<?php } ?>">
-        <i class="fa fa-home"></i>
-        <span><?php _e('Home', 'starter'); ?></span>
-      </a>
-
-      <!-- Browse Ads -->
-      <a href="<?php echo osc_search_url(array('page' => 'search')); ?>" class="le-btn browse-ads<?php if(osc_is_search_page()) { ?> active<?php } ?>">
-        <i class="fa fa-th-large"></i>
-        <span><?php _e('Browse Ads', 'starter'); ?></span>
-      </a>
-
-      <!-- Contact Us -->
-      <a href="<?php echo osc_contact_url(); ?>" class="le-btn contact-us<?php if($loc == 'contact') { ?> active<?php } ?>">
-        <i class="fa fa-envelope-o"></i>
-        <span><?php _e('Contact Us', 'starter'); ?></span>
-      </a>
-
-      <!-- Messages -->
-      <?php 
-        $user_dash = function_exists('osc_user_dashboard_url') ? osc_user_dashboard_url() : osc_user_list_items_url();
-        $im_url = osc_is_web_user_logged_in() ? (function_exists('osc_route_url') && function_exists('osc_route_name_exists') && osc_route_name_exists('im-threads') ? osc_route_url('im-threads') : $user_dash) : osc_user_login_url();
-      ?>
-      <a class="le-btn messages<?php if($sec == 'im-threads' || (isset($_GET['file']) && $_GET['file'] == 'instant_messenger/threads.php')) { ?> active<?php } ?>" href="<?php echo $im_url; ?>">
-        <i class="fa fa-commenting-o"></i> 
-        <span><?php _e('Messages', 'starter'); ?></span> 
-        <?php if($message_count > 0) { ?>
-          <em class="counter"><?php echo $message_count; ?></em>
-        <?php } ?>
-      </a>
-
-      <!-- Cart -->
-      <?php if(function_exists('osp_install') && class_exists('ModelOSP') && method_exists('ModelOSP', 'getCart')) { ?>
-        <?php
-          $cart_count = 0;
-          if(osc_is_web_user_logged_in()) {
-            try {
-              $cart = ModelOSP::newInstance()->getCart(osc_logged_user_id());
-              $cart_count = is_string($cart) ? count(array_filter(explode('|', $cart))) : (is_array($cart) ? count($cart) : 0);
-            } catch(Throwable $e) {
-              $cart_count = 0;
-            }
-          }
-        ?>
-        <a class="le-btn cart" href="<?php echo (function_exists('osc_route_url') && function_exists('osc_route_name_exists') && osc_route_name_exists('osp-cart')) ? osc_route_url('osp-cart') : '#'; ?>">
-          <i class="fa fa-shopping-basket"></i> 
-          <span><?php _e('Cart', 'starter'); ?></span> 
-          <?php if($cart_count > 0) { ?>
-            <em class="counter"><?php echo $cart_count; ?></em>
+  <div class="al-utility">
+    <div class="al-wrap">
+      <div class="al-utility-left">
+        <span class="al-ship-to">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"></path></svg>
+          <?php if ($al_country['code'] !== '') { ?>
+            <?php _e('Ship to', 'starter'); ?>: <strong><?php echo osc_esc_html($al_country['name']); ?></strong>
+          <?php } else { ?>
+            <?php _e('Shipping worldwide', 'starter'); ?>
           <?php } ?>
-        </a>
-      <?php } ?>
-
-      <!-- Currency selector -->
-      <?php if(function_exists('starter_header_currency_selector')) { echo starter_header_currency_selector(); } ?>
-
-      <!-- Language selector -->
-      <div class="language not767">
-        <?php if ( osc_count_web_enabled_locales() > 1) { ?>
-          <?php $current_locale = function_exists('mb_get_current_user_locale') ? mb_get_current_user_locale() : array('s_short_name' => strtoupper(substr(osc_locale_code(), 0, 2)), 'pk_c_code' => osc_locale_code()); ?>
-          <?php osc_goto_first_locale(); ?>
-          <div id="lang-open-box">
-            <span id="lang_open">
-              <span class="le-btn">
-                <i class="fa fa-globe"></i>
-                <span class="non-resp"><?php echo $current_locale['s_short_name']; ?></span>
-                <span class="resp"><?php echo strtoupper(substr($current_locale['pk_c_code'], 0, 2)); ?></span>
-                <i class="fa fa-angle-down arrow"></i>
-              </span>
-            </span>
-            <div id="lang-wrap" class="mb-tool-wrap">
-              <div class="mb-tool-cover">
-                <ul id="lang-box">
-                  <?php $i = 0 ;  ?>
-                  <?php while ( osc_has_web_enabled_locales() ) { ?>
-                    <li <?php if( $i == 0 ) { echo "class='first'" ; } ?> title="<?php echo osc_esc_html(osc_locale_field("s_description")); ?>"><a id="<?php echo osc_locale_code() ; ?>" href="<?php echo osc_change_language_url ( osc_locale_code() ) ; ?>"><span><?php echo osc_locale_name(); ?></span><?php if (osc_locale_code() == $current_locale['pk_c_code']) { ?><i class="fa fa-check"></i><?php } ?></a></li>
-                    <?php $i++ ; ?>
-                  <?php } ?>
-                </ul>
-              </div>
-            </div>
-          </div>
-        <?php } ?>
+        </span>
+        <?php echo starter_header_currency_selector(); ?>
       </div>
+      <nav class="al-utility-right" aria-label="<?php echo osc_esc_html(__('Help', 'starter')); ?>">
+        <a href="<?php echo osc_contact_url(); ?>"><?php _e('Help & contact', 'starter'); ?></a>
+        <a href="<?php echo osc_search_url(array('page' => 'search', 'sAuction' => 1)); ?>"><?php _e('Live auctions', 'starter'); ?></a>
+        <a class="al-utility-sell" href="<?php echo osc_item_post_url(); ?>"><?php _e('Sell on AntiqueLion', 'starter'); ?></a>
+      </nav>
     </div>
+  </div>
 
-    <!-- 3. Actions Block (Right) -->
-    <div class="right-block">
-      <!-- Search Input field -->
-      <div class="search-top">
-        <form action="<?php echo osc_base_url(true); ?>" method="get" class="nocsrf spin">
-          <input type="hidden" name="page" value="search" />
-          <input type="text" name="sPattern" id="query" value="<?php echo osc_esc_html(osc_search_pattern()); ?>" placeholder="<?php _e('Search antiques...', 'starter'); ?>" autocomplete="off" />
-          <button type="submit"><i class="fa fa-search"></i></button>
-        </form>
-      </div>
+  <div class="al-main">
+    <div class="al-wrap">
+      <a class="al-logo resp-logo" href="<?php echo osc_base_url(); ?>" aria-label="<?php echo osc_esc_html(osc_page_title()); ?> - <?php echo osc_esc_html(__('Home', 'starter')); ?>">
+        <?php echo logo_header(); ?>
+      </a>
 
-      <!-- User avatar circle or guest login -->
-      <div class="user-header-block">
-        <?php if(osc_is_web_user_logged_in()) { ?>
-          <a class="picture user-logged-btn tr1 has-menu" href="<?php echo osc_user_dashboard_url(); ?>">
-            <img src="<?php echo starter_profile_picture(osc_logged_user_id(), 'small', true); ?>" alt="<?php echo osc_esc_html(__('User picture', 'starter')); ?>"/>
-            <span class="uname-text"><?php echo osc_esc_html(osc_logged_user_name()); ?></span>
-            <i class="fa fa-angle-down"></i>
-          </a>
-          <div class="user_account user-header" style="display:none;">
-            <div id="sidebar">
+      <form class="al-search nocsrf" action="<?php echo osc_base_url(true); ?>" method="get" role="search">
+        <input type="hidden" name="page" value="search" />
+        <label class="al-search-cat">
+          <span class="al-sr-only"><?php _e('Category', 'starter'); ?></span>
+          <select name="sCategory">
+            <option value=""><?php _e('All categories', 'starter'); ?></option>
+            <?php foreach ($al_categories as $c) { ?>
+              <option value="<?php echo (int)$c['pk_i_id']; ?>"<?php echo $al_search_cat == $c['pk_i_id'] ? ' selected' : ''; ?>><?php echo osc_esc_html($c['s_name']); ?></option>
+            <?php } ?>
+          </select>
+        </label>
+        <label class="al-search-input">
+          <span class="al-sr-only"><?php _e('Search antiques', 'starter'); ?></span>
+          <input type="search" name="sPattern" id="query" value="<?php echo osc_esc_html(osc_search_pattern()); ?>" placeholder="<?php echo osc_esc_html(__('Search furniture, clocks, manuscripts…', 'starter')); ?>" autocomplete="off" />
+        </label>
+        <button type="submit" class="al-search-btn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+          <span><?php _e('Search', 'starter'); ?></span>
+        </button>
+      </form>
+
+      <div class="al-actions">
+        <?php if (osc_is_web_user_logged_in()) { ?>
+          <div class="al-account">
+            <button type="button" class="al-account-btn" aria-haspopup="true" aria-expanded="false">
+              <img src="<?php echo starter_profile_picture(osc_logged_user_id(), 'small', true); ?>" alt="" width="28" height="28" />
+              <span class="al-account-name"><?php echo osc_esc_html(osc_logged_user_name()); ?></span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg>
+            </button>
+            <div class="al-account-menu" hidden>
               <?php echo starter_user_menu(); ?>
             </div>
           </div>
         <?php } else { ?>
-          <a class="le-login-link" href="<?php echo osc_user_login_url(); ?>">
-            <i class="fa fa-user-o"></i>
-            <span><?php _e('Login', 'starter'); ?></span>
+          <a class="al-signin" href="<?php echo osc_user_login_url(); ?>">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg>
+            <span><?php _e('Sign in', 'starter'); ?></span>
           </a>
+          <a class="al-register" href="<?php echo osc_register_account_url(); ?>"><?php _e('Register', 'starter'); ?></a>
         <?php } ?>
+        <a class="al-sell" href="<?php echo osc_item_post_url(); ?>"><?php _e('Sell an item', 'starter'); ?></a>
       </div>
-
-      <!-- CTA Publish button -->
-      <a class="publish round8 tr1" href="<?php echo osc_item_post_url(); ?>">
-        <i class="fa fa-plus"></i>
-        <span><?php _e('Post Your Ad', 'starter'); ?></span>
-      </a>
     </div>
-
-    <?php osc_run_hook('header_bottom'); ?>
   </div>
-</div>
+
+  <nav class="al-cats" aria-label="<?php echo osc_esc_html(__('Categories', 'starter')); ?>">
+    <div class="al-wrap">
+      <a href="<?php echo osc_search_url(array('page' => 'search', 'sAuction' => 1)); ?>" class="al-cat-auctions<?php echo $al_auctions_active ? ' active' : ''; ?>"<?php echo $al_auctions_active ? ' aria-current="page"' : ''; ?>>
+        <span class="al-live-dot" aria-hidden="true"></span><?php _e('Live auctions', 'starter'); ?>
+      </a>
+      <?php foreach ($al_categories as $c) { $active = (!$al_auctions_active && $al_search_cat == $c['pk_i_id']); ?>
+        <a href="<?php echo osc_search_url(array('page' => 'search', 'sCategory' => $c['pk_i_id'])); ?>"<?php echo $active ? ' class="active" aria-current="page"' : ''; ?>><?php echo osc_esc_html($c['s_name']); ?></a>
+      <?php } ?>
+    </div>
+  </nav>
+
+  <?php osc_run_hook('header_bottom'); ?>
+</header>
+
+<script>
+  (function() {
+    var acc = document.querySelector('#al-header .al-account');
+    if (!acc) return;
+    var btn = acc.querySelector('.al-account-btn'), menu = acc.querySelector('.al-account-menu');
+    function setOpen(open) { menu.hidden = !open; btn.setAttribute('aria-expanded', open); }
+    btn.addEventListener('click', function(e) { e.stopPropagation(); setOpen(menu.hidden); });
+    document.addEventListener('click', function(e) { if (!acc.contains(e.target)) setOpen(false); });
+    document.addEventListener('keydown', function(e) { if (e.key === 'Escape') setOpen(false); });
+  })();
+</script>
 
 <!-- Enterprise Mobile App Bottom Dock (Mobile only) -->
 <div class="mobile-bottom-dock is767">
@@ -279,12 +243,8 @@
 
 
 <?php
-  // SHOW SEARCH BAR AND CATEGORY LIST ON HOME & SEARCH PAGE
-  if(osc_is_home_page()) {
-    osc_current_web_theme_path('inc.search.php');
-  }
-
-  if(osc_is_home_page() or osc_is_search_page()) {
+  // CATEGORY SUB-NAV ON SEARCH PAGE (home has its own category section in main.php)
+  if(osc_is_search_page()) {
     osc_current_web_theme_path('inc.category.php');
   } else if(osc_is_ad_page()) {
     osc_current_web_theme_path('inc.item.php');

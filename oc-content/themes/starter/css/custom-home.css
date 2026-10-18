@@ -9,12 +9,12 @@
   --slate-700: #334155;
   --slate-100: #f1f5f9;
   --slate-50: #f8fafc;
-  --gold-700: #d97706;
-  --gold-600: #ea580c;
-  --gold-500: #f59e0b;
+  --gold-700: #A67C2E;
+  --gold-600: #A67C2E;
+  --gold-500: #B8893B;
   --gold-100: #fef3c7;
-  --emerald-500: #10b981;
-  --emerald-600: #059669;
+  --emerald-500: #14213D;
+  --emerald-600: #14213D;
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
@@ -2383,7 +2383,7 @@ html body .input-box i {
 #body-item-edit .row.category label.done:after {
   content: "\f058" !important; /* FontAwesome check-circle icon */
   font-family: "FontAwesome" !important;
-  color: #10b981 !important;
+  color: #14213D !important;
   font-size: 16px !important;
   display: inline-block !important;
 }
@@ -3494,11 +3494,11 @@ body.no-scroll {
   color: #ffffff !important;
 }
 .category-icon-wrapper.gradient-books {
-  background: linear-gradient(135deg, #10b981 0%, #6ee7b7 100%) !important;
+  background: linear-gradient(135deg, #14213D 0%, #6ee7b7 100%) !important;
   color: #ffffff !important;
 }
 .category-icon-wrapper.gradient-collectibles {
-  background: linear-gradient(135deg, #f59e0b 0%, #fde047 100%) !important;
+  background: linear-gradient(135deg, #B8893B 0%, #fde047 100%) !important;
   color: #ffffff !important;
 }
 .category-icon-wrapper.gradient-furniture {
@@ -6823,7 +6823,7 @@ body, html, button, input, select, textarea, h1, h2, h3, h4, h5, h6,
   font-size: 11px !important;
   font-weight: 800 !important;
   text-transform: uppercase !important;
-  color: #d97706 !important;
+  color: #A67C2E !important;
   background: rgba(245, 158, 11, 0.12) !important;
   padding: 4px 10px !important;
   border-radius: 12px !important;
@@ -6972,7 +6972,7 @@ body, html, button, input, select, textarea, h1, h2, h3, h4, h5, h6,
   }
 
   .simple-prod .labels .premium-label {
-    background: linear-gradient(135deg, #f59e0b, #d97706) !important;
+    background: linear-gradient(135deg, #B8893B, #A67C2E) !important;
   }
 
   /* Item Details Container */
@@ -6995,7 +6995,7 @@ body, html, button, input, select, textarea, h1, h2, h3, h4, h5, h6,
     font-weight: 800 !important;
     text-transform: uppercase !important;
     letter-spacing: 0.3px !important;
-    color: #d97706 !important;
+    color: #A67C2E !important;
     background: rgba(245, 158, 11, 0.12) !important;
     padding: 3px 8px !important;
     border-radius: 10px !important;
@@ -7066,7 +7066,7 @@ body, html, button, input, select, textarea, h1, h2, h3, h4, h5, h6,
     font-family: 'Nunito', sans-serif !important;
     font-size: 14.5px !important;
     font-weight: 800 !important;
-    color: #059669 !important;
+    color: #14213D !important;
     letter-spacing: -0.2px !important;
     background: transparent !important;
     border: none !important;
@@ -7131,7 +7131,7 @@ body, html, button, input, select, textarea, h1, h2, h3, h4, h5, h6,
     font-family: 'Nunito', sans-serif !important;
     font-size: 17px !important;
     font-weight: 800 !important;
-    color: #059669 !important;
+    color: #14213D !important;
   }
 }
 
@@ -10336,7 +10336,7 @@ html body #sidebar-search .search-side-form #search-button,
 html body #sidebar-search .search-side-form button[type="submit"] {
   width: 100% !important;
   height: 48px !important;
-  background: linear-gradient(135deg, #d97706 0%, #b45309 100%) !important;
+  background: linear-gradient(135deg, #A67C2E 0%, #8A6420 100%) !important;
   border: none !important;
   border-radius: 10px !important;
   color: #ffffff !important;
@@ -10353,7 +10353,7 @@ html body #sidebar-search .search-side-form button[type="submit"] {
 }
 html body #sidebar-search .search-side-form #search-button:hover,
 html body #sidebar-search .search-side-form button[type="submit"]:hover {
-  background: linear-gradient(135deg, #b45309 0%, #92400e 100%) !important;
+  background: linear-gradient(135deg, #8A6420 0%, #92400e 100%) !important;
   transform: translateY(-1px) !important;
   box-shadow: 0 6px 16px rgba(217, 119, 6, 0.35) !important;
 }
@@ -10559,7 +10559,7 @@ html body #contact textarea#message {
 html body #contact button[type="submit"] {
   width: 100% !important;
   height: 48px !important;
-  background: linear-gradient(135deg, #d97706 0%, #b45309 100%) !important;
+  background: linear-gradient(135deg, #A67C2E 0%, #8A6420 100%) !important;
   border: none !important;
   border-radius: 10px !important;
   color: #ffffff !important;
@@ -10577,7 +10577,7 @@ html body #contact button[type="submit"] {
 
 .contact-submit-btn:hover,
 html body #contact button[type="submit"]:hover {
-  background: linear-gradient(135deg, #b45309 0%, #92400e 100%) !important;
+  background: linear-gradient(135deg, #8A6420 0%, #92400e 100%) !important;
   transform: translateY(-1px) !important;
   box-shadow: 0 6px 18px rgba(217, 119, 6, 0.35) !important;
 }
@@ -10623,7 +10623,7 @@ html body #contact button[type="submit"]:hover {
 #more-info.contact-seller button.send {
   height: 46px !important;
   border-radius: 10px !important;
-  background: linear-gradient(135deg, #d97706 0%, #b45309 100%) !important;
+  background: linear-gradient(135deg, #A67C2E 0%, #8A6420 100%) !important;
   color: #ffffff !important;
   font-weight: 600 !important;
   font-size: 15px !important;
@@ -10958,7 +10958,7 @@ html body .price-input-group {
 html body #body-item-post .price-input-group:focus-within,
 html body #body-item-edit .price-input-group:focus-within,
 html body .price-input-group:focus-within {
-  border-color: #d97706 !important;
+  border-color: #A67C2E !important;
   background: #ffffff !important;
   box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.15) !important;
 }
@@ -10979,7 +10979,7 @@ html body .price-input-group .price-tag-icon {
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  color: #d97706 !important;
+  color: #A67C2E !important;
   font-size: 15px !important;
   flex-shrink: 0 !important;
   margin: 0 !important;

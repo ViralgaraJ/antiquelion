@@ -94,11 +94,11 @@ osc_remove_style('font-awesome47');
 
 osc_enqueue_style('style', osc_current_web_theme_url('css/style.css?v=' . filemtime(__DIR__ . '/css/style.css')));
 osc_enqueue_style('responsive', osc_current_web_theme_url('css/responsive.css?v=' . filemtime(__DIR__ . '/css/responsive.css')));
-osc_enqueue_style('google-font-brand', 'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&display=swap');
-osc_enqueue_style('google-font-nunito', 'https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,300;0,400;0,600;0,700;0,800;1,400;1,600&display=swap');
-echo '<style>body, html, button, input, select, textarea, h1, h2, h3, h4, h5, h6, .category-name, .hero-title, .hero-subtitle, .product-title { font-family: "Nunito", sans-serif !important; }</style>';
+osc_enqueue_style('google-fonts', 'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap');
+echo '<style>body, html, button, input, select, textarea, h4, h5, h6, .category-name, .hero-subtitle, .product-title { font-family: "Manrope", system-ui, sans-serif !important; } h1, h2, h3, .hero-title { font-family: "Cormorant Garamond", Georgia, serif !important; }</style>';
 osc_enqueue_style('custom-home', osc_current_web_theme_url('css/custom-home.css') . '?v=' . filemtime(__DIR__ . '/css/custom-home.css'));
 osc_enqueue_style('antique', osc_current_web_theme_url('css/antique.css') . '?v=' . filemtime(__DIR__ . '/css/antique.css'));
+osc_enqueue_style('al-design', osc_current_web_theme_url('css/al-design.css') . '?v=' . filemtime(__DIR__ . '/css/al-design.css'));
 osc_enqueue_style('font-awesome', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css');
 echo '<style>
   html body #contact-wrap .input-box input,

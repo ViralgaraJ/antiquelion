@@ -50,6 +50,103 @@ osc_add_hook('edited_item', 'antique_bids_edited_item');
 osc_add_hook('delete_item', 'antique_bids_delete_item');
 
 /**
+ * Auction summary for listing cards, or null when the item is not a running/closed auction.
+ * array(live, end (ISO), left ("2d 4h"), amount, label, bids). One query per request.
+ */
+function antique_bids_card_info($itemId) {
+    static $rows = null;
+    if ($rows === null) {
+        $rows = array();
+        $prefix = DB_TABLE_PREFIX;
+        $res = ModelBids::newInstance()->dao->query(
+            "SELECT a.fk_i_item_id, a.dt_end_date, a.d_starting_price, a.b_active,
+                    MAX(b.d_amount) AS high, COUNT(b.pk_i_id) AS bids
+             FROM `{$prefix}t_item_auctions` a
+             LEFT JOIN `{$prefix}t_item_bids` b ON b.fk_i_item_id = a.fk_i_item_id AND b.s_status IN ('active', 'won')
+             WHERE a.b_active = 1
+             GROUP BY a.fk_i_item_id, a.dt_end_date, a.d_starting_price, a.b_active"
+        );
+        if ($res) {
+            foreach ($res->result() as $r) {
+                $rows[(int)$r['fk_i_item_id']] = $r;
+            }
+        }
+    }
+
+    $itemId = (int)$itemId;
+    if (!isset($rows[$itemId])) {
+        return null;
+    }
+    $r = $rows[$itemId];
+    $end = strtotime($r['dt_end_date']);
+    $live = $end > time();
+    $bids = (int)$r['bids'];
+
+    // A finished auction nobody bid on is just a listing again
+    if (!$live && $bids == 0) {
+        return null;
+    }
+
+    return array(
+        'live' => $live,
+        'end' => date('c', $end),
+        'left' => $live ? antique_bids_time_left($end - time()) : 'Ended',
+        'amount' => $bids > 0 ? (float)$r['high'] : (float)$r['d_starting_price'],
+        'label' => $bids > 0 ? ($live ? 'Current bid' : 'Winning bid') : 'Starting bid',
+        'bids' => $bids
+    );
+}
+
+/**
+ * "2d 4h", "5h 12m", "8m" for a number of seconds.
+ */
+function antique_bids_time_left($seconds) {
+    $d = floor($seconds / 86400);
+    $h = floor(($seconds % 86400) / 3600);
+    $m = max(1, floor(($seconds % 3600) / 60));
+    if ($d > 0) {
+        return $d . 'd ' . $h . 'h';
+    }
+    if ($h > 0) {
+        return $h . 'h ' . $m . 'm';
+    }
+    return $m . 'm';
+}
+
+/**
+ * IDs of running auctions, soonest-ending first.
+ */
+function antique_bids_ending_soon($limit = 4) {
+    $prefix = DB_TABLE_PREFIX;
+    $res = ModelBids::newInstance()->dao->query(
+        "SELECT a.fk_i_item_id FROM `{$prefix}t_item_auctions` a
+         JOIN `{$prefix}t_item` i ON i.pk_i_id = a.fk_i_item_id
+         WHERE a.b_active = 1 AND a.dt_end_date > NOW()
+           AND i.b_enabled = 1 AND i.b_active = 1 AND i.b_spam = 0
+         ORDER BY a.dt_end_date ASC LIMIT " . (int)$limit
+    );
+    $ids = array();
+    if ($res) {
+        foreach ($res->result() as $r) {
+            $ids[] = (int)$r['fk_i_item_id'];
+        }
+    }
+    return $ids;
+}
+
+// ?sAuction=1 on the search page lists only auctions that are still running
+osc_add_hook('search_conditions', 'antique_bids_search_conditions');
+
+function antique_bids_search_conditions($params = array()) {
+    if (Params::getParam('sAuction') != '1') {
+        return;
+    }
+    $search = Search::newInstance();
+    $search->addJoinTable('antique_bids_auction', DB_TABLE_PREFIX . 't_item_auctions al_auction', DB_TABLE_PREFIX . 't_item.pk_i_id = al_auction.fk_i_item_id', 'INNER');
+    $search->addConditions('al_auction.b_active = 1 AND al_auction.dt_end_date > NOW()');
+}
+
+/**
  * Renders the live bidding card widget
  */
 function antique_bids_sidebar_widget() {

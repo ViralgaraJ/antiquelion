@@ -3,6 +3,7 @@ define('STARTER_THEME_VERSION', '1.5.1');
 define('USER_MENU_ICONS', 1);
 define('THEME_COMPATIBLE_WITH_OSCLASS_HOOKS', 820);     // Compatibility with new hooks up to version
 
+require_once __DIR__ . '/inc.geo.php';
 require_once __DIR__ . '/inc.currency.php';
 
 
@@ -2131,6 +2132,10 @@ function starter_header_currency_selector() {
     'EUR' => __('Euro', 'starter'),
     'AUD' => __('Australian Dollar', 'starter'),
     'CAD' => __('Canadian Dollar', 'starter'),
+    'NZD' => __('New Zealand Dollar', 'starter'),
+    'SGD' => __('Singapore Dollar', 'starter'),
+    'INR' => __('Indian Rupee', 'starter'),
+    'AED' => __('UAE Dirham', 'starter'),
     'LKR' => __('Sri Lankan Rupee', 'starter')
   );
   $selected = antique_visitor_currency();

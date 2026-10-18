@@ -34,89 +34,80 @@
 <?php osc_run_hook('footer_pre'); ?>
 
 <!-- FOOTER -->
-<div id="footer">
-  <div class="inside">
-    <?php osc_run_hook('footer_top'); ?>
-    
-    <div class="left">
-      <?php $pages = Page::newInstance()->listAll($indelible = 0, $b_link = 1, $locale = null, $start = null, $limit = 10); ?>
+<?php
+  $al_share_url = urlencode(osc_is_ad_page() ? osc_item_url() : osc_base_url());
+  $al_share_title = rawurlencode(osc_is_ad_page() ? osc_item_title() : osc_page_title());
+  $al_pages = Page::newInstance()->listAll($indelible = 0, $b_link = 1, $locale = null, $start = null, $limit = 10);
+?>
+<footer id="al-footer">
+  <?php osc_run_hook('footer_top'); ?>
+  <div class="al-wrap al-footer-grid">
+    <div class="al-footer-brand">
+      <a class="al-footer-logo" href="<?php echo osc_base_url(); ?>"><?php echo logo_header(); ?></a>
+      <p><?php _e('A marketplace for authentic antiques and collectibles. Buy directly from sellers or bid on live auctions, with prices in your own currency.', 'starter'); ?></p>
+      <div class="al-share" aria-label="<?php echo osc_esc_html(__('Share', 'starter')); ?>">
+        <?php if (osc_is_ad_page()) { ?>
+          <a href="https://wa.me/?text=<?php echo $al_share_title; ?>%20<?php echo $al_share_url; ?>" target="_blank" rel="noopener" aria-label="<?php echo osc_esc_html(__('Share on WhatsApp', 'starter')); ?>"><i class="fa fa-whatsapp" aria-hidden="true"></i></a>
+        <?php } ?>
+        <a href="https://www.facebook.com/sharer/sharer.php?u=<?php echo $al_share_url; ?>" target="_blank" rel="noopener" aria-label="<?php echo osc_esc_html(__('Share on Facebook', 'starter')); ?>"><i class="fa fa-facebook" aria-hidden="true"></i></a>
+        <a href="https://pinterest.com/pin/create/button/?url=<?php echo $al_share_url; ?>&amp;description=<?php echo $al_share_title; ?>" target="_blank" rel="noopener" aria-label="<?php echo osc_esc_html(__('Share on Pinterest', 'starter')); ?>"><i class="fa fa-pinterest" aria-hidden="true"></i></a>
+        <a href="https://x.com/intent/post?url=<?php echo $al_share_url; ?>&amp;text=<?php echo $al_share_title; ?>" target="_blank" rel="noopener" aria-label="<?php echo osc_esc_html(__('Share on X', 'starter')); ?>"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" focusable="false"><path fill="currentColor" d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+        <a href="https://www.linkedin.com/sharing/share-offsite/?url=<?php echo $al_share_url; ?>" target="_blank" rel="noopener" aria-label="<?php echo osc_esc_html(__('Share on LinkedIn', 'starter')); ?>"><i class="fa fa-linkedin" aria-hidden="true"></i></a>
+      </div>
+    </div>
 
-      <?php foreach($pages as $p) { ?>
-        <?php View::newInstance()->_exportVariableToView('page', $p); ?>
-
-        <a href="<?php echo osc_static_page_url(); ?>" title="<?php echo osc_esc_html(osc_static_page_title()); ?>"><?php echo ucfirst(osc_static_page_title());?></a>
+    <nav class="al-footer-col" aria-label="<?php echo osc_esc_html(__('Marketplace', 'starter')); ?>">
+      <h2><?php _e('Marketplace', 'starter'); ?></h2>
+      <a href="<?php echo osc_search_url(array('page' => 'search', 'sAuction' => 1)); ?>"><?php _e('Live auctions', 'starter'); ?></a>
+      <a href="<?php echo osc_search_url(array('page' => 'search')); ?>"><?php _e('All listings', 'starter'); ?></a>
+      <?php foreach (array_slice(osc_get_categories(), 0, 4) as $c) { ?>
+        <a href="<?php echo osc_search_url(array('page' => 'search', 'sCategory' => $c['pk_i_id'])); ?>"><?php echo osc_esc_html($c['s_name']); ?></a>
       <?php } ?>
+    </nav>
 
+    <nav class="al-footer-col" aria-label="<?php echo osc_esc_html(__('Sell', 'starter')); ?>">
+      <h2><?php _e('Sell', 'starter'); ?></h2>
+      <a href="<?php echo osc_item_post_url(); ?>"><?php _e('Sell an item', 'starter'); ?></a>
+      <?php if (osc_is_web_user_logged_in()) { ?>
+        <a href="<?php echo osc_user_dashboard_url(); ?>"><?php _e('My account', 'starter'); ?></a>
+        <a href="<?php echo osc_user_list_items_url(); ?>"><?php _e('My listings', 'starter'); ?></a>
+        <a href="<?php echo osc_user_alerts_url(); ?>"><?php _e('Saved searches', 'starter'); ?></a>
+      <?php } else { ?>
+        <a href="<?php echo osc_user_login_url(); ?>"><?php _e('Sign in', 'starter'); ?></a>
+        <a href="<?php echo osc_register_account_url(); ?>"><?php _e('Create an account', 'starter'); ?></a>
+      <?php } ?>
+    </nav>
 
-      <?php
-        $order_id = (int)osc_get_preference('link_remover_order_id', 'starter_theme');
-
-        if($order_id < 8000 || $order_id > 500000 || osc_get_preference('remove_footer_link', 'starter_theme') == 0) {
-          $session_mark = (isset($_SESSION['mb_support_link']) ? $_SESSION['mb_support_link'] : '');
-          
-          if($session_mark == '' || $session_mark == 'str') {
-            $_SESSION['mb_support_link'] = 'str';
-            ?>
-              <span class="mb-support-link str-support-link" data-plugin="starter"><a href="https://osclass-classifieds.com/">Classifieds Ads Software</a></span>
-            <?php
-          }
-        }
-      ?>
-      
+    <nav class="al-footer-col" aria-label="<?php echo osc_esc_html(__('Help', 'starter')); ?>">
+      <h2><?php _e('Help', 'starter'); ?></h2>
+      <a href="<?php echo osc_contact_url(); ?>"><?php _e('Contact us', 'starter'); ?></a>
+      <?php foreach ($al_pages as $p) { View::newInstance()->_exportVariableToView('page', $p); ?>
+        <a href="<?php echo osc_static_page_url(); ?>"><?php echo osc_esc_html(ucfirst(osc_static_page_title())); ?></a>
+      <?php } ?>
       <?php osc_run_hook('footer_links'); ?>
+    </nav>
+  </div>
 
-      <a href="<?php echo osc_contact_url(); ?>"><?php _e('Contact', 'starter'); ?></a>
-    </div>
-
-    <div class="right share">
-      <?php
-        osc_reset_resources();
-
-        if(osc_is_ad_page()) {
-          $share_url = osc_item_url();
-        } else {
-          $share_url = osc_base_url();
-        }
-
-        $share_url = urlencode($share_url);
-      ?>
-
-      <?php if(osc_is_ad_page()) { ?>
-        <span class="whatsapp"><a href="whatsapp://send?text=<?php echo $share_url; ?>" data-action="share/whatsapp/share"><i class="fa fa-whatsapp"></i></a></span>
-      <?php } ?>
-
-      <?php $share_title = rawurlencode(osc_page_title()); ?>
-      <span class="facebook"><a href="https://www.facebook.com/sharer/sharer.php?u=<?php echo $share_url; ?>" title="<?php echo osc_esc_html(__('Share on Facebook', 'starter')); ?>" aria-label="<?php echo osc_esc_html(__('Share on Facebook', 'starter')); ?>" target="_blank" rel="noopener"><i class="fa fa-facebook"></i></a></span>
-      <span class="pinterest"><a href="https://pinterest.com/pin/create/button/?url=<?php echo $share_url; ?>&amp;description=<?php echo $share_title; ?>" title="<?php echo osc_esc_html(__('Share on Pinterest', 'starter')); ?>" aria-label="<?php echo osc_esc_html(__('Share on Pinterest', 'starter')); ?>" target="_blank" rel="noopener"><i class="fa fa-pinterest"></i></a></span>
-      <span class="twitter x-share"><a href="https://x.com/intent/post?url=<?php echo $share_url; ?>&amp;text=<?php echo $share_title; ?>" title="<?php echo osc_esc_html(__('Share on X', 'starter')); ?>" aria-label="<?php echo osc_esc_html(__('Share on X', 'starter')); ?>" target="_blank" rel="noopener"><svg class="x-logo" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" focusable="false"><path fill="currentColor" d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a></span>
-      <span class="linkedin"><a href="https://www.linkedin.com/sharing/share-offsite/?url=<?php echo $share_url; ?>" title="<?php echo osc_esc_html(__('Share on LinkedIn', 'starter')); ?>" aria-label="<?php echo osc_esc_html(__('Share on LinkedIn', 'starter')); ?>" target="_blank" rel="noopener"><i class="fa fa-linkedin"></i></a></span>
-    </div>
-
-    <div class="locales is767">
-      <?php 
-        $current_locale = mb_get_current_user_locale();
-        osc_goto_first_locale(); 
-      ?>
-
-      <?php while(osc_has_web_enabled_locales()) { ?>
-        <a href="<?php echo osc_change_language_url(osc_locale_code()); ?>" class="<?php if(osc_locale_code() == $current_locale['pk_c_code']) { ?>active<?php } ?>">
-
-          <?php
-            $loc = strtoupper(substr(osc_locale_code(), 0, 2));
-            $ext = substr(osc_locale_code(), -2);
-
-            if($loc <> $ext) {
-              $loc .= ' (' . $ext . ')';
+  <div class="al-footer-bottom">
+    <div class="al-wrap">
+      <span>&copy; <?php echo date('Y'); ?> <?php echo osc_esc_html(osc_page_title()); ?></span>
+      <span class="al-footer-credits">
+        <a href="https://www.exchangerate-api.com" target="_blank" rel="noopener"><?php _e('Rates by Exchange Rate API', 'starter'); ?></a>
+        <a href="https://db-ip.com" target="_blank" rel="noopener"><?php _e('IP geolocation by DB-IP', 'starter'); ?></a>
+        <?php
+          $order_id = (int)osc_get_preference('link_remover_order_id', 'starter_theme');
+          if ($order_id < 8000 || $order_id > 500000 || osc_get_preference('remove_footer_link', 'starter_theme') == 0) {
+            $session_mark = (isset($_SESSION['mb_support_link']) ? $_SESSION['mb_support_link'] : '');
+            if ($session_mark == '' || $session_mark == 'str') {
+              $_SESSION['mb_support_link'] = 'str';
+              ?><span class="mb-support-link str-support-link" data-plugin="starter"><a href="https://osclass-classifieds.com/">Classifieds Ads Software</a></span><?php
             }
-
-            echo $loc;
-          ?>
-
-        </a>
-      <?php } ?>
+          }
+        ?>
+      </span>
     </div>
   </div>
-</div>
+</footer>
 
 <?php osc_run_hook('footer_after'); ?>
 

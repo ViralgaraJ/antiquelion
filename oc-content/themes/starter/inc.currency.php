@@ -14,7 +14,7 @@ if (!defined('ABS_PATH')) { exit('ABS_PATH is not loaded. Direct access is not a
  */
 
 // Currencies a visitor can choose to view prices in (header selector)
-define('ANTIQUE_DISPLAY_CURRENCIES', 'USD,GBP,EUR,AUD,CAD,LKR');
+define('ANTIQUE_DISPLAY_CURRENCIES', 'USD,GBP,EUR,AUD,CAD,NZD,SGD,INR,AED,LKR');
 define('ANTIQUE_DEFAULT_CURRENCY', 'USD');
 define('ANTIQUE_FX_TTL', 12 * 3600);       // refresh cached rates after 12h
 define('ANTIQUE_FX_RETRY', 3600);          // wait 1h after a failed fetch
@@ -25,7 +25,8 @@ function antique_display_currencies() {
 }
 
 /**
- * Visitor's display currency: ?display_currency=XXX (remembered in a cookie) > cookie > default.
+ * Visitor's display currency: ?display_currency=XXX (remembered in a cookie) > cookie >
+ * currency of the visitor's country (inc.geo.php) > default.
  * (Not "currency": that name is the listing currency field on the post/edit form.)
  */
 function antique_visitor_currency() {
@@ -51,7 +52,13 @@ function antique_visitor_currency() {
   }
 
   $cookie = isset($_COOKIE[ANTIQUE_CURRENCY_COOKIE]) ? strtoupper($_COOKIE[ANTIQUE_CURRENCY_COOKIE]) : '';
-  $code = in_array($cookie, $allowed) ? $cookie : ANTIQUE_DEFAULT_CURRENCY;
+  if (in_array($cookie, $allowed)) {
+    $code = $cookie;
+  } else {
+    $country = antique_visitor_country();
+    $code = antique_currency_for_country($country['code']);
+    $code = in_array($code, $allowed) ? $code : ANTIQUE_DEFAULT_CURRENCY;
+  }
   return $code;
 }
 // Resolve early so the cookie is sent before any output
