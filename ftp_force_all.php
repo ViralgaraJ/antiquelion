@@ -1,18 +1,16 @@
 <?php
 set_time_limit(300);
-$ftp_server = "antiquelion.com";
-$ftp_user = "antique1";
-$ftp_pass = "Amma@12345*#";
+require __DIR__ . '/ftp_config.php';
 
 $conn_id = ftp_connect($ftp_server, 21, 60);
 if (ftp_login($conn_id, $ftp_user, $ftp_pass)) {
     ftp_pasv($conn_id, true);
     
     $local_files = array(
-        'd:/XAMPP/htdocs/antique_site/oc-content/themes/starter/item-post.php' => 'oc-content/themes/starter/item-post.php',
-        'd:/XAMPP/htdocs/antique_site/oc-content/themes/starter/item-edit.php' => 'oc-content/themes/starter/item-edit.php',
-        'd:/XAMPP/htdocs/antique_site/oc-content/themes/starter/head.php' => 'oc-content/themes/starter/head.php',
-        'd:/XAMPP/htdocs/antique_site/oc-content/themes/starter/css/custom-home.css' => 'oc-content/themes/starter/css/custom-home.css'
+        __DIR__ . '/oc-content/themes/starter/item-post.php' => 'oc-content/themes/starter/item-post.php',
+        __DIR__ . '/oc-content/themes/starter/item-edit.php' => 'oc-content/themes/starter/item-edit.php',
+        __DIR__ . '/oc-content/themes/starter/head.php' => 'oc-content/themes/starter/head.php',
+        __DIR__ . '/oc-content/themes/starter/css/custom-home.css' => 'oc-content/themes/starter/css/custom-home.css'
     );
     
     foreach ($local_files as $local => $remote) {

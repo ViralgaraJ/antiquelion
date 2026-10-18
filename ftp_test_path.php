@@ -1,7 +1,5 @@
 <?php
-$ftp_server = "antiquelion.com";
-$ftp_user = "antique1";
-$ftp_pass = "Amma@12345*#";
+require __DIR__ . '/ftp_config.php';
 
 $conn_id = ftp_connect($ftp_server, 21, 30);
 if (@ftp_login($conn_id, $ftp_user, $ftp_pass)) {

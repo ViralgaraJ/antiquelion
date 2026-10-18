@@ -1,13 +1,11 @@
 <?php
-$ftp_server = "antiquelion.com";
-$ftp_user = "antique1";
-$ftp_pass = "Amma@12345*#";
+require __DIR__ . '/ftp_config.php';
 
 $conn_id = ftp_connect($ftp_server, 21, 60);
 if (ftp_login($conn_id, $ftp_user, $ftp_pass)) {
     ftp_pasv($conn_id, true);
     
-    $local_css = 'd:/XAMPP/htdocs/antique_site/oc-content/themes/starter/css/custom-home.css';
+    $local_css = __DIR__ . '/oc-content/themes/starter/css/custom-home.css';
     $remote_css = 'oc-content/themes/starter/css/custom-home.css';
     
     $fp = fopen($local_css, 'r');
@@ -19,7 +17,7 @@ if (ftp_login($conn_id, $ftp_user, $ftp_pass)) {
     }
     fclose($fp);
     
-    $local_head = 'd:/XAMPP/htdocs/antique_site/oc-content/themes/starter/head.php';
+    $local_head = __DIR__ . '/oc-content/themes/starter/head.php';
     $remote_head = 'oc-content/themes/starter/head.php';
     
     $fp = fopen($local_head, 'r');

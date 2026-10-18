@@ -1,8 +1,6 @@
 <?php
 set_time_limit(300);
-$ftp_server = "antiquelion.com";
-$ftp_user = "antique1";
-$ftp_pass = "Amma@12345*#";
+require __DIR__ . '/ftp_config.php';
 
 $conn_id = ftp_connect($ftp_server, 21, 30) or die("Could not connect to $ftp_server");
 
@@ -29,7 +27,7 @@ if (@ftp_login($conn_id, $ftp_user, $ftp_pass)) {
         'oc-includes/osclass/core/Params.php'
     );
     
-    $base = 'd:/XAMPP/htdocs/antique_site/';
+    $base = __DIR__ . '/';
     foreach($files as $file) {
         $local = $base . $file;
         if (!file_exists($local)) {

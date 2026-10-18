@@ -1,17 +1,15 @@
 <?php
 set_time_limit(300);
-$ftp_server = "antiquelion.com";
-$ftp_user = "antique1";
-$ftp_pass = "Amma@12345*#";
+require __DIR__ . '/ftp_config.php';
 
 $conn_id = ftp_connect($ftp_server, 21, 30) or die("Cannot connect");
 if (@ftp_login($conn_id, $ftp_user, $ftp_pass)) {
     ftp_pasv($conn_id, true);
     
-    $local_head = 'd:/XAMPP/htdocs/antique_site/oc-content/themes/starter/head.php';
-    $local_css  = 'd:/XAMPP/htdocs/antique_site/oc-content/themes/starter/css/custom-home.css';
-    $local_post = 'd:/XAMPP/htdocs/antique_site/oc-content/themes/starter/item-post.php';
-    $local_edit = 'd:/XAMPP/htdocs/antique_site/oc-content/themes/starter/item-edit.php';
+    $local_head = __DIR__ . '/oc-content/themes/starter/head.php';
+    $local_css  = __DIR__ . '/oc-content/themes/starter/css/custom-home.css';
+    $local_post = __DIR__ . '/oc-content/themes/starter/item-post.php';
+    $local_edit = __DIR__ . '/oc-content/themes/starter/item-edit.php';
     
     $upload_map = array(
         $local_head => array(

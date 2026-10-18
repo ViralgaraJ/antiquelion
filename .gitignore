@@ -1,0 +1,16 @@
+# Local / secret config - never commit
+config.php
+config.live.php
+ftp_config.php
+
+# Database dumps
+*.sql.gz
+/*.sql
+
+# Debug logs
+oc-content/debug.log
+oc-content/queries.log
+oc-content/explain_queries.log
+
+# macOS
+.DS_Store
