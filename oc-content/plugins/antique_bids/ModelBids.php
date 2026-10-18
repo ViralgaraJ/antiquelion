@@ -81,10 +81,29 @@ class ModelBids extends DAO {
     }
 
     /**
+     * Public bid history: active and winning bids (withdrawn winners hidden)
+     */
+    public function getBidHistory($itemId, $limit = 10) {
+        $this->dao->select('b.*, u.s_name as user_name');
+        $this->dao->from(DB_TABLE_PREFIX . 't_item_bids b');
+        $this->dao->join(DB_TABLE_PREFIX . 't_user u', 'b.fk_i_user_id = u.pk_i_id', 'INNER');
+        $this->dao->where('b.fk_i_item_id', (int)$itemId);
+        $this->dao->whereIn('b.s_status', array('active', 'won'));
+        $this->dao->orderBy('b.d_amount', 'DESC');
+        $this->dao->limit($limit);
+        $result = $this->dao->get();
+
+        if ($result && $result->numRows() > 0) {
+            return $result->result();
+        }
+        return array();
+    }
+
+    /**
      * Places a bid safely with transactional locking (SELECT FOR UPDATE)
      * to prevent race conditions during high concurrency.
      */
-    public function placeBid($itemId, $userId, $amount, $ipAddress) {
+    public function placeBid($itemId, $userId, $amount, $ipAddress, $currency = '') {
         $this->dao->connId->autocommit(false);
 
         try {
@@ -121,10 +140,10 @@ class ModelBids extends DAO {
 
             // 3. Validate user bid amount
             if (!is_finite($amount) || $amount > ANTIQUE_BIDS_MAX_BID) {
-                throw new Exception("Bid cannot exceed LKR " . number_format(ANTIQUE_BIDS_MAX_BID, 2));
+                throw new Exception("Bid cannot exceed " . trim($currency . ' ' . number_format(ANTIQUE_BIDS_MAX_BID)));
             }
             if ($amount < $minNextBid) {
-                throw new Exception("Bid must be at least LKR " . number_format($minNextBid, 2));
+                throw new Exception("Bid must be at least " . trim($currency . ' ' . number_format($minNextBid, 2)));
             }
 
             // 4. Record new bid in DB

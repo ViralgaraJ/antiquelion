@@ -10,6 +10,16 @@ Short Name: antique_bids
 
 require_once osc_plugins_path() . 'antique_bids/ModelBids.php';
 
+/**
+ * "USD 12,500" style amount in the listing's own currency.
+ */
+function antique_bids_money($amount, $currency) {
+    if (function_exists('antique_money')) {
+        return antique_money($amount, $currency);
+    }
+    return trim($currency . ' ' . number_format((float)$amount, 2));
+}
+
 // Register Plugin Install / Uninstall callbacks
 osc_register_plugin(osc_plugin_path(__FILE__), 'antique_bids_install');
 osc_add_hook(osc_plugin_path(__FILE__) . '_uninstall', 'antique_bids_uninstall');
@@ -62,13 +72,15 @@ function antique_bids_sidebar_widget() {
         $auction = ModelBids::newInstance()->getAuction($itemId); // Re-fetch
     }
 
+    $currency = osc_item_currency() ? osc_item_currency() : 'USD';
+
     // Fetch highest active bid
     $highestBidRow = ModelBids::newInstance()->getHighestBid($itemId);
     $currentHighest = $highestBidRow ? $highestBidRow['d_amount'] : $auction['d_starting_price'];
     $minNextBid = $currentHighest + $auction['d_min_increment'];
 
-    // Fetch recent bid history
-    $bidsHistory = ModelBids::newInstance()->getBids($itemId, 5);
+    // Public bid history (active + winning bids; cancelled winners are hidden)
+    $bidsHistory = ModelBids::newInstance()->getBidHistory($itemId, 5);
 
     // Fetch winning bid if expired
     $wonBid = null;
@@ -87,6 +99,19 @@ function antique_bids_sidebar_widget() {
     }
     
     $isWinner = ($wonBid && osc_is_web_user_logged_in() && $wonBid['fk_i_user_id'] == $userId);
+
+    if ($isExpired && $wonBid) {
+        $statLabel = 'Winning Bid';
+        $statAmount = $wonBid['d_amount'];
+    } elseif ($highestBidRow) {
+        $statLabel = 'Current Highest Bid';
+        $statAmount = $currentHighest;
+    } else {
+        $statLabel = 'Starting Price';
+        $statAmount = $auction['d_starting_price'];
+    }
+    // ISO 8601 with offset so the countdown is correct in every visitor timezone
+    $endTimeIso = date('c', strtotime($endTime));
     ?>
     <div class="antique-bidding-card">
         <div class="bid-header">
@@ -100,12 +125,12 @@ function antique_bids_sidebar_widget() {
         
         <div class="bid-stats">
             <div class="stat-col">
-                <span class="label">Current Highest Bid</span>
-                <span class="value gold-accent" id="live-highest-bid">LKR <?php echo number_format($currentHighest, 2); ?></span>
+                <span class="label" id="live-bid-label"><?php echo $statLabel; ?></span>
+                <span class="value gold-accent" id="live-highest-bid"><?php echo osc_esc_html(antique_bids_money($statAmount, $currency)); ?></span>
             </div>
             <div class="stat-col">
                 <span class="label">Time Remaining</span>
-                <span class="value <?php echo $isExpired ? 'text-danger' : ''; ?>" id="countdown-timer" data-endtime="<?php echo $endTime; ?>">
+                <span class="value <?php echo $isExpired ? 'text-danger' : ''; ?>" id="countdown-timer" data-endtime="<?php echo $endTimeIso; ?>">
                     <?php echo $isExpired ? 'Ended' : 'Calculating...'; ?>
                 </span>
             </div>
@@ -120,7 +145,7 @@ function antique_bids_sidebar_widget() {
                         <div class="console-winner-details">
                             <div class="winner-row"><strong>Name:</strong> <span><?php echo osc_esc_html($wonBid['user_name']); ?></span></div>
                             <div class="winner-row"><strong>Email:</strong> <span><?php echo osc_esc_html($wonBid['user_email']); ?></span></div>
-                            <div class="winner-row"><strong>Amount:</strong> <span class="gold-accent font-700">LKR <?php echo number_format($wonBid['d_amount'], 2); ?></span></div>
+                            <div class="winner-row"><strong>Amount:</strong> <span class="gold-accent font-700"><?php echo osc_esc_html(antique_bids_money($wonBid['d_amount'], $currency)); ?></span></div>
                             <div class="winner-row"><strong>Status:</strong> <span class="status-won font-700">Winner Declared</span></div>
                         </div>
                         <button type="button" id="cancel-winner-btn" class="btn btn-secondary cancel-winner-btn" data-itemid="<?php echo $itemId; ?>">
@@ -136,14 +161,14 @@ function antique_bids_sidebar_widget() {
             <?php elseif ($isWinner): ?>
                 <div class="bid-winner-notice">
                     <h4><i class="fa fa-trophy"></i> You won this auction!</h4>
-                    <p class="winner-desc">Congratulations! Your bid of <strong>LKR <?php echo number_format($wonBid['d_amount'], 2); ?></strong> was the winning bid.</p>
+                    <p class="winner-desc">Congratulations! Your bid of <strong><?php echo osc_esc_html(antique_bids_money($wonBid['d_amount'], $currency)); ?></strong> was the winning bid.</p>
                     <p class="winner-desc">Please contact the seller <strong><?php echo osc_esc_html(osc_item_contact_name()); ?></strong> to complete the transaction.</p>
                     <a href="#contact" class="btn btn-primary contact-seller-win-btn">Contact Seller Now</a>
                 </div>
             <?php else: ?>
                 <?php if ($wonBid): ?>
                     <div class="bid-expired-notice">
-                        <i class="fa fa-gavel"></i> Bidding has closed. The winning bid was <strong>LKR <?php echo number_format($wonBid['d_amount'], 2); ?></strong>.
+                        <i class="fa fa-gavel"></i> Bidding has closed. The winning bid was <strong><?php echo osc_esc_html(antique_bids_money($wonBid['d_amount'], $currency)); ?></strong>.
                     </div>
                 <?php else: ?>
                     <div class="bid-expired-notice">
@@ -166,8 +191,8 @@ function antique_bids_sidebar_widget() {
         <?php else: ?>
             <div class="bid-action-form">
                 <div class="input-wrap">
-                    <span class="currency-label">LKR</span>
-                    <input type="number" id="user-bid-amount" placeholder="Min. <?php echo number_format($minNextBid, 2); ?>" min="<?php echo $minNextBid; ?>" step="<?php echo $auction['d_min_increment']; ?>">
+                    <span class="currency-label"><?php echo osc_esc_html($currency); ?></span>
+                    <input type="number" id="user-bid-amount" placeholder="Min. <?php echo osc_esc_html(number_format($minNextBid)); ?>" min="<?php echo $minNextBid; ?>" step="<?php echo $auction['d_min_increment']; ?>">
                 </div>
                 <button type="button" id="place-bid-btn" class="btn btn-primary">Place Bid</button>
             </div>
@@ -179,12 +204,12 @@ function antique_bids_sidebar_widget() {
             <h4>Recent Bids</h4>
             <ul id="bid-history-list">
                 <?php if (empty($bidsHistory)): ?>
-                    <li class="no-bids-msg">No bids placed yet. Be the first!</li>
+                    <li class="no-bids-msg"><?php echo $isExpired ? 'No bids were placed.' : 'No bids yet. Be the first!'; ?></li>
                 <?php else: ?>
                     <?php foreach ($bidsHistory as $bid): ?>
                         <li>
-                            <span class="bidder-name"><i class="fa fa-user-circle"></i> <?php echo osc_esc_html($bid['user_name']); ?></span>
-                            <span class="bid-amt">LKR <?php echo number_format($bid['d_amount'], 2); ?></span>
+                            <span class="bidder-name"><i class="fa <?php echo $bid['s_status'] == 'won' ? 'fa-trophy' : 'fa-user-circle'; ?>"></i> <?php echo osc_esc_html($bid['user_name']); ?></span>
+                            <span class="bid-amt"><?php echo osc_esc_html(antique_bids_money($bid['d_amount'], $currency)); ?></span>
                         </li>
                     <?php endforeach; ?>
                 <?php endif; ?>
@@ -198,12 +223,18 @@ function antique_bids_sidebar_widget() {
     <!-- Countdown and Real-time JS Toggles (Vanilla JS to bypass jQuery footer enqueuing restrictions) -->
     <script type="text/javascript">
     document.addEventListener('DOMContentLoaded', function() {
+        var bidCurrency = <?php echo json_encode($currency); ?>;
+        function fmtMoney(v) {
+            var n = parseFloat(v), whole = Math.abs(n - Math.round(n)) < 0.005;
+            return bidCurrency + ' ' + n.toLocaleString('en-US', {minimumFractionDigits: whole ? 0 : 2, maximumFractionDigits: whole ? 0 : 2});
+        }
+
         // 1. Live Countdown Timer
         var countdownEl = document.getElementById('countdown-timer');
         if (countdownEl) {
             var endTimeStr = countdownEl.getAttribute('data-endtime');
             if (endTimeStr && endTimeStr !== '' && countdownEl.textContent.trim() !== 'Ended') {
-                var endTime = new Date(endTimeStr.replace(/-/g, "/")).getTime();
+                var endTime = new Date(endTimeStr).getTime();
 
                 var timerInterval = setInterval(function() {
                     var now = new Date().getTime();
@@ -268,7 +299,8 @@ function antique_bids_sidebar_widget() {
                                 if (response.success) {
                                     feedback.innerHTML = '<span class="text-success success-alert"><i class="fa fa-check-circle"></i> ' + response.message + '</span>';
                                     feedback.style.display = 'block';
-                                    document.getElementById('live-highest-bid').innerHTML = 'LKR ' + parseFloat(response.newHighest).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                                    document.getElementById('live-highest-bid').textContent = fmtMoney(response.newHighest);
+                                    document.getElementById('live-bid-label').textContent = 'Current Highest Bid';
                                     
                                     var increment = <?php echo (float)$auction['d_min_increment']; ?>;
                                     var nextMin = parseFloat(response.newHighest) + increment;
@@ -312,7 +344,7 @@ function antique_bids_sidebar_widget() {
                             for (var i = 0; i < data.length; i++) {
                                 var bid = data[i];
                                 html += '<li><span class="bidder-name"><i class="fa fa-user-circle"></i> ' + escapeHtml(bid.user_name) + '</span>';
-                                html += '<span class="bid-amt">LKR ' + parseFloat(bid.d_amount).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + '</span></li>';
+                                html += '<span class="bid-amt">' + escapeHtml(fmtMoney(bid.d_amount)) + '</span></li>';
                             }
                             var historyList = document.getElementById('bid-history-list');
                             if (historyList) {
@@ -350,11 +382,12 @@ function antique_bids_sidebar_widget() {
                             var data = JSON.parse(xhr.responseText);
                             if (data && data.success) {
                                 var liveBidEl = document.getElementById('live-highest-bid');
-                                var currentHighest = parseFloat(liveBidEl.textContent.replace(/LKR /g, '').replace(/,/g, ''));
+                                var currentHighest = parseFloat(liveBidEl.textContent.replace(/[^0-9.]/g, ''));
                                 var apiHighest = parseFloat(data.amount);
                                 
                                 if (apiHighest > currentHighest) {
-                                    liveBidEl.innerHTML = 'LKR ' + apiHighest.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                                    liveBidEl.textContent = fmtMoney(apiHighest);
+                                    document.getElementById('live-bid-label').textContent = 'Current Highest Bid';
                                     var increment = <?php echo (float)$auction['d_min_increment']; ?>;
                                     var nextMin = apiHighest + increment;
                                     var bidInput = document.getElementById('user-bid-amount');
@@ -476,7 +509,7 @@ function antique_bids_ajax_place_bid() {
     }
 
     // 5. Model execution
-    $res = ModelBids::newInstance()->placeBid($itemId, $userId, $bidAmount, $ipAddress);
+    $res = ModelBids::newInstance()->placeBid($itemId, $userId, $bidAmount, $ipAddress, $item['fk_c_currency_code']);
 
     if ($res === true) {
         echo json_encode(array(
@@ -498,7 +531,7 @@ function antique_bids_ajax_history() {
     $itemId = (int)Params::getParam('itemId');
     $history = array();
     // Public endpoint: only expose what the widget displays (no IPs / user IDs)
-    foreach (ModelBids::newInstance()->getBids($itemId, 5) as $bid) {
+    foreach (ModelBids::newInstance()->getBidHistory($itemId, 5) as $bid) {
         $history[] = array(
             'user_name' => $bid['user_name'],
             'd_amount'  => $bid['d_amount']
@@ -575,19 +608,17 @@ function antique_bids_render_form($auction = null) {
         
         <div id="bids-details-panel" class="bids-slide-panel" style="<?php echo $enabled ? 'display: flex;' : 'display: none;'; ?>">
             <div class="form-row">
-                <label for="bids_starting_price">Starting Price (LKR)</label>
+                <label for="bids_starting_price">Starting Price</label>
                 <div class="input-wrap-post">
-                    <span class="currency-label-post">LKR</span>
-                    <input type="number" name="bids_starting_price" id="bids_starting_price" value="<?php echo osc_esc_html($startingPrice); ?>" placeholder="Leave blank to use main listing price" style="padding-left: 45px;">
+                    <input type="number" name="bids_starting_price" id="bids_starting_price" value="<?php echo osc_esc_html($startingPrice); ?>" placeholder="Leave blank to use main listing price">
                 </div>
-                <span class="help-text">This will be the base price where bidding starts.</span>
+                <span class="help-text">In the same currency as your listing price. Bidding starts here.</span>
             </div>
             
             <div class="form-row">
-                <label for="bids_min_increment">Minimum Bid Increment (LKR)</label>
+                <label for="bids_min_increment">Minimum Bid Increment</label>
                 <div class="input-wrap-post">
-                    <span class="currency-label-post">LKR</span>
-                    <input type="number" name="bids_min_increment" id="bids_min_increment" value="<?php echo osc_esc_html($minIncrement); ?>" min="1" style="padding-left: 45px;">
+                    <input type="number" name="bids_min_increment" id="bids_min_increment" value="<?php echo osc_esc_html($minIncrement); ?>" min="1">
                 </div>
                 <span class="help-text">The minimum extra amount a bidder must add to the current highest bid.</span>
             </div>
@@ -763,7 +794,7 @@ function antique_bids_send_winner_emails($itemId, $highest) {
     
     $winnerEmail = $winnerUser['s_email'];
     $winnerName = $winnerUser['s_name'];
-    $bidAmountStr = number_format($highest['d_amount'], 2) . ' LKR';
+    $bidAmountStr = antique_bids_money($highest['d_amount'], $item['fk_c_currency_code']);
     
     $itemUrl = osc_item_url_from_item($item);
     
@@ -924,7 +955,7 @@ function antique_bids_send_second_chance_emails($itemId, $oldBid, $newBid) {
     if ($oldWinner) {
         $oldSubject = "Auction Update: Your winning bid for " . $item['s_title'] . " has been cancelled";
         $oldBody = "Hello " . osc_esc_html($oldWinner['s_name']) . ",<br/><br/>";
-        $oldBody .= "Your winning bid of <strong>" . number_format($oldBid['d_amount'], 2) . " LKR</strong> for the antique <strong>" . osc_esc_html($item['s_title']) . "</strong> has been cancelled by the seller.<br/>";
+        $oldBody .= "Your winning bid of <strong>" . antique_bids_money($oldBid['d_amount'], $item['fk_c_currency_code']) . "</strong> for the antique <strong>" . osc_esc_html($item['s_title']) . "</strong> has been cancelled by the seller.<br/>";
         $oldBody .= "This action was taken due to a payment timeout (non-payment within the 24-hour limit).<br/><br/>";
         $oldBody .= "Thank you,<br/>AntiqueLanka Team";
         
@@ -944,7 +975,7 @@ function antique_bids_send_second_chance_emails($itemId, $oldBid, $newBid) {
         $newSubject = "Second Chance Offer: You won the auction for " . $item['s_title'] . "!";
         $newBody = "Hello " . osc_esc_html($newWinner['s_name']) . ",<br/><br/>";
         $newBody .= "Good news! The previous highest bidder did not finalize payment, and the seller of <strong>" . osc_esc_html($item['s_title']) . "</strong> has offered the item to you as the next highest bidder.<br/>";
-        $newBody .= "Your bid amount: <strong>" . number_format($newBid['d_amount'], 2) . " LKR</strong>.<br/><br/>";
+        $newBody .= "Your bid amount: <strong>" . antique_bids_money($newBid['d_amount'], $item['fk_c_currency_code']) . "</strong>.<br/><br/>";
         $newBody .= "Please complete payment and coordinate shipping with the seller within 24 hours.<br/>";
         $newBody .= "You can contact the seller directly by visiting the listing page here: <a href='" . osc_item_url_from_item($item) . "'>" . osc_item_url_from_item($item) . "</a>.<br/><br/>";
         $newBody .= "Thank you,<br/>AntiqueLanka Team";
@@ -962,8 +993,8 @@ function antique_bids_send_second_chance_emails($itemId, $oldBid, $newBid) {
 
     $sellerSubject = "Seller Update: Winner cancelled, offered to next bidder";
     $sellerBody = "Hello " . osc_esc_html($item['s_contact_name']) . ",<br/><br/>";
-    $sellerBody .= "You have successfully cancelled the winning bid of <strong>" . number_format($oldBid['d_amount'], 2) . " LKR</strong> due to non-payment.<br/>";
-    $sellerBody .= "The item <strong>" . osc_esc_html($item['s_title']) . "</strong> has been offered to the 2nd highest bidder: <strong>" . osc_esc_html($newBid['user_name']) . "</strong> (Email: " . osc_esc_html($newWinner['s_email']) . ") at their bid price of <strong>" . number_format($newBid['d_amount'], 2) . " LKR</strong>.<br/><br/>";
+    $sellerBody .= "You have successfully cancelled the winning bid of <strong>" . antique_bids_money($oldBid['d_amount'], $item['fk_c_currency_code']) . "</strong> due to non-payment.<br/>";
+    $sellerBody .= "The item <strong>" . osc_esc_html($item['s_title']) . "</strong> has been offered to the 2nd highest bidder: <strong>" . osc_esc_html($newBid['user_name']) . "</strong> (Email: " . osc_esc_html($newWinner['s_email']) . ") at their bid price of <strong>" . antique_bids_money($newBid['d_amount'], $item['fk_c_currency_code']) . "</strong>.<br/><br/>";
     $sellerBody .= "Please wait for the new winner to coordinate payment.<br/><br/>";
     $sellerBody .= "Thank you,<br/>AntiqueLanka Team";
 
@@ -989,7 +1020,7 @@ function antique_bids_send_cancellation_no_bidders_emails($itemId, $oldBid) {
     if ($oldWinner) {
         $oldSubject = "Auction Update: Your winning bid for " . $item['s_title'] . " has been cancelled";
         $oldBody = "Hello " . osc_esc_html($oldWinner['s_name']) . ",<br/><br/>";
-        $oldBody .= "Your winning bid of <strong>" . number_format($oldBid['d_amount'], 2) . " LKR</strong> for the antique <strong>" . osc_esc_html($item['s_title']) . "</strong> has been cancelled by the seller due to non-payment.<br/><br/>";
+        $oldBody .= "Your winning bid of <strong>" . antique_bids_money($oldBid['d_amount'], $item['fk_c_currency_code']) . "</strong> for the antique <strong>" . osc_esc_html($item['s_title']) . "</strong> has been cancelled by the seller due to non-payment.<br/><br/>";
         $oldBody .= "Thank you,<br/>AntiqueLanka Team";
         
         $oldParams = array(
@@ -1005,7 +1036,7 @@ function antique_bids_send_cancellation_no_bidders_emails($itemId, $oldBid) {
 
     $sellerSubject = "Seller Update: Winner cancelled, no other bidders";
     $sellerBody = "Hello " . osc_esc_html($item['s_contact_name']) . ",<br/><br/>";
-    $sellerBody .= "You have successfully cancelled the winning bid of <strong>" . number_format($oldBid['d_amount'], 2) . " LKR</strong> due to non-payment.<br/>";
+    $sellerBody .= "You have successfully cancelled the winning bid of <strong>" . antique_bids_money($oldBid['d_amount'], $item['fk_c_currency_code']) . "</strong> due to non-payment.<br/>";
     $sellerBody .= "There are no other active bids on the listing <strong>" . osc_esc_html($item['s_title']) . "</strong>.<br/>";
     $sellerBody .= "You may re-list the auction or adjust its starting price here: <a href='" . osc_item_edit_url('', $itemId) . "'>Edit Listing</a>.<br/><br/>";
     $sellerBody .= "Thank you,<br/>AntiqueLanka Team";

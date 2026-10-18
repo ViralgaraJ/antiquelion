@@ -1,0 +1,299 @@
+/*
+ * AntiqueLion fixes (Phase 1).
+ * Loaded after custom-home.css. Keep rules here scoped and specific; the
+ * legacy files are planned for a rewrite, so avoid adding to them.
+ */
+
+/* ---------- Header currency selector ---------- */
+.header-currency-selector {
+  position: relative;
+  display: inline-block;
+  margin-right: 8px;
+}
+
+.header-currency-selector .currency-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.header-currency-selector .currency-dropdown-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 999;
+  min-width: 210px;
+  margin: 6px 0 0;
+  padding: 6px 0;
+  list-style: none;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.15);
+}
+
+.header-currency-selector .currency-dropdown-menu.open {
+  display: block;
+}
+
+.header-currency-selector .currency-dropdown-menu li {
+  margin: 0;
+}
+
+.header-currency-selector .currency-dropdown-menu a {
+  display: block;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: #334155;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.header-currency-selector .currency-dropdown-menu a strong {
+  display: inline-block;
+  min-width: 38px;
+  color: #0f172a;
+}
+
+.header-currency-selector .currency-dropdown-menu a:hover,
+.header-currency-selector .currency-dropdown-menu a.active {
+  background: #fff7ed;
+  color: #9a3412;
+}
+
+/* ---------- Converted price hint ("≈ USD 2,150") ---------- */
+.price-converted {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.72em;
+  font-weight: 500;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+/* ---------- Form inputs with a leading icon ----------
+   Icons are absolutely positioned at ~12-32px; several inputs (city area, zip,
+   address, name, email) only had 14px padding so the icon covered the text. */
+html body .input-box:has(> i.fa) > input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+#body-item-post .content.add_item .input-box:has(> i.fa) > input:not(#price),
+#body-item-edit .content.add_item .input-box:has(> i.fa) > input:not(#price) {
+  padding-left: 40px !important;
+}
+
+/* ---------- Post/edit form: price amount + listing currency ---------- */
+.add_item .price-amount-currency {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.add_item .price-amount-currency input#price {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.add_item .price-amount-currency .simple-currency {
+  position: relative;
+  flex: 0 0 96px;
+}
+
+.add_item .price-amount-currency .simple-currency .text {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 100%;
+  padding: 0 12px;
+  font-weight: 700;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+/* ---------- Post/edit form: photo upload card ----------
+   The legacy styles (style.css + two blocks in custom-home.css) absolutely
+   position two picture icons over the text. Lay it out as a simple column. */
+#body-item-post #photos .sample-box,
+#body-item-edit #photos .sample-box {
+  width: auto !important;
+  max-width: 340px !important;
+  height: auto !important;
+  min-height: 0 !important;
+  margin: 0 auto !important;
+}
+
+#body-item-post #photos .sample-box .ins,
+#body-item-edit #photos .sample-box .ins {
+  position: static !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 6px !important;
+  height: auto !important;
+  padding: 28px 20px 20px !important;
+  text-align: center !important;
+}
+
+#body-item-post #photos .sample-box i.one,
+#body-item-post #photos .sample-box i.two,
+#body-item-edit #photos .sample-box i.one,
+#body-item-edit #photos .sample-box i.two {
+  display: none !important;
+}
+
+#body-item-post #photos .sample-box i.three,
+#body-item-edit #photos .sample-box i.three {
+  position: static !important;
+  display: block !important;
+  width: auto !important;
+  height: auto !important;
+  margin: 0 0 4px !important;
+  font-size: 44px !important;
+  line-height: 1 !important;
+  color: #d97706 !important;
+  background: none !important;
+  transform: none !important;
+}
+
+#body-item-post #photos .sample-box .top,
+#body-item-post #photos .sample-box .bot,
+#body-item-post #photos .sample-box .upload-card-subtext,
+#body-item-edit #photos .sample-box .top,
+#body-item-edit #photos .sample-box .bot,
+#body-item-edit #photos .sample-box .upload-card-subtext {
+  position: static !important;
+  display: block !important;
+  width: auto !important;
+  margin: 0 !important;
+  transform: none !important;
+  text-align: center !important;
+}
+
+#body-item-post #photos .sample-box .top,
+#body-item-edit #photos .sample-box .top {
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  color: #0f172a !important;
+}
+
+#body-item-post #photos .sample-box .bot,
+#body-item-edit #photos .sample-box .bot {
+  font-size: 13px !important;
+  color: #475569 !important;
+}
+
+#body-item-post #photos .sample-box .upload-card-subtext,
+#body-item-edit #photos .sample-box .upload-card-subtext {
+  margin-top: 8px !important;
+  padding: 6px 10px !important;
+  font-size: 12px !important;
+  border-radius: 6px !important;
+}
+
+#body-item-post #photos .sample-box .upload-card-subtext i,
+#body-item-edit #photos .sample-box .upload-card-subtext i {
+  position: static !important;
+  display: inline !important;
+  width: auto !important;
+  height: auto !important;
+  margin: 0 4px 0 0 !important;
+  font-size: inherit !important;
+  line-height: inherit !important;
+  color: inherit !important;
+  background: none !important;
+  border-radius: 0 !important;
+  transform: none !important;
+}
+
+/* ---------- Brand wordmark (until a designed images/logo.svg exists) ---------- */
+#header-bar .logo a .brand-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: #f59e0b;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+#header-bar .logo a .brand-emblem {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+}
+
+/* legacy "#header-bar .logo a span" forces uppercase/white/20px with !important */
+#header-bar .logo a span.brand-wordmark,
+#header-bar .logo a span.brand-wordmark span {
+  font-family: "Cormorant Garamond", Georgia, "Times New Roman", serif !important;
+  font-size: 27px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.3px !important;
+  text-transform: none !important;
+}
+
+#header-bar .logo a span.brand-wordmark span.brand-a {
+  color: #ffffff !important;
+}
+
+#header-bar .logo a span.brand-wordmark span.brand-b {
+  color: #f59e0b !important;
+}
+
+/* keep header links on one line now that the logo is wider */
+#header-bar .left-block a,
+#header-bar .right-block a,
+#header-bar .currency-toggle {
+  white-space: nowrap;
+}
+
+#header-bar .logo img.brand-logo-img {
+  height: 40px !important;
+  border-radius: 0 !important;
+  filter: none !important;
+}
+
+@media (max-width: 480px) {
+  #header-bar .logo a .brand-emblem {
+    width: 30px;
+    height: 30px;
+    flex-basis: 30px;
+  }
+
+  #header-bar .logo a span.brand-wordmark,
+  #header-bar .logo a span.brand-wordmark span {
+    font-size: 22px !important;
+  }
+}
+
+/* Header fit: let the search box give up space before anything overflows */
+#header-bar .middle-block.logo {
+  margin-right: 20px !important;
+}
+
+#header-bar .left-block {
+  flex: 0 1 auto !important;
+  width: auto !important;          /* legacy: width 42% */
+}
+
+#header-bar .right-block {
+  flex: 1 1 auto !important;
+  width: auto !important;
+  min-width: 0 !important;
+  justify-content: flex-end;
+}
+
+#header-bar .right-block .search-top {
+  width: auto !important;          /* legacy: width 240px !important */
+  flex: 0 1 240px;
+  min-width: 140px;
+}
+
+#header-bar .right-block .search-top form,
+#header-bar .right-block .search-top input {
+  width: 100% !important;
+  min-width: 0 !important;
+}

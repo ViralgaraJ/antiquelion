@@ -45,6 +45,16 @@
   var fileBtnText     = '<?php echo osc_esc_js(__('Choose File', 'starter')); ?>';
   var starterHeaderImg = '<?php echo osc_base_url() . 'oc-content/themes/' . osc_current_web_theme() . '/images/header-icons.png'; ?>';
   var baseDir = "<?php echo osc_base_url(); ?>";
+
+  // Listing photos whose file is missing show the placeholder instead of a broken image
+  document.addEventListener('error', function(e) {
+    var img = e.target;
+    if (img.tagName === 'IMG' && !img.getAttribute('data-fallback') && /oc-content\/uploads\//.test(img.currentSrc || img.src)) {
+      img.setAttribute('data-fallback', '1');
+      img.src = '<?php echo osc_esc_js(osc_current_web_theme_url('images/no-image.png')); ?>';
+    }
+  }, true);
+
   var baseSearchUrl = '<?php echo osc_search_url(array('page' => 'search')); ?>';
   var baseAjaxUrl = '<?php echo zara_ajax_url(); ?>';
   var baseAdminDir = '<?php echo osc_admin_base_url(true); ?>';
@@ -82,11 +92,13 @@ osc_remove_style('font-awesome44');
 osc_remove_style('font-awesome45');
 osc_remove_style('font-awesome47');
 
-osc_enqueue_style('style', osc_current_web_theme_url('css/style.css?v=' . time()));
-osc_enqueue_style('responsive', osc_current_web_theme_url('css/responsive.css?v=' . time()));
+osc_enqueue_style('style', osc_current_web_theme_url('css/style.css?v=' . filemtime(__DIR__ . '/css/style.css')));
+osc_enqueue_style('responsive', osc_current_web_theme_url('css/responsive.css?v=' . filemtime(__DIR__ . '/css/responsive.css')));
+osc_enqueue_style('google-font-brand', 'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&display=swap');
 osc_enqueue_style('google-font-nunito', 'https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,300;0,400;0,600;0,700;0,800;1,400;1,600&display=swap');
 echo '<style>body, html, button, input, select, textarea, h1, h2, h3, h4, h5, h6, .category-name, .hero-title, .hero-subtitle, .product-title { font-family: "Nunito", sans-serif !important; }</style>';
-osc_enqueue_style('custom-home', osc_current_web_theme_url('css/custom-home.css') . '?v=' . time());
+osc_enqueue_style('custom-home', osc_current_web_theme_url('css/custom-home.css') . '?v=' . filemtime(__DIR__ . '/css/custom-home.css'));
+osc_enqueue_style('antique', osc_current_web_theme_url('css/antique.css') . '?v=' . filemtime(__DIR__ . '/css/antique.css'));
 osc_enqueue_style('font-awesome', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css');
 echo '<style>
   html body #contact-wrap .input-box input,

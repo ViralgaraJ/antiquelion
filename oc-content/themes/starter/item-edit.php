@@ -161,7 +161,10 @@
 
                 <div class="enter price-value-row">
                   <label class="price-label"><?php _e('Price Amount', 'starter'); ?></label>
-                  <?php ItemForm::price_input_text(); ?>
+                  <div class="price-amount-currency">
+                    <?php ItemForm::price_input_text(); ?>
+                    <?php echo starter_simple_currency(); ?>
+                  </div>
                 </div>
               </div>
             </div>

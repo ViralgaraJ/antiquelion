@@ -3,6 +3,8 @@ define('STARTER_THEME_VERSION', '1.5.1');
 define('USER_MENU_ICONS', 1);
 define('THEME_COMPATIBLE_WITH_OSCLASS_HOOKS', 820);     // Compatibility with new hooks up to version
 
+require_once __DIR__ . '/inc.currency.php';
+
 
 function starter_theme_info() {
   return array(
@@ -855,7 +857,11 @@ function starter_simple_currency() {
     $id = Params::getParam('currency');
   }
 
-  $currency = $id <> '' ? $id : osc_get_preference('currency');
+  if ($id == '') {
+    $codes = array_column($currencies, 'pk_c_code');
+    $id = in_array(antique_visitor_currency(), $codes) ? antique_visitor_currency() : osc_get_preference('currency');
+  }
+  $currency = $id;
 
   if( isset($item['fk_c_currency_code']) ) {
     $default_key = $item['fk_c_currency_code'];
@@ -874,13 +880,13 @@ function starter_simple_currency() {
   $html  = '<div class="simple-currency simple-select">';
   $html .= '<input type="hidden" name="currency" id="currency" class="input-hidden" value="' . $default_currency['pk_c_code'] . '"/>';
   //$html .= '<span class="text round3 tr1"><span>' . $default_currency['pk_c_code'] . ' (' . $default_currency['s_description'] . ')</span> <i class="fa fa-angle-down"></i></span>';
-  $html .= '<span class="text round3 tr1"><span>' . $default_currency['s_description'] . '</span> <i class="fa fa-angle-down"></i></span>';
+  $html .= '<span class="text round3 tr1"><span>' . $default_currency['pk_c_code'] . '</span> <i class="fa fa-angle-down"></i></span>';
   $html .= '<div class="list">';
   $html .= '<div class="option info">' . __('Currency', 'starter') . '</div>';
 
   foreach($currencies as $c) {
     //$html .= '<div class="option' . ($c['pk_c_code'] == $default_key ? ' selected' : '') . '" data-id="' . $c['pk_c_code'] . '">' . $c['pk_c_code'] . ' (' . $c['s_description'] . ')</span></div>';
-    $html .= '<div class="option' . ($c['pk_c_code'] == $default_key ? ' selected' : '') . '" data-id="' . $c['pk_c_code'] . '">' . $c['s_description'] . '</span></div>';
+    $html .= '<div class="option' . ($c['pk_c_code'] == $default_key ? ' selected' : '') . '" data-id="' . $c['pk_c_code'] . '">' . $c['pk_c_code'] . '</div>';
   }
 
   $html .= '</div>';
@@ -1389,9 +1395,7 @@ function starter_premium_format_price($price, $symbol = null) {
 
 
 function starter_ajax_item_format_price($price, $symbol_code) {
-  if ($price === null) return __('Check with seller', 'starter');
-  if ($price == 0) return __('Free', 'starter');
-  return round($price/1000000, 2) . ' ' . $symbol_code;
+  return antique_price_html($price, $symbol_code);
 }
 
 
@@ -1508,15 +1512,15 @@ AdminMenu::newInstance()->add_submenu( 'starter_menu', __('Theme settings', 'sta
 
 
 if( !function_exists('logo_header') ) {
+  // Brand logo: images/logo.svg when a designed logo is provided, otherwise an HTML wordmark.
+  // (The old images/logo.jpg still reads "AntiqueLanka" and is no longer used.)
   function logo_header() {
-    $html = '<img border="0" alt="' . osc_esc_html(osc_page_title()) . '" src="' . osc_current_web_theme_url('images/logo.jpg') . '" />';
-    if( file_exists( WebThemes::newInstance()->getCurrentThemePath() . "images/logo.jpg" ) ) {
-      return $html;
-    } else if( osc_get_preference('default_logo', 'starter_theme') && (file_exists( WebThemes::newInstance()->getCurrentThemePath() . "images/default-logo.jpg")) ) {
-      return '<img border="0" alt="' . osc_esc_html(osc_page_title()) . '" src="' . osc_current_web_theme_url('images/default-logo.jpg') . '" />';
-    } else {
-      return osc_page_title();
+    if (file_exists(WebThemes::newInstance()->getCurrentThemePath() . 'images/logo.svg')) {
+      return '<img class="brand-logo-img" alt="' . osc_esc_html(osc_page_title()) . '" src="' . osc_current_web_theme_url('images/logo.svg') . '" />';
     }
+
+    $emblem = '<svg class="brand-emblem" viewBox="0 0 40 40" aria-hidden="true" focusable="false"><circle cx="20" cy="20" r="19" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="20" cy="20" r="15" fill="none" stroke="currentColor" stroke-width="0.75" opacity="0.6"/><text x="20" y="26.5" text-anchor="middle" font-family="Cormorant Garamond, Georgia, serif" font-size="18" font-weight="700" fill="currentColor">AL</text></svg>';
+    return '<span class="brand-logo">' . $emblem . '<span class="brand-wordmark"><span class="brand-a">Antique</span><span class="brand-b">Lion</span></span></span>';
   }
 }
 
@@ -2110,71 +2114,42 @@ function starter_item_send_friend_url($item_id = -1) {
   }
 }
 
-function antique_format_price($price, $symbol = null) {
-  if ($price === null) return __('Check with seller', 'starter');
-  if ($price == 0) return __('Free', 'starter');
-  if ($symbol === null) {
-    $symbol = osc_item_currency_symbol();
-    if (empty($symbol)) {
-      $symbol = '$';
-    }
-  }
-  $formatted = $price / 1000000;
-  return $symbol . ' ' . number_format($formatted, 2, '.', ',');
+// Listing price in the seller's currency + approximate conversion (see inc.currency.php)
+function antique_format_price($price, $code = null) {
+  return antique_price_html($price, $code !== null ? $code : osc_item_currency());
 }
 
-function antique_premium_format_price($price, $symbol = null) {
-  if ($price === null) return __('Check with seller', 'starter');
-  if ($price == 0) return __('Free', 'starter');
-  if ($symbol === null) {
-    $symbol = osc_item_currency_symbol();
-    if (empty($symbol)) {
-      $symbol = '$';
-    }
-  }
-  $formatted = $price / 1000000;
-  return $symbol . ' ' . number_format($formatted, 2, '.', ',');
+function antique_premium_format_price($price, $code = null) {
+  return antique_price_html($price, $code !== null ? $code : osc_premium_currency());
 }
 
 // Global Header Currency Switcher Widget
 function starter_header_currency_selector() {
-  $currencies = osc_get_currencies();
-  if (empty($currencies)) {
-    $currencies = array(
-      array('pk_c_code' => 'USD', 's_description' => 'USD ($)'),
-      array('pk_c_code' => 'EUR', 's_description' => 'EUR (€)'),
-      array('pk_c_code' => 'GBP', 's_description' => 'GBP (£)'),
-      array('pk_c_code' => 'LKR', 's_description' => 'LKR (Rs)'),
-      array('pk_c_code' => 'AUD', 's_description' => 'AUD ($)'),
-      array('pk_c_code' => 'CAD', 's_description' => 'CAD ($)'),
-      array('pk_c_code' => 'AED', 's_description' => 'AED'),
-    );
-  }
+  $names = array(
+    'USD' => __('US Dollar', 'starter'),
+    'GBP' => __('British Pound', 'starter'),
+    'EUR' => __('Euro', 'starter'),
+    'AUD' => __('Australian Dollar', 'starter'),
+    'CAD' => __('Canadian Dollar', 'starter'),
+    'LKR' => __('Sri Lankan Rupee', 'starter')
+  );
+  $selected = antique_visitor_currency();
 
-  $selected = Params::getParam('currency');
-  if (empty($selected) && function_exists('starter_get_session')) {
-    $selected = starter_get_session('currency');
-  }
-  if (empty($selected)) {
-    $selected = 'USD';
-  }
-
-  $html  = '<div class="header-currency-selector not767" style="position:relative;display:inline-block;margin-right:8px;">';
-  $html .= '<button type="button" class="le-btn currency-toggle" onclick="toggleCurrencyDropdown(event)" style="display:flex;align-items:center;gap:6px;background:#f1f5f9;border:1px solid #cbd5e1;border-radius:8px;padding:6px 12px;font-size:13px;font-weight:600;color:#0f172a;cursor:pointer;">';
-  $html .= '<i class="fa fa-money" style="color:var(--gold-600);"></i> <span>' . osc_esc_html($selected) . '</span> <i class="fa fa-angle-down"></i>';
+  $html  = '<div class="header-currency-selector not767">';
+  $html .= '<button type="button" class="le-btn currency-toggle" aria-haspopup="true" aria-expanded="false" aria-label="' . osc_esc_html(__('Display prices in', 'starter')) . '" onclick="toggleCurrencyDropdown(event)">';
+  $html .= '<i class="fa fa-money"></i> <span>' . osc_esc_html($selected) . '</span> <i class="fa fa-angle-down"></i>';
   $html .= '</button>';
-  $html .= '<ul class="currency-dropdown-menu" id="currency-dropdown-menu" style="display:none;position:absolute;top:100%;right:0;margin-top:6px;background:#ffffff;border:1px solid #cbd5e1;border-radius:10px;box-shadow:0 10px 25px rgba(0,0,0,0.15);min-width:120px;z-index:999;padding:6px 0;list-style:none;">';
+  $html .= '<ul class="currency-dropdown-menu" id="currency-dropdown-menu" role="menu">';
 
-  foreach ($currencies as $c) {
-    $code = is_array($c) ? $c['pk_c_code'] : $c;
-    $label = is_array($c) && isset($c['s_description']) ? $c['s_description'] : $code;
-    $url = osc_base_url(true) . '?' . http_build_query(array_merge($_GET, array('currency' => $code)));
-    $html .= '<li style="margin:0;"><a href="' . osc_esc_html($url) . '" style="display:block;padding:8px 16px;font-size:13px;color:#334155;text-decoration:none;font-weight:' . ($code == $selected ? '700' : '500') . ';">' . osc_esc_html($label) . '</a></li>';
+  foreach (antique_display_currencies() as $code) {
+    $url = osc_base_url(true) . '?' . http_build_query(array_merge($_GET, array('display_currency' => $code)));
+    $label = '<strong>' . $code . '</strong> ' . (isset($names[$code]) ? osc_esc_html($names[$code]) : '');
+    $html .= '<li role="none"><a role="menuitem" href="' . osc_esc_html($url) . '"' . ($code == $selected ? ' class="active" aria-current="true"' : '') . '>' . $label . '</a></li>';
   }
 
   $html .= '</ul>';
   $html .= '</div>';
-  $html .= '<script>function toggleCurrencyDropdown(e){e.stopPropagation();var m=document.getElementById("currency-dropdown-menu");if(m)m.style.display=(m.style.display==="none"||!m.style.display)?"block":"none";}window.addEventListener("click",function(){var m=document.getElementById("currency-dropdown-menu");if(m)m.style.display="none";});</script>';
+  $html .= '<script>function toggleCurrencyDropdown(e){e.stopPropagation();var m=document.getElementById("currency-dropdown-menu"),b=e.currentTarget;if(!m)return;var open=!m.classList.contains("open");m.classList.toggle("open",open);b.setAttribute("aria-expanded",open);}window.addEventListener("click",function(){var m=document.getElementById("currency-dropdown-menu");if(m)m.classList.remove("open");});</script>';
 
   return $html;
 }
