@@ -31,7 +31,7 @@
 /* Global Body Spacing & Background for Fixed Header */
 /* Global Body Spacing & Background for Fixed Header */
 body {
-  padding-top: 68px !important;
+  /* padding-top removed: header is sticky now (al-design.css) */
   background-color: #f8fafc !important;
 }
 
@@ -3013,7 +3013,7 @@ html body .input-box i {
     display: inline-block !important;
   }
   body:not(.fw-supporting):not(.content_only) {
-    padding-top: 60px !important;
+    /* padding-top removed: sticky header */
     padding-bottom: 60px !important;
   }
 
@@ -8812,7 +8812,7 @@ select:not(.no-custom):focus,
   }
 
   body {
-    padding-top: 60px !important;
+    /* padding-top removed: sticky header */
   }
 }
 

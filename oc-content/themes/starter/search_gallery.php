@@ -1,29 +1,19 @@
+<?php if (!defined('ABS_PATH')) { exit('ABS_PATH is not loaded. Direct access is not allowed.'); } ?>
 <div class="search-items-wrap">
-  <div class="block">
-    <div class="wrap">
-
-      <?php 
-        // PREMIUM ITEMS
-        osc_get_premiums(osc_get_preference('premium_search_gallery_count', 'starter_theme'));
-        $c = 1;
-
-        if(osc_count_premiums() > 0 && osc_get_preference('premium_search_gallery', 'starter_theme') == 1) {
-          while(osc_has_premiums()) {
-            starter_draw_item($c, 'gallery', true, 'premium-loop');
-            $c++;
-          }
+  <div class="al-grid al-search-grid">
+    <?php
+      // Featured (premium) listings first, when enabled in the theme settings
+      osc_get_premiums(osc_get_preference('premium_search_gallery_count', 'starter_theme'));
+      if (osc_count_premiums() > 0 && osc_get_preference('premium_search_gallery', 'starter_theme') == 1) {
+        while (osc_has_premiums()) {
+          include __DIR__ . '/inc.al-card.php';
         }
-      ?>
+      }
 
-
-      <?php $c = 1; ?>
-      <?php while( osc_has_items() ) { ?>
-        <?php starter_draw_item($c, 'gallery'); ?>
-        <?php $c++; ?>
-      <?php } ?>
-
-    </div>
+      while (osc_has_items()) {
+        include __DIR__ . '/inc.al-card.php';
+      }
+    ?>
   </div>
- 
-  <?php View::newInstance()->_erase('items') ; ?>
+  <?php View::newInstance()->_erase('items'); ?>
 </div>

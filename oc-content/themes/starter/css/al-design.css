@@ -51,7 +51,7 @@
 }
 
 /* ---------- Base type ---------- */
-body {
+html body {
   background: var(--al-ivory) !important;
   color: var(--al-text);
   /* the legacy fixed header reserved space with padding-top; the new header is sticky */
@@ -550,6 +550,12 @@ h1, h2, h3, .al-display {
   text-transform: uppercase;
 }
 
+.al-card-title,
+.al-card-title a {
+  font-family: var(--al-font-display) !important;   /* legacy h3/link fonts on search pages */
+  font-weight: 600 !important;
+}
+
 .al-card-title {
   margin: 6px 0 8px !important;
   padding: 0 !important;
@@ -881,3 +887,95 @@ html body #i-forms .al-phone-box .iti__selected-country,
 }
 .iti__dropdown-content { z-index: 1200; border-color: var(--al-line); box-shadow: var(--al-shadow); font-family: var(--al-font-ui); }
 .al-phone-error { margin-top: 6px; color: var(--al-danger); font-size: 13px; font-weight: 600; }
+
+/* ======================================================================
+   Search results
+   ====================================================================== */
+#body-search .al-search-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
+/* one card style for all results: the old list/gallery switch no longer applies */
+#body-search a.lg[data-view] { display: none !important; }
+#body-search #search-items .white { background: transparent !important; border: 0 !important; box-shadow: none !important; padding: 0 !important; }
+
+/* ======================================================================
+   Page title band (all inner pages) + item page
+   ====================================================================== */
+#header-line { background: var(--al-paper) !important; border-bottom: 1px solid var(--al-line) !important; }
+
+#header-line h1,
+#header-line h1 span {
+  color: var(--al-ink) !important;
+  font-family: var(--al-font-display) !important;
+  font-size: 34px !important;
+  font-weight: 600 !important;
+  line-height: 1.2 !important;
+  letter-spacing: 0 !important;
+}
+
+#body-item #sub-nav a { color: var(--al-ink) !important; font-family: var(--al-font-ui) !important; font-weight: 600 !important; }
+#body-item #sub-nav a.active,
+#body-item #sub-nav li.active a { color: var(--al-brass-text) !important; border-color: var(--al-brass) !important; }
+
+#body-item #price .price,
+#body-item #price .price span {
+  color: var(--al-ink) !important;
+  font-family: var(--al-font-ui) !important;
+  font-weight: 800 !important;
+}
+
+#body-item #price .price-converted { color: var(--al-muted) !important; font-weight: 500 !important; }
+
+#body-item #images,
+#body-item .item-desc,
+#body-item #user-card,
+#body-item #related-block,
+#body-item .antique-bidding-card {
+  border: 1px solid var(--al-line) !important;
+  border-radius: var(--al-radius) !important;
+  box-shadow: none !important;
+  background: var(--al-paper) !important;
+}
+
+/* bidding box */
+#body-item .antique-bidding-card .bid-header h3 {
+  font-family: var(--al-font-display) !important;
+  font-size: 26px !important;
+  font-weight: 600 !important;
+  color: var(--al-ink) !important;
+}
+
+#body-item .antique-bidding-card .label { color: var(--al-muted) !important; letter-spacing: 1px; }
+#body-item .antique-bidding-card .gold-accent { color: var(--al-brass-text) !important; }
+#body-item .antique-bidding-card .live-indicator { color: var(--al-danger) !important; }
+#body-item .antique-bidding-card .live-indicator.expired { color: var(--al-muted) !important; }
+
+#body-item .antique-bidding-card .btn-primary,
+#body-item .antique-bidding-card #place-bid-btn {
+  background: var(--al-brass) !important;
+  background-image: none !important;
+  border-color: var(--al-brass) !important;
+  color: #FFFFFF !important;
+  border-radius: var(--al-radius) !important;
+}
+
+#body-item .antique-bidding-card .btn-secondary,
+#body-item .antique-bidding-card .login-to-bid {
+  background: var(--al-ink) !important;
+  background-image: none !important;
+  border-color: var(--al-ink) !important;
+  color: #FFFFFF !important;
+  border-radius: var(--al-radius) !important;
+}
+
+#body-item .antique-bidding-card .btn-secondary i,
+#body-item .antique-bidding-card .login-to-bid i { color: #FFFFFF !important; }
+
+#body-item #related-block h2,
+#body-item #related-block .title {
+  font-family: var(--al-font-display) !important;
+  color: var(--al-ink) !important;
+}
+
+@media (max-width: 767px) {
+  #header-line h1,
+  #header-line h1 span { font-size: 26px !important; }
+}
