@@ -41,8 +41,6 @@
       </div>
       <nav class="al-utility-right" aria-label="<?php echo osc_esc_html(__('Help', 'starter')); ?>">
         <a href="<?php echo osc_contact_url(); ?>"><?php _e('Help & contact', 'starter'); ?></a>
-        <a href="<?php echo osc_search_url(array('page' => 'search', 'sAuction' => 1)); ?>"><?php _e('Live auctions', 'starter'); ?></a>
-        <a class="al-utility-sell" href="<?php echo osc_item_post_url(); ?>"><?php _e('Sell on AntiqueLion', 'starter'); ?></a>
       </nav>
     </div>
   </div>
@@ -83,7 +81,7 @@
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg>
             </button>
             <div class="al-account-menu" hidden>
-              <?php echo starter_user_menu(); ?>
+              <?php echo antique_account_nav(true); ?>
             </div>
           </div>
         <?php } else { ?>
@@ -161,95 +159,68 @@
 <?php osc_run_hook('header_after'); ?>
 
 
-<div id="header-line" data-loc="<?php echo $loc; ?>" data-sec="<?php echo $sec; ?>">
-  <div class="inside">
-    <h1>
-      <?php 
-        if(osc_is_home_page()) {
-          echo osc_page_title(); 
-        } else if(osc_is_ad_page()) {
-          echo '<span>' . osc_item_title() . '</span>';
-
-
-          $item_extra = starter_item_extra( osc_item_id() );
-
-          if($item_extra['i_sold'] == 1) {
-            echo '<div class="elem sold">' . __('Sold', 'starter') . '</div>';
-          } else if($item_extra['i_sold'] == 2) { 
-            echo '<div class="elem reserved">' . __('Reserved', 'starter') . '</div>';
-          }
-
-          if(osc_item_is_premium()) {
-            echo '<div class="elem premium">' . __('Premium', 'starter') . '</div>';
-          }
-
-          if(!in_array(osc_item_category_id(), starter_extra_fields_hide())) {
-            if(starter_condition_name($item_extra['i_condition'])) {
-              echo '<div class="elem condition">' . __('Condition', 'starter') . ': <span>' . starter_condition_name($item_extra['i_condition']) . '</span></div>';
-            }
-
-            if(starter_condition_name($item_extra['i_transaction'])) {
-              echo '<div class="elem transaction">' . __('Transaction', 'starter') . ': <span>' . starter_transaction_name($item_extra['i_transaction']) . '</span></div>';
-            }
-          }
-
-        } else if(osc_is_search_page()) {
-          $cat_id = osc_search_category_id();
-          $cat_id = isset($cat_id[0]) ? $cat_id[0] : '';
-
-          $cat_full = Category::newInstance()->findByPrimaryKey($cat_id);
-
-          $cat = @$cat_full['s_name'];
-
-          $entries = array_filter(array_map('ucfirst', array($cat, osc_search_region(), osc_search_city())));
-
-          if(count($entries) > 0) {
-            echo implode(' - ', $entries);
-          } else {
-            _e('Search', 'starter');
-          }
-
-          echo ' - ' . osc_search_total_items() . ' ' . (osc_search_total_items() == 1 ? __('result', 'starter') : __('results', 'starter'));
-
-        } else if ($loc == 'register') {
-          _e('Authenticate', 'starter');
-
-        } else if ($loc == 'login' && $sec == 'recover') {
-          _e('Recover password', 'starter');
-
-        } else if ($loc == 'item' && $sec == 'item_add') {
-          _e('Publish new listing', 'starter');
-
-        } else if ($loc == 'item' && $sec == 'item_edit') {
-          _e('Edit your listing', 'starter');
-
-        } else if ($loc == 'user' && $sec == 'pub_profile') {
-          echo sprintf(__('%s\'s profile', 'starter'), osc_user_name());
-
-        } else if ($loc == 'user' && $sec == 'items') {
-          _e('User items', 'starter');
-
-        } else if ($loc == 'user' && $sec == 'alerts') {
-          _e('User alerts', 'starter');
-
-        } else if ($loc == 'user' && $sec == 'profile') {
-          _e('User profile', 'starter');
-
-        }
-      ?>
-    </h1>
+<?php
+  // Page title band. Home and listing pages render their own headings.
+  $al_title = '';
+  $al_sub = '';
+  if (osc_is_search_page()) {
+    $cat_id = osc_search_category_id();
+    $cat_full = isset($cat_id[0]) ? Category::newInstance()->findByPrimaryKey($cat_id[0]) : null;
+    if (Params::getParam('sAuction') == '1') {
+      $al_title = __('Live auctions', 'starter');
+    } else if (osc_search_pattern() != '') {
+      $al_title = sprintf(__('Results for "%s"', 'starter'), osc_search_pattern());
+    } else if (!empty($cat_full['s_name'])) {
+      $al_title = $cat_full['s_name'];
+    } else if (Params::getParam('seller_post') != '') {
+      $al_seller = User::newInstance()->findByPrimaryKey((int)Params::getParam('seller_post'));
+      $al_title = !empty($al_seller['s_name']) ? sprintf(__('Listings from %s', 'starter'), $al_seller['s_name']) : __('Seller listings', 'starter');
+    } else {
+      $al_title = __('All listings', 'starter');
+    }
+    $al_where = array_filter(array(osc_search_city(), osc_search_region(), osc_search_country()));
+    $al_sub = sprintf(_n('%d result', '%d results', osc_search_total_items(), 'starter'), osc_search_total_items()) . (count($al_where) ? ' · ' . implode(', ', $al_where) : '');
+  } else if ($loc == 'register' || $loc == 'login') {
+    if ($sec == 'recover' || $sec == 'forgot') {
+      $al_title = __('Reset your password', 'starter');
+    } else {
+      $al_title = '';   // the sign-in / register card carries its own heading
+    }
+  } else if ($loc == 'item' && $sec == 'item_add') {
+    $al_title = __('Sell an item', 'starter');
+    $al_sub = __('Listing is free. Add clear photos and an honest description to sell faster.', 'starter');
+  } else if ($loc == 'item' && $sec == 'item_edit') {
+    $al_title = __('Edit your listing', 'starter');
+  } else if ($loc == 'item' && $sec == 'send_friend') {
+    $al_title = __('Share this listing', 'starter');
+  } else if ($loc == 'user' && $sec == 'pub_profile') {
+    $al_title = '';   // the profile card shows the seller's name
+  } else if ($loc == 'user' && ($sec == 'items' || $sec == 'dashboard')) {
+    $al_title = '';   // account pages carry their own heading
+  } else if ($loc == 'user' && $sec == 'alerts') {
+    $al_title = '';
+  } else if ($loc == 'user' && in_array($sec, array('profile', 'change_email', 'change_password', 'change_username'))) {
+    $al_title = '';
+  } else if ($loc == 'contact') {
+    $al_title = __('Help & contact', 'starter');
+    $al_sub = __('Questions about buying, selling or your account? Send us a message and we will reply by email.', 'starter');
+  } else if ($loc == 'page') {
+    $al_title = osc_static_page_title();
+  } else if ($loc == 'error' || $loc == '404') {
+    $al_title = '';
+  }
+?>
+<?php if ($al_title !== '' && !osc_is_home_page() && !osc_is_ad_page()) { ?>
+<div id="header-line" class="al-page-head" data-loc="<?php echo osc_esc_html($loc); ?>" data-sec="<?php echo osc_esc_html($sec); ?>">
+  <div class="al-wrap">
+    <h1><?php echo osc_esc_html($al_title); ?></h1>
+    <?php if ($al_sub !== '') { ?><p><?php echo osc_esc_html($al_sub); ?></p><?php } ?>
   </div>
 </div>
+<?php } ?>
 
 
 <?php
-  // CATEGORY SUB-NAV ON SEARCH PAGE (home has its own category section in main.php)
-  if(osc_is_search_page()) {
-    osc_current_web_theme_path('inc.category.php');
-  } else if(osc_is_ad_page()) {
-    osc_current_web_theme_path('inc.item.php');
-  }
-
   // GET CURRENT POSITION
   $position = array(osc_get_osclass_location(), osc_get_osclass_section());
   $position = array_filter($position);

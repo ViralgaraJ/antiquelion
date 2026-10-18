@@ -29,7 +29,7 @@
     <?php if (osc_count_item_resources()) { ?>
       <img src="<?php echo osc_resource_preview_url(); ?>" alt="" loading="lazy" />
     <?php } else { ?>
-      <img src="<?php echo osc_current_web_theme_url('images/no-image.png'); ?>" alt="" loading="lazy" class="is-placeholder" />
+      <span class="al-card-noimg"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/></svg><?php _e('No photo', 'starter'); ?></span>
     <?php } ?>
     <?php if ($al_badge !== '') { ?>
       <span class="al-card-badge<?php echo $al_badge_class; ?>"><?php echo osc_esc_html($al_badge); ?></span>

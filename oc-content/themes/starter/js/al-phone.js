@@ -36,6 +36,17 @@
       countryOrder: ['gb', 'us', 'au', 'ca', 'lk', 'in', 'nz', 'sg', 'ae']
     });
 
+    // legacy theme CSS forces padding-left with !important; match the flag + dial code width
+    function fitPadding() {
+      var flag = input.parentNode.querySelector('.iti__country-container');
+      if (flag && flag.offsetWidth) {
+        input.style.setProperty('padding-left', (flag.offsetWidth + 10) + 'px', 'important');
+      }
+    }
+    fitPadding();
+    setTimeout(fitPadding, 300);
+    input.addEventListener('countrychange', fitPadding);
+
     var error = document.createElement('div');
     error.className = 'al-phone-error';
     error.setAttribute('role', 'alert');

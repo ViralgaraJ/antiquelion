@@ -5,12 +5,10 @@
   <meta name="robots" content="noindex, nofollow" />
   <meta name="googlebot" content="noindex, nofollow" />
 </head>
-<body id="body-user-custom">
+<body id="body-user-custom" class="body-ua al-account-page">
   <?php osc_current_web_theme_path('header.php') ; ?>
-  <div class="content user_account">
-    <div id="sidebar" class="sc-block">
-      <?php echo starter_user_menu(); ?>
-    </div>
+  <div class="al-wrap al-account-layout">
+    <aside class="al-account-side"><?php echo antique_account_nav(); ?></aside>
 
     <div id="main" class="user-custom-maim">
       <div class="inside">

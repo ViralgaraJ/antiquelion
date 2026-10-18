@@ -7461,9 +7461,9 @@ form label,
 }
 
 /* All Text Inputs, Passwords, Emails, Numbers, Selects & Textareas */
-input[type="text"]:not(.term):not(#subject):not(#yourSubject):not(#yourName):not(#yourEmail):not(#s_name):not(#s_email),
+input[type="text"]:not(.term):not([id="subject"]):not([id="yourSubject"]):not([id="yourName"]):not([id="yourEmail"]):not([id="s_name"]):not([id="s_email"]),
 input[type="password"],
-input[type="email"]:not(#yourEmail):not(#s_email),
+input[type="email"]:not([id="yourEmail"]):not([id="s_email"]),
 input[type="tel"],
 input[type="number"],
 input[type="url"],

@@ -57,16 +57,25 @@
   <section class="al-trust" aria-label="<?php echo osc_esc_html(__('Why AntiqueLion', 'starter')); ?>">
     <div class="al-wrap">
       <div class="al-trust-item">
-        <strong><?php _e('Prices in your currency', 'starter'); ?></strong>
-        <span><?php _e('Converted daily from the seller\'s price', 'starter'); ?></span>
+        <span class="al-trust-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg></span>
+        <div>
+          <strong><?php _e('Prices in your currency', 'starter'); ?></strong>
+          <span><?php _e('Converted daily from the seller\'s price', 'starter'); ?></span>
+        </div>
       </div>
       <div class="al-trust-item">
-        <strong><?php _e('Auctions on your clock', 'starter'); ?></strong>
-        <span><?php _e('Every countdown shows your local time', 'starter'); ?></span>
+        <span class="al-trust-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 2h6"/></svg></span>
+        <div>
+          <strong><?php _e('Auctions on your clock', 'starter'); ?></strong>
+          <span><?php _e('Every countdown shows your local time', 'starter'); ?></span>
+        </div>
       </div>
       <div class="al-trust-item">
-        <strong><?php _e('Deal directly with sellers', 'starter'); ?></strong>
-        <span><?php _e('Ask questions and agree shipping before you buy', 'starter'); ?></span>
+        <span class="al-trust-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
+        <div>
+          <strong><?php _e('Deal directly with sellers', 'starter'); ?></strong>
+          <span><?php _e('Ask questions and agree shipping before you buy', 'starter'); ?></span>
+        </div>
       </div>
     </div>
   </section>
@@ -104,7 +113,7 @@
       </div>
       <div class="al-cat-grid">
         <?php osc_goto_first_category(); ?>
-        <?php while (osc_has_categories()) { ?>
+        <?php while (osc_has_categories()) { if (osc_category_total_items() < 1) { continue; } ?>
           <a class="al-cat-tile" href="<?php echo osc_search_url(array('page' => 'search', 'sCategory' => osc_category_id())); ?>">
             <span class="al-cat-name"><?php echo osc_esc_html(osc_category_name()); ?></span>
             <span class="al-cat-count"><?php echo sprintf(_n('%d listing', '%d listings', osc_category_total_items(), 'starter'), osc_category_total_items()); ?></span>
@@ -133,7 +142,13 @@
         <h2><?php _e('Latest listings', 'starter'); ?></h2>
         <a href="<?php echo osc_search_url(array('page' => 'search')); ?>"><?php _e('See all listings', 'starter'); ?> &rarr;</a>
       </div>
-      <?php View::newInstance()->_exportVariableToView('latestItems', starter_random_items()); ?>
+      <?php
+        // skip listings already shown in "ending soon" above
+        $al_latest = array_values(array_filter((array)starter_random_items(), function ($it) use ($al_ending) {
+          return !in_array((int)$it['pk_i_id'], array_map('intval', $al_ending));
+        }));
+        View::newInstance()->_exportVariableToView('latestItems', array_slice($al_latest, 0, 8));
+      ?>
       <?php if (osc_count_latest_items() > 0) { ?>
         <div class="al-grid">
           <?php while (osc_has_latest_items()) { include __DIR__ . '/inc.al-card.php'; } ?>

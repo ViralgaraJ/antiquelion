@@ -1,32 +1,28 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" dir="ltr" lang="<?php echo str_replace('_', '-', osc_current_user_locale()); ?>">
-  <head>
-    <?php osc_current_web_theme_path('head.php') ; ?>
-    <meta name="robots" content="noindex, nofollow" />
-    <meta name="googlebot" content="noindex, nofollow" />
-    <script type="text/javascript" src="<?php echo osc_current_web_theme_js_url('jquery.validate.min.js') ; ?>"></script>
-  </head>
-
-  <body>
-    <?php osc_current_web_theme_path('header.php') ; ?>
-    <div class="content error err400">
-      <img class="err-img" src="<?php echo osc_base_url(); ?>oc-content/themes/starter/images/404.png" alt="<?php _e('Error 404', 'starter'); ?>"/>
-
-      <h1><?php _e('Whoops, something is wrong', 'starter'); ?></h1>
-      <div class="reason"><?php _e('We are sorry, but the Web address you have entered is no longer available.', 'starter'); ?></div>
-
-      <div class="link-wrap">
-        <a class="tr1" href="<?php echo osc_base_url();?>"><?php _e('go home', 'starter'); ?><i class="fa fa-external-link"></i></a>
-        <a class="tr1" href="<?php echo osc_search_url(); ?>"><?php _e('show listings', 'starter'); ?><i class="fa fa-external-link"></i></a>
-
-        <?php if(osc_is_web_user_logged_in()) { ?>
-          <a class="tr1" href="<?php echo osc_user_dashboard_url(); ?>"><?php _e('my account', 'starter'); ?><i class="fa fa-external-link"></i></a>
-        <?php } else { ?>
-          <a class="tr1" href="<?php echo osc_register_account_url(); ?>"><?php _e('sign in', 'starter'); ?><i class="fa fa-external-link"></i></a>
-        <?php } ?>
+<!DOCTYPE html>
+<html dir="ltr" lang="<?php echo str_replace('_', '-', osc_current_user_locale()); ?>">
+<head>
+  <?php osc_current_web_theme_path('head.php'); ?>
+  <meta name="robots" content="noindex, nofollow" />
+</head>
+<body id="body-404">
+  <?php osc_current_web_theme_path('header.php'); ?>
+  <div class="al-wrap al-404">
+    <div class="al-empty-state">
+      <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5M9 9l4 4M13 9l-4 4"/></svg>
+      <h2><?php _e('We could not find that page', 'starter'); ?></h2>
+      <p><?php _e('The listing may have sold or been removed, or the link may be wrong.', 'starter'); ?></p>
+      <form class="al-404-search" action="<?php echo osc_base_url(true); ?>" method="get">
+        <input type="hidden" name="page" value="search" />
+        <label class="al-sr-only" for="al-404-q"><?php _e('Search antiques', 'starter'); ?></label>
+        <input type="search" id="al-404-q" name="sPattern" placeholder="<?php echo osc_esc_html(__('Search antiques', 'starter')); ?>" />
+        <button type="submit" class="al-btn al-btn-ink"><?php _e('Search', 'starter'); ?></button>
+      </form>
+      <div class="al-inline-actions al-404-links">
+        <a class="al-text-link" href="<?php echo osc_base_url(); ?>"><?php _e('Go to the home page', 'starter'); ?></a>
+        <a class="al-text-link" href="<?php echo osc_search_url(array('page' => 'search', 'sAuction' => 1)); ?>"><?php _e('Browse live auctions', 'starter'); ?></a>
       </div>
     </div>
-
-    <?php osc_current_web_theme_path('footer.php') ; ?>
-  </body>
+  </div>
+  <?php osc_current_web_theme_path('footer.php'); ?>
+</body>
 </html>

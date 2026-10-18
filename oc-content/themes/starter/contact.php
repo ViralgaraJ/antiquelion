@@ -1,75 +1,51 @@
-<?php 
+<?php
   // INTERNAL USE FOR AJAX. IF NO AJAX, SHOW CONTACT PAGE
-  if(isset($_GET['ajaxRequest']) && $_GET['ajaxRequest'] == '1') {
+  if (isset($_GET['ajaxRequest']) && $_GET['ajaxRequest'] == '1') {
     error_reporting(0);
     ob_clean();
     osc_current_web_theme_path('ajax.php');
     exit;
   }
 ?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" dir="ltr" lang="en-US">
+<!DOCTYPE html>
+<html dir="ltr" lang="<?php echo str_replace('_', '-', osc_current_user_locale()); ?>">
 <head>
-  <?php osc_current_web_theme_path('head.php') ; ?>
+  <?php osc_current_web_theme_path('head.php'); ?>
 </head>
-<body id="body-contact">
-  <?php osc_current_web_theme_path('header.php') ; ?>
-  <div class="modern-contact-container">
-    <div class="modern-contact-card">
-      <div class="contact-card-header">
-        <div class="contact-header-icon"><i class="fa fa-envelope-o"></i></div>
-        <h2>Contact Us</h2>
-        <p class="contact-header-sub">Have questions or feedback? Fill out the form below and we will respond promptly.</p>
-      </div>
+<body id="body-contact" class="al-contact-page">
+  <?php osc_current_web_theme_path('header.php'); ?>
 
-      <form action="<?php echo osc_base_url(true) ; ?>" method="post" name="contact_form" id="contact">
+  <div class="al-wrap al-contact">
+    <section class="al-panel">
+      <h2 class="al-panel-title"><?php _e('Send us a message', 'starter'); ?></h2>
+      <form action="<?php echo osc_base_url(true); ?>" method="post" name="contact_form" id="contact" class="al-form">
         <input type="hidden" name="page" value="contact" />
         <input type="hidden" name="action" value="contact_post" />
-        <fieldset>
-        <div class="contact-form-grid">
-          <div class="form-group half-width">
-            <label for="yourName">Your Name</label> 
-            <div class="input-box">
-              <i class="fa fa-user"></i>
-              <input type="text" name="yourName" id="yourName" value="" placeholder="Enter your full name" />
-            </div>
-          </div>
-
-          <div class="form-group half-width">
-            <label for="yourEmail">Your E-mail Address <span class="req">*</span></label>
-            <div class="input-box">
-              <i class="fa fa-envelope"></i>
-              <input type="text" name="yourEmail" id="yourEmail" value="" placeholder="Enter your email address" />
-            </div>
-          </div>
-
-          <div class="form-group full-width">
-            <label for="subject">Subject <span class="req">*</span></label>
-            <div class="input-box">
-              <i class="fa fa-pencil"></i>
-              <input type="text" name="subject" id="subject" value="" placeholder="What is your inquiry about?" />
-            </div>
-          </div>
-
-          <div class="form-group full-width">
-            <label for="message">Message <span class="req">*</span></label>
-            <div class="input-box textarea-box">
-              <textarea id="message" name="message" rows="4" placeholder="How can we help you? Write your message here..."></textarea>
-            </div>
-          </div>
-
-          <div class="form-group full-width submit-group">
-            <button type="submit" class="contact-submit-btn">
-              <i class="fa fa-paper-plane"></i>
-              <span>Send Message</span>
-            </button>
-          </div>
+        <div class="al-form-row al-form-2">
+          <label><span><?php _e('Your name', 'starter'); ?></span><input type="text" name="yourName" id="yourName" value="<?php echo osc_esc_html(osc_is_web_user_logged_in() ? osc_logged_user_name() : ''); ?>" autocomplete="name" /></label>
+          <label><span><?php _e('Email', 'starter'); ?> <em>*</em></span><input type="email" name="yourEmail" id="yourEmail" required value="<?php echo osc_esc_html(osc_is_web_user_logged_in() ? osc_logged_user_email() : ''); ?>" autocomplete="email" /></label>
         </div>
-        </fieldset>
+        <label class="al-form-full"><span><?php _e('Subject', 'starter'); ?> <em>*</em></span><input type="text" name="subject" id="subject" required value="" /></label>
+        <label class="al-form-full"><span><?php _e('Message', 'starter'); ?> <em>*</em></span><textarea id="message" name="message" rows="6" required></textarea></label>
+        <?php osc_run_hook('contact_form'); ?>
+        <?php osc_show_recaptcha(); ?>
+        <button type="submit" class="al-btn al-btn-brass"><?php _e('Send message', 'starter'); ?></button>
       </form>
-    </div>
+    </section>
+
+    <aside class="al-contact-side">
+      <div class="al-panel">
+        <h3 class="al-panel-title"><?php _e('Before you write', 'starter'); ?></h3>
+        <ul class="al-help-list">
+          <li><strong><?php _e('Questions about an item?', 'starter'); ?></strong> <?php _e('Use "Message seller" on the listing. Sellers answer directly.', 'starter'); ?></li>
+          <li><strong><?php _e('Bidding', 'starter'); ?></strong> <?php _e('Sign in, open a live auction and enter at least the minimum bid shown.', 'starter'); ?></li>
+          <li><strong><?php _e('Selling', 'starter'); ?></strong> <?php _e('Listing is free. Choose a fixed price or run an auction.', 'starter'); ?></li>
+          <li><strong><?php _e('Report a listing', 'starter'); ?></strong> <?php _e('Send us the listing link and what is wrong. We review every report.', 'starter'); ?></li>
+        </ul>
+      </div>
+    </aside>
   </div>
 
-  <?php osc_current_web_theme_path('footer.php') ; ?>
+  <?php osc_current_web_theme_path('footer.php'); ?>
 </body>
 </html>

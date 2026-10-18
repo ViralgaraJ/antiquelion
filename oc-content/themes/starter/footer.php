@@ -14,22 +14,6 @@
 <?php } ?>
 
 
-<a class="mobile-post is767" href="<?php echo osc_item_post_url(); ?>"><i class="fa fa-plus"></i></a>
-
-<?php if(osc_is_search_page()) { ?>
-  <?php osc_get_latest_searches() ?>
-  <?php if(osc_count_latest_searches() > 0) { ?>
-    <div id="latest-search">
-      <div class="inside">
-        <span><?php _e('Recent Searches', 'starter'); ?>:</span>
-
-        <?php while( osc_has_latest_searches() ) { ?>
-          <a href="<?php echo osc_search_url(array('page' => 'search', 'sPattern' => osc_latest_search_text())); ?>"><?php echo osc_latest_search_text(); ?></a>
-        <?php } ?>
-      </div>
-    </div>
-  <?php } ?>
-<?php } ?>
 
 <?php osc_run_hook('footer_pre'); ?>
 

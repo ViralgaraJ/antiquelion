@@ -1,292 +1,155 @@
 <?php
-  $address = '';
-  if(osc_user_address()!='') {
-    $address = osc_user_address();
-  }
-
-  $location = starter_get_full_loc(osc_user_field('fk_c_country_code'), osc_user_region_id(), osc_user_city_id());
-
-  if(osc_user_zip() <> '') {
-    $location .= ' ' . osc_user_zip();
-  }
-  
-  $mobile_found = false;
-  
-  if(osc_user_phone_land() != '') {
-    $mobile_found = true;
-    $mobile = osc_user_phone_land();
-  }
-  
-  if(osc_user_phone_mobile() != '') {
-    $mobile_found = true;
-    $mobile = osc_user_phone_mobile();
-  }
-
-  $mobile_login_required = false;
-
-  if(osc_item_show_phone() == 0 && 1==2) {   // this is not enabled on publish page
-    $mobile = __('No phone number', 'starter');
-    $mobile_found = false;
-  } else if(osc_get_preference('reg_user_can_see_phone', 'osclass') == 1 && !osc_is_web_user_logged_in() && strlen(trim($mobile)) >= 4) {
-    $mobile = __('Login to see phone number', 'starter');
-    $mobile_found = true;
-    $mobile_login_required = true;
-  } else if(trim($mobile) == '' || strlen(trim($mobile)) < 4) { 
-    $mobile = __('No phone number', 'starter');
-    $mobile_found = false;
-  }  
-  
   $user_keep = osc_user();
+  $is_me = osc_is_web_user_logged_in() && osc_logged_user_id() == osc_user_id();
+  $can_contact = !$is_me && (!osc_reg_user_can_contact() || osc_is_web_user_logged_in());
+
+  $phone = trim((string)(osc_user_phone_mobile() != '' ? osc_user_phone_mobile() : osc_user_phone_land()));
+  $phone_ok = strlen($phone) >= 4;
+  $phone_login = $phone_ok && osc_get_preference('reg_user_can_see_phone', 'osclass') == 1 && !osc_is_web_user_logged_in();
+  $phone_digits = preg_replace('/[^0-9+]/', '', $phone);
+
+  $place = implode(', ', array_filter(array(osc_user_city(), osc_user_region(), osc_user_country())));
+  $about = osc_user_info();
 ?>
-
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" dir="ltr" lang="<?php echo str_replace('_', '-', osc_current_user_locale()); ?>">
+<!DOCTYPE html>
+<html dir="ltr" lang="<?php echo str_replace('_', '-', osc_current_user_locale()); ?>">
 <head>
-  <?php osc_current_web_theme_path('head.php') ; ?>
-  <meta name="robots" content="noindex, nofollow" />
-  <meta name="googlebot" content="noindex, nofollow" />
-  <script type="text/javascript" src="<?php echo osc_current_web_theme_js_url('jquery.validate.min.js') ; ?>"></script>
+  <?php osc_current_web_theme_path('head.php'); ?>
+  <script src="<?php echo osc_current_web_theme_js_url('jquery.validate.min.js'); ?>"></script>
 </head>
-<body id="body-user-public-profile">
+<body id="body-user-public-profile" class="al-profile-page">
   <?php View::newInstance()->_exportVariableToView('user', $user_keep); ?>
-  <?php osc_current_web_theme_path('header.php') ; ?>
+  <?php osc_current_web_theme_path('header.php'); ?>
 
-  <div class="content user_public_profile">
-
-    <h1><?php echo sprintf(__('Latest %s\'s listings', 'starter'), osc_user_name()); ?></h1>
-
-    <!-- Item Banner #1 -->
-    <?php echo starter_banner('public', 1); ?>
-
-
-    <!-- LISTINGS OF SELLER -->
-    <div id="public-items" class="white">
-      <?php osc_run_hook('user_public_profile_items_top'); ?>
-      
-      <?php if( osc_count_items() > 0) { ?>
-        <div class="block">
-          <div class="wrap">
-            <?php $c = 1; ?>
-            <?php while( osc_has_items() ) { ?>
-              <?php starter_draw_item($c, 'gallery'); ?>
-        
-              <?php $c++; ?>
-            <?php } ?>
-          </div>
-        </div>
-      <?php } else { ?>
-        <div class="empty"><?php _e('No listings posted by this seller', 'starter'); ?></div>
-      <?php } ?>
-    </div>
-
-
-    <!-- SELLER INFORMATION -->
-    <div id="side-right" class="pp-seller">
-        <!-- SELLER INFO -->
-        <div id="seller" class="item-block <?php if(osc_user_id() == 0) { ?> unreg<?php } ?>" data-block="detail">
-          <div class="sc-block body">
-            <div class="inside">
-              <?php osc_run_hook('user_public_profile_sidebar_top'); ?>
-
-              <!-- USER IS NOT OWNER OF LISTING -->
-              <div class="side-photo">
-                <div class="img">
-                  <img src="<?php echo starter_profile_picture(osc_user_id(), 'medium'); ?>" />
-                </div>
-
-
-                <div class="name">
-                  <?php
-                    $c_name = osc_user_name();
-                  ?>
-
-                  <?php if(osc_user_id() <> 0 and osc_user_id() <> '') { ?>
-                    <a href="<?php echo osc_user_public_profile_url(osc_user_id()); ?>" title="<?php echo osc_esc_html(__('Check profile of this user', 'starter')); ?>">
-                      <?php echo $c_name; ?>
-                    </a>
-                  <?php } else { ?>
-                    <?php echo $c_name; ?>
-                  <?php } ?>
-                </div>
-
-
-                <div class="elem regdate">
-                  <?php if(osc_user_id() <> 0) { ?>
-                    <?php $get_user = User::newInstance()->findByPrimaryKey( osc_user_id() ); ?>
-
-                    <?php if(isset($get_user['dt_reg_date']) AND $get_user['dt_reg_date'] <> '') { ?>
-                      <?php echo __('Registered on', 'starter') . ' ' . osc_format_date( $get_user['dt_reg_date'] ); ?>
-                    <?php } else { ?>
-                      <?php echo __('Unknown registration date', 'starter'); ?>
-                    <?php } ?>
-                  <?php } else { ?>
-                    <?php echo __('Unregistered user', 'starter'); ?>
-                  <?php } ?>
-                </div>
-              </div>
-            </div>
-
-
-            <div class="item-actions">
-              <?php if($mobile_found) { ?>
-                <div class="row phone">
-                  <i class="fa fa-phone"></i>
-
-                  <a href="#" class="phone-block has-tooltip" data-item-id="<?php echo osc_item_id(); ?>" data-item-user-id="<?php echo osc_user_id(); ?>" title="<?php echo osc_esc_js(__('Click to show phone number', 'starter')); ?>">
-                    <span>
-                      <?php 
-                        if(strlen($mobile) >= 4 && $mobile <> __('No phone number', 'starter')) {
-                          echo substr($mobile, 0, strlen($mobile) - 4) . 'xxxx'; 
-                        } else {
-                          echo $mobile;
-                        }
-                      ?>
-                    </span>
-                  </a>
-                </div>
-              <?php } ?>
-
-
-              <?php if(osc_item_show_email()) { ?>
-                <div class="row">
-                  <i class="fa fa-at"></i>
-
-                  <?php
-                    $mail = osc_item_contact_email();
-                    $mail_start = substr($mail, 0, 3);
-                  ?>
-
-                  <a href="#" class="mail-block has-tooltip" rel="<?php echo substr($mail, 3); ?>" title="<?php echo osc_esc_js(__('Click to show email address', 'starter')); ?>">
-                    <span>
-                      <?php echo $mail_start . 'xxxx@xxxx.xxxx'; ?>
-                    </span>
-                  </a>
-                </div>
-              <?php } ?>
-
-              <?php if(1==2) { ?>
-              <div class="row">
-                <?php if(function_exists('im_manage_contact_seller') && osc_get_preference('contact_seller','plugin-instant_messenger') == 1) { ?>
-                  <i class="fa fa-paper-plane-o"></i> 
-                  <a class="send-message" href="<?php echo osc_route_url('im-create-thread', array('item-id' => osc_item_id())); ?>"><?php _e('Send message', 'starter'); ?></a>
-                <?php } else { ?>
-                  <i class="fa fa-envelope-o"></i> 
-                  <a class="item-contact" href="<?php echo osc_item_send_friend_url(); ?>"><?php _e('Contact seller', 'starter'); ?></a>
-                <?php } ?>
-              </div>
-              <?php } ?>
-
-              <?php if(function_exists('im_manage_contact_seller') && 1==2) { ?>
-                <?php if(osc_get_preference('contact_seller','plugin-instant_messenger') <> 1) { ?>
-                  <div class="row im-send-msg">
-                    <i class="fa fa-paper-plane-o"></i> 
-                    <a class="send-message" href="<?php echo osc_route_url('im-create-thread', array('item-id' => osc_item_id())); ?>"><?php _e('Send message', 'starter'); ?></a>
-                  </div>
-                <?php } ?>
-              <?php } ?>
-
-              <?php if(function_exists('show_feedback_overall') && osc_user_id() > 0) { ?>
-                <div class="row feedback">
-                  <i class="fa fa-thumbs-o-up"></i>
-                  <?php echo show_feedback_overall(); ?>
-                  <?php echo leave_feedback(); ?>
-                </div>
-              <?php } ?>
-
-              <?php if(function_exists('ur_hook_show_rating_stars') && osc_user_id() > 0) { ?>
-                <div class="row user-rating">
-                  <i class="fa fa-thumbs-o-up"></i>
-                  <?php echo ur_show_rating_stars(); ?>
-                  <?php echo ur_add_rating_link(); ?>
-                </div>
-              <?php } ?>
-
-              <?php if(osc_user_id() <> 0) { ?>
-                <div class="row dash">
-                  <i class="fa fa-dashboard"></i>
-
-                  <?php if(function_exists('seller_post')) { ?>
-                    <?php seller_post(osc_user_id()); ?>
-                  <?php } else { ?>
-                    <a href="<?php echo osc_user_public_profile_url(osc_user_id()); ?>"><?php _e('Dashboard', 'starter'); ?></a>
-                  <?php } ?>
-                </div>
-              <?php } ?>
-
-
-              <?php if(osc_user_id() <> 0) { ?>
-                <div class="row type">
-                  <?php $user = User::newInstance()->findByPrimaryKey( osc_user_id() ); ?>
-                  <?php if($user['b_company'] == 1) { ?>
-                    <i class="fa fa-briefcase"></i> <?php _e('Company', 'starter'); ?>
-                  <?php } else { ?>
-                    <i class="fa fa-user-o"></i> <?php _e('Private person', 'starter'); ?>
-                  <?php } ?>
-                </div>
-              <?php } ?>
-
-
-              <?php if(function_exists('mo_hook_button') && (osc_item_price() <> 0)) { ?>
-                <?php
-                  $hook = osc_get_preference('add_hook', 'plugin-make_offer');
-                  $hook = ($hook <> '' ? $hook : 1);
-                ?>
-
-                <?php if($hook == 1 && mo_show_offer_link()) { ?>
-                  <div class="row make-offer">
-                    <i class="fa fa-gavel"></i>
-                    <?php echo mo_show_offer_link(); ?>
-                  </div>
-                <?php } ?>
-              <?php } ?>
-
-              <?php osc_run_hook('user_public_profile_sidebar_bottom'); ?>
+  <div class="al-wrap al-profile">
+    <aside class="al-profile-side">
+      <div class="al-panel al-seller">
+        <?php osc_run_hook('user_public_profile_sidebar_top'); ?>
+        <div class="al-seller-head">
+          <img class="al-seller-avatar" src="<?php echo starter_profile_picture(osc_user_id(), 'medium'); ?>" alt="" width="56" height="56" />
+          <div>
+            <span class="al-seller-name"><?php echo osc_esc_html(osc_user_name()); ?></span>
+            <div class="al-seller-sub">
+              <?php
+                $sub = array(osc_user_field('b_company') == 1 ? __('Dealer', 'starter') : __('Private seller', 'starter'));
+                if (osc_user_regdate() != '') { $sub[] = sprintf(__('Member since %s', 'starter'), date('M Y', strtotime(osc_user_regdate()))); }
+                echo osc_esc_html(implode(' · ', $sub));
+              ?>
             </div>
           </div>
         </div>
 
+        <ul class="al-meta">
+          <?php if ($place !== '') { ?>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg><?php echo osc_esc_html($place); ?></li>
+          <?php } ?>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M20 7h-9M14 17H5M17 20a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM7 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/></svg><?php echo sprintf(_n('%d active listing', '%d active listings', (int)osc_user_items_validated(), 'starter'), (int)osc_user_items_validated()); ?></li>
+          <?php if (osc_user_website() != '') { ?>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg><a href="<?php echo osc_esc_html(osc_user_website()); ?>" target="_blank" rel="nofollow noopener"><?php echo osc_esc_html(preg_replace('#^https?://#', '', osc_user_website())); ?></a></li>
+          <?php } ?>
+        </ul>
 
-        <!-- CONTACT SELLER BLOCK -->
-        <div class="pub-contact-wrap">
-          <div class="ins">
-            <?php if(@$user_keep['pk_i_id'] == osc_logged_user_id() && osc_logged_user_id() > 0) { ?>
-              <div class="empty"><?php _e('This is your public profile, contact form is disabled for you', 'starter'); ?></div>
-            <?php } else { ?>
-              <?php if(osc_reg_user_can_contact() && osc_is_web_user_logged_in() || !osc_reg_user_can_contact() ) { ?>
-                <a id="pub-contact" href="<?php echo osc_item_send_friend_url(); ?>" class="btn btn-primary" rel="<?php echo osc_user_id(); ?>"><?php _e('Contact seller', 'starter'); ?></a>
+        <?php if ($about != '') { ?>
+          <p class="al-profile-about"><?php echo nl2br(osc_esc_html($about)); ?></p>
+        <?php } ?>
+
+        <?php if (!$is_me) { ?>
+          <div class="al-seller-actions">
+            <?php if ($can_contact) { ?>
+              <a class="al-btn al-btn-brass al-btn-block" href="#al-contact"><?php _e('Message seller', 'starter'); ?></a>
+            <?php } ?>
+            <?php if ($phone_ok) { ?>
+              <?php if ($phone_login) { ?>
+                <a class="al-btn al-btn-outline al-btn-block" href="<?php echo osc_user_login_url(); ?>"><?php _e('Sign in to see phone number', 'starter'); ?></a>
+              <?php } else { ?>
+                <button type="button" class="al-btn al-btn-outline al-btn-block al-reveal-phone" data-phone="<?php echo osc_esc_html($phone); ?>" data-tel="<?php echo osc_esc_html($phone_digits); ?>">
+                  <span><?php echo osc_esc_html(substr($phone, 0, max(0, strlen($phone) - 4))); ?>xxxx · <?php _e('Show number', 'starter'); ?></span>
+                </button>
               <?php } ?>
             <?php } ?>
           </div>
-        </div>
+        <?php } else { ?>
+          <a class="al-btn al-btn-outline al-btn-block" href="<?php echo osc_user_profile_url(); ?>" style="margin-top:18px"><?php _e('Edit your profile', 'starter'); ?></a>
+        <?php } ?>
+
+        <?php if (function_exists('show_feedback_overall')) { ?><div class="al-profile-plugin"><?php echo show_feedback_overall(); ?> <?php echo leave_feedback(); ?></div><?php } ?>
+        <?php if (function_exists('ur_hook_show_rating_stars')) { ?><div class="al-profile-plugin"><?php echo ur_show_rating_stars(); ?> <?php echo ur_add_rating_link(); ?></div><?php } ?>
+        <?php osc_run_hook('user_public_profile_sidebar_bottom'); ?>
       </div>
-    </div>
+    </aside>
+
+    <main class="al-profile-main">
+      <div class="al-section-head">
+        <h2><?php echo sprintf(__('Listings from %s', 'starter'), osc_esc_html(osc_user_name())); ?></h2>
+      </div>
+      <?php echo starter_banner('public', 1); ?>
+      <?php osc_run_hook('user_public_profile_items_top'); ?>
+
+      <?php if (osc_count_items() > 0) { ?>
+        <div class="al-grid al-profile-grid">
+          <?php while (osc_has_items()) { include __DIR__ . '/inc.al-card.php'; } ?>
+        </div>
+        <?php $al_pages = osc_pagination_items(); ?>
+        <?php if (trim(strip_tags((string)$al_pages)) !== '') { ?>
+          <nav class="al-pagination" aria-label="<?php echo osc_esc_html(__('Pages', 'starter')); ?>"><?php echo $al_pages; ?></nav>
+        <?php } ?>
+      <?php } else { ?>
+        <div class="al-empty-state"><h2><?php _e('No active listings right now', 'starter'); ?></h2><p><?php _e('Save a search to hear when this seller lists something new.', 'starter'); ?></p></div>
+      <?php } ?>
+
+      <?php if ($can_contact) { ?>
+        <section class="al-panel al-section-block" id="al-contact">
+          <h2 class="al-panel-title"><?php echo sprintf(__('Message %s', 'starter'), osc_esc_html(osc_user_name())); ?></h2>
+          <form action="<?php echo osc_base_url(true); ?>" method="post" name="contact_form" id="contact_form_public" class="al-form">
+            <input type="hidden" name="page" value="user" />
+            <input type="hidden" name="action" value="contact_post" />
+            <input type="hidden" name="id" value="<?php echo osc_user_id(); ?>" />
+            <div class="al-form-row al-form-3">
+              <label><span><?php _e('Your name', 'starter'); ?> <em>*</em></span><input type="text" name="yourName" required value="<?php echo osc_esc_html(osc_is_web_user_logged_in() ? osc_logged_user_name() : ''); ?>" /></label>
+              <label><span><?php _e('Email', 'starter'); ?> <em>*</em></span><input type="email" name="yourEmail" required value="<?php echo osc_esc_html(osc_is_web_user_logged_in() ? osc_logged_user_email() : ''); ?>" /></label>
+              <label><span><?php _e('Phone (optional)', 'starter'); ?></span><input type="tel" name="phoneNumber" value="" /></label>
+            </div>
+            <label class="al-form-full"><span><?php _e('Message', 'starter'); ?> <em>*</em></span><textarea name="message" required rows="5"></textarea></label>
+            <?php osc_show_recaptcha(); ?>
+            <button type="submit" class="al-btn al-btn-brass"><?php _e('Send message', 'starter'); ?></button>
+          </form>
+        </section>
+      <?php } else if (!$is_me) { ?>
+        <section class="al-panel al-section-block" id="al-contact">
+          <h2 class="al-panel-title"><?php _e('Contact this seller', 'starter'); ?></h2>
+          <p class="al-muted"><?php _e('Please sign in to message sellers.', 'starter'); ?></p>
+          <a class="al-btn al-btn-ink" href="<?php echo osc_user_login_url(); ?>"><?php _e('Sign in', 'starter'); ?></a>
+        </section>
+      <?php } ?>
+    </main>
   </div>
 
-  <script type="text/javascript">
-    $(document).ready(function(){
-      // SHOW PHONE NUMBER ON CLICK
-      <?php if($mobile <> __('No phone number', 'starter') && !$mobile_login_required) { ?>  
-        $('.phone-show, .phone-block').click(function(e){
-          e.preventDefault();
-          var mobile = "<?php echo $mobile; ?>";
-
-          if($('.phone-block').attr('href') == '#') {
-            $('.phone-block, .phone-show').attr('href', 'tel:' + mobile).addClass('shown');
-            $('.phone-block span').text(mobile).css('font-weight', 'bold');
-            $('#side-right .btn.contact-button .bot').text(mobile);
-            $('.phone-show').text('<?php echo osc_esc_js(__('Click to call', 'starter')); ?>');
-
-            return false;
-          }
-        });
-      <?php } else { ?>
-        $('.phone-show, .phone-block').click(function(){
-          return false;
-        });
-      <?php } ?>
-    });
+  <script>
+    (function () {
+      var btn = document.querySelector('.al-reveal-phone');
+      if (!btn) return;
+      btn.addEventListener('click', function () {
+        var phone = btn.getAttribute('data-phone'), tel = btn.getAttribute('data-tel');
+        var wrap = document.createElement('div');
+        wrap.className = 'al-phone-revealed';
+        var call = document.createElement('a');
+        call.className = 'al-btn al-btn-outline al-btn-block';
+        call.href = 'tel:' + tel;
+        call.textContent = '<?php echo osc_esc_js(__('Call', 'starter')); ?> ' + phone;
+        wrap.appendChild(call);
+        if (tel.charAt(0) === '+') {
+          var wa = document.createElement('a');
+          wa.className = 'al-btn al-btn-whatsapp al-btn-block';
+          wa.href = 'https://wa.me/' + tel.replace('+', '');
+          wa.target = '_blank'; wa.rel = 'noopener';
+          wa.textContent = 'WhatsApp';
+          wrap.appendChild(wa);
+        }
+        btn.replaceWith(wrap);
+      });
+    })();
   </script>
 
-  <?php osc_current_web_theme_path('footer.php') ; ?>
+  <?php osc_current_web_theme_path('footer.php'); ?>
 </body>
 </html>

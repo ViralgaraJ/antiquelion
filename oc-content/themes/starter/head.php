@@ -51,6 +51,13 @@
     var img = e.target;
     if (img.tagName === 'IMG' && !img.getAttribute('data-fallback') && /oc-content\/uploads\//.test(img.currentSrc || img.src)) {
       img.setAttribute('data-fallback', '1');
+      if (img.parentNode && img.parentNode.classList && img.parentNode.classList.contains('al-card-media')) {
+        var ph = document.createElement('span');
+        ph.className = 'al-card-noimg';
+        ph.innerHTML = '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/></svg><?php echo osc_esc_js(__('No photo', 'starter')); ?>';
+        img.replaceWith(ph);
+        return;
+      }
       img.src = '<?php echo osc_esc_js(osc_current_web_theme_url('images/no-image.png')); ?>';
     }
   }, true);
@@ -106,6 +113,11 @@ $al_phone_page = in_array(osc_get_osclass_location(), array('register'))
   || (osc_get_osclass_location() == 'user' && osc_get_osclass_section() == 'profile');
 if ($al_phone_page) {
   $al_geo = antique_visitor_country();
+  // a signed-in user's saved country beats the IP guess (old numbers were saved without +code)
+  if (osc_is_web_user_logged_in()) {
+    $al_me = User::newInstance()->findByPrimaryKey(osc_logged_user_id());
+    if (!empty($al_me['fk_c_country_code'])) { $al_geo['code'] = $al_me['fk_c_country_code']; }
+  }
   echo '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@24.6.0/build/css/intlTelInput.min.css">' . PHP_EOL;
   echo '<script>window.alPhone = ' . json_encode(array(
     'country' => strtolower($al_geo['code'] !== '' ? $al_geo['code'] : 'us'),
@@ -251,7 +263,7 @@ echo '<style>
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    color: #d97706 !important;
+    color: #A67C2E !important;
     font-size: 15px !important;
     flex-shrink: 0 !important;
     position: static !important;
@@ -421,9 +433,8 @@ osc_enqueue_script('global');
 
 
 <?php 
-  if(osc_get_preference('search_cookies', 'starter_theme') == 1) {
-    starter_manage_cookies(); 
-  }
+  // Sticky search cookies are disabled: the URL is the single source of truth
+  // for filters, so Back/Clear and shared links always show what they say.
 ?>
 
 <?php osc_run_hook('header'); ?>

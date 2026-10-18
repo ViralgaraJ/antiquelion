@@ -1,944 +1,476 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" dir="ltr" lang="<?php echo str_replace('_', '-', osc_current_user_locale()); ?>">
+<!DOCTYPE html>
+<html dir="ltr" lang="<?php echo str_replace('_', '-', osc_current_user_locale()); ?>">
 <head>
-<?php osc_current_web_theme_path('head.php') ; ?>
-
-<?php 
-  // GET IF PAGE IS LOADED VIA QUICK VIEW
+<?php osc_current_web_theme_path('head.php'); ?>
+<?php
   $content_only = (Params::getParam('contentOnly') == 1 ? 1 : 0);
 
-
-  if(osc_item_price() == '') {
+  if (osc_item_price() == '') {
     $og_price = __('Check with seller', 'starter');
-  } else if(osc_item_price() == 0) {
+  } else if (osc_item_price() == 0) {
     $og_price = __('Free', 'starter');
   } else {
-    $og_price = osc_item_price(); 
+    $og_price = osc_item_price() / 1000000;
   }
 
-
-  $user_id = osc_item_user_id();
   $item_extra = starter_item_extra(osc_item_id());
+  $item_user = osc_item_user_id() <> 0 ? User::newInstance()->findByPrimaryKey(osc_item_user_id()) : array();
+  $is_owner = osc_is_web_user_logged_in() && osc_item_user_id() == osc_logged_user_id();
 
-
-  $ios = false;
-  if(strstr($_SERVER['HTTP_USER_AGENT'],'iPhone') || strstr($_SERVER['HTTP_USER_AGENT'],'iPod')) {
-    $ios = true;
-  }
-
-
-  $location_array = array(osc_item_country(), osc_item_region(), osc_item_city());
-  $location_array = array_filter($location_array);
+  $location_array = array_filter(array(osc_item_city(), osc_item_region(), osc_item_country()));
   $item_loc = implode(', ', $location_array);
 
-
-  if(osc_item_user_id() <> 0) {
-    $item_user = User::newInstance()->findByPrimaryKey(osc_item_user_id());
+  // Running or finished auction on this listing (the bidding box replaces the plain price)
+  $al_auction = null;
+  if (class_exists('ModelBids')) {
+    $al_auction = ModelBids::newInstance()->getAuction(osc_item_id());
+    if (!$al_auction || $al_auction['b_active'] == 0) { $al_auction = null; }
   }
 
-  $mobile_found = true;
-  $mobile = $item_extra['s_phone'];
+  // Seller phone: listing phone, then the seller's profile phones
+  $mobile = trim((string)$item_extra['s_phone']);
+  if ($mobile == '' && function_exists('bo_mgr_show_mobile')) { $mobile = trim((string)bo_mgr_show_mobile()); }
+  if ($mobile == '' && !empty($item_user)) { $mobile = trim((string)$item_user['s_phone_mobile']); }
+  if ($mobile == '' && !empty($item_user)) { $mobile = trim((string)$item_user['s_phone_land']); }
+  $phone_ok = strlen($mobile) >= 4;
+  $phone_login = $phone_ok && osc_get_preference('reg_user_can_see_phone', 'osclass') == 1 && !osc_is_web_user_logged_in();
+  $phone_digits = preg_replace('/[^0-9+]/', '', $mobile);
 
-  if($mobile == '' && function_exists('bo_mgr_show_mobile')) { $mobile = bo_mgr_show_mobile(); }
-  if($mobile == '' && osc_item_user_id() <> 0) { $mobile = $item_user['s_phone_mobile']; }      
-  if($mobile == '' && osc_item_user_id() <> 0) { $mobile = $item_user['s_phone_land']; } 
- 
-  $mobile_login_required = false;
+  $seller_name = osc_item_contact_name();
+  if ($seller_name == '' || $seller_name == __('Anonymous', 'starter')) {
+    $seller_name = !empty($item_user['s_name']) ? $item_user['s_name'] : __('Private seller', 'starter');
+  }
 
-  if(osc_item_show_phone() == 0 && 1==2) {   // this is not enabled on publish page
-    $mobile = __('No phone number', 'starter');
-    $mobile_found = false;
-  } else if(osc_get_preference('reg_user_can_see_phone', 'osclass') == 1 && !osc_is_web_user_logged_in() && strlen(trim($mobile)) >= 4) {
-    $mobile = __('Login to see phone number', 'starter');
-    $mobile_found = true;
-    $mobile_login_required = true;
-  } else if(trim($mobile) == '' || strlen(trim($mobile)) < 4) { 
-    $mobile = __('No phone number', 'starter');
-    $mobile_found = false;
-  }  
-?> 
+  $show_details = !in_array(osc_item_category_id(), starter_extra_fields_hide());
+  $condition = $show_details ? starter_condition_name($item_extra['i_condition']) : '';
+  $transaction = $show_details ? starter_transaction_name($item_extra['i_transaction']) : '';
 
-
-  <?php if($content_only == 0) { ?>
-
-    <!-- FACEBOOK OPEN GRAPH TAGS -->
-    <?php osc_get_item_resources(); ?>
-    <meta property="og:title" content="<?php echo osc_esc_html(osc_item_title()); ?>" />
-    <?php if(osc_count_item_resources() > 0) { ?><meta property="og:image" content="<?php echo osc_resource_url(); ?>" /><?php } ?>
-    <meta property="og:site_name" content="<?php echo osc_esc_html(osc_page_title()); ?>"/>
-    <meta property="og:url" content="<?php echo osc_item_url(); ?>" />
-    <meta property="og:description" content="<?php echo osc_esc_html(osc_highlight(osc_item_description(), 500)); ?>" />
-    <meta property="og:type" content="article" />
-    <meta property="og:locale" content="<?php echo osc_current_user_locale(); ?>" />
-    <meta property="product:retailer_item_id" content="<?php echo osc_item_id(); ?>" /> 
-    <meta property="product:price:amount" content="<?php echo $og_price; ?>" />
-    <?php if(osc_item_price() <> '' and osc_item_price() <> 0) { ?><meta property="product:price:currency" content="<?php echo osc_item_currency(); ?>" /><?php } ?>
-
-
-
-    <!-- GOOGLE RICH SNIPPETS -->
-
-    <span itemscope itemtype="http://schema.org/Product">
-      <meta itemprop="name" content="<?php echo osc_esc_html(osc_item_title()); ?>" />
-      <meta itemprop="description" content="<?php echo osc_esc_html(osc_highlight(osc_item_description(), 500)); ?>" />
-      <?php if(osc_count_item_resources() > 0) { ?><meta itemprop="image" content="<?php echo osc_resource_url(); ?>" /><?php } ?>
-    </span>
-  <?php } ?>
+  osc_get_item_resources();
+?>
+<?php if ($content_only == 0) { ?>
+  <meta property="og:title" content="<?php echo osc_esc_html(osc_item_title()); ?>" />
+  <?php if (osc_count_item_resources() > 0) { ?><meta property="og:image" content="<?php echo osc_resource_url(); ?>" /><?php } ?>
+  <meta property="og:site_name" content="<?php echo osc_esc_html(osc_page_title()); ?>" />
+  <meta property="og:url" content="<?php echo osc_item_url(); ?>" />
+  <meta property="og:description" content="<?php echo osc_esc_html(osc_highlight(osc_item_description(), 500)); ?>" />
+  <meta property="og:type" content="product" />
+  <meta property="og:locale" content="<?php echo osc_current_user_locale(); ?>" />
+  <meta property="product:retailer_item_id" content="<?php echo osc_item_id(); ?>" />
+  <meta property="product:price:amount" content="<?php echo osc_esc_html($og_price); ?>" />
+  <?php if (osc_item_price() <> '' && osc_item_price() <> 0) { ?><meta property="product:price:currency" content="<?php echo osc_item_currency(); ?>" /><?php } ?>
+  <script type="application/ld+json"><?php
+    $ld = array(
+      '@context' => 'https://schema.org',
+      '@type' => 'Product',
+      'name' => osc_item_title(),
+      'description' => osc_highlight(osc_item_description(), 500),
+      'sku' => (string)osc_item_id(),
+      'url' => osc_item_url()
+    );
+    if (osc_count_item_resources() > 0) { $ld['image'] = osc_resource_url(); }
+    if (osc_item_price() > 0) {
+      $ld['offers'] = array(
+        '@type' => 'Offer',
+        'price' => osc_item_price() / 1000000,
+        'priceCurrency' => osc_item_currency(),
+        'availability' => $item_extra['i_sold'] == 1 ? 'https://schema.org/SoldOut' : 'https://schema.org/InStock',
+        'url' => osc_item_url()
+      );
+    }
+    echo json_encode($ld, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG);
+  ?></script>
+<?php } ?>
 </head>
 
-<body id="body-item" class="page-body<?php if($content_only == 1) { ?> content_only<?php } ?><?php if ($ios) { ?> ios<?php } ?>">
-  <?php if($content_only == 0) { ?>
-    <?php osc_current_web_theme_path('header.php') ; ?>
-    <?php if( osc_item_is_expired () ) { ?>
-      <div class="exp-box">
-        <div class="exp-mes round3"><?php _e('This listing is expired.', 'starter'); ?></div>
-      </div>
-    <?php } ?>
+<body id="body-item" class="page-body al-item-page<?php if ($content_only == 1) { ?> content_only<?php } ?>">
+<?php if ($content_only == 0) { osc_current_web_theme_path('header.php'); } ?>
+
+<div id="al-item" class="al-wrap">
+  <?php osc_run_hook('item_top'); ?>
+  <?php echo starter_banner('item_top'); ?>
+
+  <?php
+    $breadcrumb = osc_breadcrumb('<span class="al-crumb-sep" aria-hidden="true">/</span>', false);
+    $breadcrumb = str_replace('<span itemprop="title">' . osc_page_title() . '</span>', '<span itemprop="title">' . __('Home', 'starter') . '</span>', $breadcrumb);
+  ?>
+  <?php if ($breadcrumb != '' && $content_only == 0) { ?>
+    <nav class="al-crumbs" aria-label="<?php echo osc_esc_html(__('Breadcrumb', 'starter')); ?>"><?php echo $breadcrumb; ?></nav>
   <?php } ?>
 
+  <?php if (osc_item_is_expired()) { ?>
+    <div class="al-notice"><?php _e('This listing has expired and is no longer available.', 'starter'); ?></div>
+  <?php } ?>
 
-  <div id="listing" class="content list">
-    <?php osc_run_hook('item_top'); ?>
-    <?php echo starter_banner('item_top'); ?>
+  <div class="al-item-grid">
 
-    <!-- LISTING BODY -->
-    <div id="main">
-
-      <!-- Image Block -->
-      <div id="left">
-        <?php if( osc_images_enabled_at_items() ) { ?> 
-          <?php osc_get_item_resources(); ?>
-
-          <?php if( osc_count_item_resources() > 0 ) { ?> 
-            <div class="photo-block item-block" data-block="detail">
-              <div id="images">
-                <?php $at_once = min(osc_get_preference('item_images', 'starter_theme'), osc_count_item_resources()); ?>
-
-                <div id="pictures" class="item-pictures">
-                  <ul class="item-bxslider">
-                    <?php osc_reset_resources(); ?>
-                    <?php for( $i = 0; osc_has_item_resources(); $i++ ) { ?>
-                      <li>
-                        <?php if($content_only == 0) { ?>
-                          <a rel="image_group" data-fancybox="gallery" href="<?php echo osc_resource_url(); ?>" title="<?php echo osc_esc_html(osc_item_title()); ?> - <?php _e('Image', 'starter'); ?> <?php echo $i+1;?>/<?php echo osc_count_item_resources();?>">
-                            <img src="<?php echo osc_resource_url(); ?>" alt="<?php echo osc_esc_html(osc_item_title()); ?> - <?php echo $i+1;?>/<?php echo osc_count_item_resources();?>"/>
-                          </a>
-                        <?php } else { ?>
-                          <img src="<?php echo osc_resource_url(); ?>" alt="<?php echo osc_esc_html(osc_item_title()); ?> - <?php echo $i+1;?>/<?php echo osc_count_item_resources();?>"/>
-                        <?php } ?>
-                      </li>
-                    <?php } ?>
-                  </ul>
-
-                  <div id="photo-count" class="round2">
-                    <div class="top"><i class="fa fa-camera"></i></div>
-                    <div class="bottom">
-                      <?php if(osc_count_item_resources() == 1) { ?>
-                        <span class="p-total"><?php echo osc_count_item_resources(); ?></span> <?php _e('photo', 'starter'); ?>
-                      <?php } else { ?>
-                        <span class="p-from">1</span> <span class="p-del">-</span> <span class="p-to"><?php echo $at_once; ?></span> <?php _e('of', 'starter'); ?> <span class="p-total"><?php echo osc_count_item_resources(); ?></span>
-                      <?php } ?>
-                    </div>
-                  </div>
-
-                  <?php if(osc_count_item_resources() > 1 && osc_get_preference('item_pager', 'starter_theme') == 1) { ?>
-                    <div id="item-bx-pager">
-                      <?php osc_reset_resources(); ?>
-                      <?php $c = 0; ?>
-                      <?php for( $i = 1; osc_has_item_resources(); $i++ ) { ?>
-
-                        <?php if($i - 1 + $at_once <= osc_count_item_resources()) { ?>
-                          <a data-slide-index="<?php echo $c; ?>" href="" class="bx-navi<?php if($i - 1 + $at_once == osc_count_item_resources()) { ?> last<?php } ?>"<?php if($i - 1 + $at_once == osc_count_item_resources()) { ?> style="width:<?php echo $at_once * 128; ?>px"<?php } ?>>
-                        <?php } ?>
-
-                        <img src="<?php echo osc_resource_thumbnail_url(); ?>" alt="<?php echo osc_esc_html(osc_item_title()); ?> - <?php _e('Image', 'starter'); ?> <?php echo $i;?>/<?php echo osc_count_item_resources();?>"/>
-
-                        <?php if($i == osc_count_item_resources()) { ?>
-                          </a>
-                        <?php } ?>
-
-                        <?php $c++; ?>
-                      <?php } ?>
-                    </div>
-                  <?php } ?>
-                </div>
-              </div>
-            </div>
+    <!-- GALLERY -->
+    <section class="al-gallery" aria-label="<?php echo osc_esc_html(__('Photos', 'starter')); ?>">
+      <?php if (osc_images_enabled_at_items() && osc_count_item_resources() > 0) { ?>
+        <?php osc_reset_resources(); $al_n = osc_count_item_resources(); ?>
+        <div class="al-gallery-main">
+          <?php for ($i = 0; osc_has_item_resources(); $i++) { ?>
+            <a href="<?php echo osc_resource_url(); ?>" data-fancybox="gallery" class="al-gallery-slide<?php echo $i == 0 ? ' is-active' : ''; ?>" data-index="<?php echo $i; ?>"<?php echo $i == 0 ? '' : ' hidden'; ?>>
+              <img src="<?php echo osc_resource_url(); ?>" alt="<?php echo osc_esc_html(osc_item_title()); ?> - <?php echo sprintf(__('photo %1$d of %2$d', 'starter'), $i + 1, $al_n); ?>"<?php echo $i == 0 ? '' : ' loading="lazy"'; ?> />
+            </a>
           <?php } ?>
-        <?php } ?>
-        
-        <?php osc_run_hook('item_images'); ?> 
-
-        <?php if($content_only == 0) { ?>
-          <div class="item-desc item-block" data-block="detail">
-
-            <div id="price">
-              <span><?php echo antique_format_price(osc_item_price()); ?></span>
-            </div>
-            
-            <?php osc_run_hook('item_title'); ?>
-
-
-            <div id="item-basics">
-              <div class="elem"><?php _e('ID', 'starter'); ?> #<?php echo osc_item_id(); ?></div>
-
-              <div class="elem">
-                <?php if (osc_item_mod_date() == '') { ?>
-                  <span title="<?php echo osc_format_date(osc_item_pub_date()); ?>"><?php _e('Published', 'starter'); ?> <?php echo starter_smart_date(osc_item_pub_date()); ?></span>
-                <?php } else { ?>
-                  <span title="<?php echo osc_format_date(osc_item_pub_date()); ?>"><?php _e('Modified', 'starter'); ?> <?php echo starter_smart_date(osc_item_mod_date()); ?></span>
-                <?php } ?>
-              </div>   
-            </div>
-
-            <div class="mobile-labels is767">
-              <?php
-                if($item_extra['i_sold'] == 1) {
-                  echo '<div class="elem sold">' . __('Sold', 'starter') . '</div>';
-                } else if($item_extra['i_sold'] == 2) { 
-                  echo '<div class="elem reserved">' . __('Reserved', 'starter') . '</div>';
-                }
-
-                if(osc_item_is_premium()) {
-                  echo '<div class="elem premium">' . __('Premium', 'starter') . '</div>';
-                }
-
-                if(!in_array(osc_item_category_id(), starter_extra_fields_hide())) {
-                  if(starter_condition_name($item_extra['i_condition'])) {
-                    echo '<div class="elem condition">' . __('Condition', 'starter') . ': <span>' . starter_condition_name($item_extra['i_condition']) . '</span></div>';
-                  }
-
-                  if(starter_condition_name($item_extra['i_transaction'])) {
-                    echo '<div class="elem transaction">' . __('Transaction', 'starter') . ': <span>' . starter_transaction_name($item_extra['i_transaction']) . '</span></div>';
-                  }
-                }
-              ?>
-            </div>
-
-            <div class="text">
-              <?php echo osc_item_description(); ?>
-            </div>
-            
-            <?php osc_run_hook('item_description'); ?>
-
-
-            <h2 class="attribute"><?php _e('Attributes', 'starter'); ?></h2>
-            <?php $has_custom = false; ?>
-            <?php if( osc_count_item_meta() >= 1 ) { ?>
-              <div id="custom_fields">
-                <div class="meta_list">
-                  <?php $class = 'odd'; ?>
-                  <?php while( osc_has_item_meta() ) { ?>
-                    <?php if(osc_item_meta_value()!='') { ?>
-                      <?php $has_custom = true; ?>
-                      <div class="meta <?php echo $class; ?>">
-                        <div class="ins">
-                          <span><?php echo osc_item_meta_name(); ?>:</span> <?php echo osc_item_meta_value(); ?>
-                        </div>
-                      </div>
-                    <?php } ?>
-
-                    <?php $class = ($class == 'even') ? 'odd' : 'even'; ?>
-                  <?php } ?>
-                </div>
-
-              </div>
+          <?php if ($al_n > 1) { ?>
+            <button type="button" class="al-gallery-nav is-prev" aria-label="<?php echo osc_esc_html(__('Previous photo', 'starter')); ?>"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button>
+            <button type="button" class="al-gallery-nav is-next" aria-label="<?php echo osc_esc_html(__('Next photo', 'starter')); ?>"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
+          <?php } ?>
+          <span class="al-gallery-count"><span class="al-gallery-current">1</span> / <?php echo $al_n; ?></span>
+        </div>
+        <?php if ($al_n > 1) { ?>
+          <div class="al-gallery-thumbs">
+            <?php osc_reset_resources(); ?>
+            <?php for ($i = 0; osc_has_item_resources(); $i++) { ?>
+              <button type="button" class="al-gallery-thumb<?php echo $i == 0 ? ' is-active' : ''; ?>" data-index="<?php echo $i; ?>" aria-label="<?php echo osc_esc_html(sprintf(__('Show photo %d', 'starter'), $i + 1)); ?>">
+                <img src="<?php echo osc_resource_thumbnail_url(); ?>" alt="" loading="lazy" />
+              </button>
             <?php } ?>
-            
-            <?php osc_run_hook('item_meta'); ?>  
+          </div>
+        <?php } ?>
+      <?php } else { ?>
+        <div class="al-gallery-main is-empty">
+          <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/></svg>
+          <span><?php _e('No photos yet', 'starter'); ?></span>
+        </div>
+      <?php } ?>
+      <?php osc_run_hook('item_images'); ?>
+    </section>
 
-            <div id="plugin-details">
-              <?php osc_run_hook('item_detail', osc_item() ); ?>  
-            </div>
+    <!-- SUMMARY + BUY BOX -->
+    <aside class="al-item-aside">
+      <div class="al-panel al-summary">
+        <a class="al-summary-cat" href="<?php echo osc_search_url(array('page' => 'search', 'sCategory' => osc_item_category_id())); ?>"><?php echo osc_esc_html(osc_item_category()); ?></a>
+        <h1 class="al-item-title"><?php echo osc_esc_html(osc_item_title()); ?></h1>
+
+        <div class="al-tags">
+          <?php if ($item_extra['i_sold'] == 1) { ?><span class="al-tag is-sold"><?php _e('Sold', 'starter'); ?></span><?php } ?>
+          <?php if ($item_extra['i_sold'] == 2) { ?><span class="al-tag is-reserved"><?php _e('Reserved', 'starter'); ?></span><?php } ?>
+          <?php if (osc_item_is_premium()) { ?><span class="al-tag is-premium"><?php _e('Featured', 'starter'); ?></span><?php } ?>
+          <?php if ($condition) { ?><span class="al-tag"><?php echo osc_esc_html($condition); ?></span><?php } ?>
+          <?php if ($transaction) { ?><span class="al-tag"><?php echo osc_esc_html($transaction); ?></span><?php } ?>
+        </div>
+
+        <?php osc_run_hook('item_title'); ?>
+
+        <?php if (!$al_auction && osc_price_enabled_at_items()) { ?>
+          <div class="al-buy-price">
+            <span class="al-buy-label"><?php _e('Price', 'starter'); ?></span>
+            <div class="al-buy-amount"><?php echo antique_format_price(osc_item_price()); ?></div>
           </div>
         <?php } ?>
 
-
-        <?php if($content_only == 0) { ?>
-          <div class="item-map item-block" data-block="location">
-            <div class="map">
-              <?php osc_run_hook('location') ; ?>
-            </div>  
-          </div>
-        <?php } ?>
+        <ul class="al-meta">
+          <?php if ($item_loc <> '') { ?>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg><?php echo osc_esc_html($item_loc); ?></li>
+          <?php } ?>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+            <span title="<?php echo osc_esc_html(osc_format_date(osc_item_pub_date())); ?>"><?php echo osc_item_mod_date() == '' ? __('Listed', 'starter') : __('Updated', 'starter'); ?> <?php echo starter_smart_date(osc_item_mod_date() == '' ? osc_item_pub_date() : osc_item_mod_date()); ?></span>
+          </li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 9h16M4 15h16M10 3 8 21M16 3l-2 18"/></svg><?php echo sprintf(__('Listing %d', 'starter'), osc_item_id()); ?></li>
+        </ul>
       </div>
 
-
-      <?php echo starter_banner('item_description'); ?>
-
-
-      <?php if($content_only == 0) { ?>
-        <div id="more-info" class="contact-seller item-block" data-block="contact">
-          <h1>&nbsp;</h1>
-
-          <h2><span><?php _e('Contact seller', 'starter'); ?></span></h2>
-      
-          <div class="inside">
-            <ul id="error_list"></ul>
-            <?php ContactForm::js_validation(); ?>
-
-            <form action="<?php echo osc_base_url(true) ; ?>" method="post" name="contact_form" id="contact_form" <?php if(osc_item_attachment()) { echo 'enctype="multipart/form-data"'; };?>>
-              <input type="hidden" name="action" value="contact_post" />
-              <input type="hidden" name="page" value="item" />
-              <input type="hidden" name="id" value="<?php echo osc_item_id() ; ?>" />
-
-              <?php osc_prepare_user_info() ; ?>
-
-              <fieldset>
-                <div class="message-block">
-                  <?php if( osc_item_is_expired () ) { ?>
-                    <div class="empty">
-                      <?php _e('This listing expired, you cannot contact seller.', 'starter') ; ?>
-                    </div>
-                  <?php } else if( (osc_logged_user_id() == osc_item_user_id()) && osc_logged_user_id() != 0 ) { ?>
-                    <div class="empty">
-                      <?php _e('It is your own listing, you cannot contact yourself.', 'starter') ; ?>
-                    </div>
-                  <?php } else if( osc_reg_user_can_contact() && !osc_is_web_user_logged_in() ) { ?>
-                    <div class="empty">
-                      <?php _e('You must log in or register a new account in order to contact the advertiser.', 'starter') ; ?>
-                    </div>
-                  <?php } else { ?> 
-                    <div class="row first">
-                      <label for="yourName"><?php _e('Name', 'starter') ; ?></label>
-                      <?php ContactForm::your_name(); ?>
-                    </div>
-
-                    <div class="row second">
-                      <label for="yourEmail"><span><?php _e('E-mail', 'starter'); ?></span><span class="req">*</span></label>
-                      <?php ContactForm::your_email(); ?>
-                    </div>
-
-                    <div class="row third">
-                      <label for="phoneNumber"><span><?php _e('Phone', 'starter'); ?></span></label>
-                      <?php ContactForm::your_phone_number(); ?>
-                    </div>
-
-                    <div class="row full">
-                      <label for="message"><span><?php _e('Message', 'starter'); ?></span></label>
-                      <?php ContactForm::your_message(); ?>
-                    </div>
-                    
-                    <?php if(osc_item_attachment()) { ?>
-                      <div class="att-wrap">
-                        <label for="attachment"><span><?php _e('Attachment', 'starter'); ?></span></label>
-
-                        <div class="attachment">
-                          <div class="att-box">
-                            <label class="status">
-                              <span class="wrap"><i class="fa fa-paperclip"></i> <span data-original="<?php echo osc_esc_html(__('Upload file', 'starter')); ?>"><?php _e('Upload file', 'starter'); ?></span></span>
-                              <?php ContactForm::your_attachment(); ?>
-                            </label>
-                          </div>
-
-                          <div class="text"><?php _e('Allowed extensions:', 'starter'); ?> <?php echo osc_allowed_extension(); ?>.</div>
-                          <div class="text"><?php _e('Maximum size:', 'starter'); ?> <?php echo round(osc_max_size_kb()/1000, 1); ?>Mb.</div>
-                        </div>
-                      </div>
-                    <?php } ?>
-
-
-                    <?php osc_run_hook('item_contact_form', osc_item_id()); ?>
-                    <?php osc_show_recaptcha(); ?>
-
-                    <button type="<?php echo (osc_get_preference('forms_ajax', 'starter_theme') == 1 ? 'button' : 'submit'); ?>" class="send" id="item-message"><?php _e('Send message', 'starter') ; ?></button>
-                  <?php } ?>
-                </div>
-
-                <div class="message-status message-sent">
-                  <div class="icon"><i class="fa fa-check-circle"></i></div>
-                  <div class="title"></div>
-                  <div class="link"><a href="#" class="next-message"><?php _e('Send next message', 'starter'); ?></a></div>
-                </div>
-
-                <div class="message-status message-not-sent">
-                  <div class="icon"><i class="fa fa-times-circle"></i></div>
-                  <div class="title"></div>
-                  <div class="link"><a href="#" class="next-message"><?php _e('Send next message', 'starter'); ?></a></div>
-                </div>
-              </fieldset>
-            </form>
-          </div>
-        </div>
-
-
-        <!-- Comments-->
-        <div id="more-info" class="comments item-block" data-block="comments">
-          <?php if( osc_comments_enabled()) { ?>
-            <div class="item-comments">
-              <h2 class="sc-click">
-                <span><?php _e('Comments', 'starter'); ?></span>
-              </h2>
-
-
-              <!-- LIST OF COMMENTS -->
-              <div id="comments" class="sc-block">
-                <div class="comments_list">
-                  <?php $class = 'even'; ?>
-                  <?php $i = 1; ?>
-                  <?php while ( osc_has_item_comments() ) { ?>
-                    <div class="comment-wrap <?php echo $class; ?>">
-                      <div class="ins">
-                        <div class="comment-image">
-                          <img src="<?php echo starter_profile_picture(osc_comment_user_id(), 'medium'); ?>"/>
-                        </div>
-
-                        <div class="comment">
-                          <h4><span class="bold"><?php if(osc_comment_title() == '') { _e('Review', 'starter'); } else { echo osc_comment_title(); } ?></span> <?php _e('by', 'starter') ; ?> <?php if(osc_comment_author_name() == '') { _e('Anonymous', 'starter'); } else { echo osc_comment_author_name(); } ?>:</h4>
-                          <div class="body"><?php echo osc_comment_body() ; ?></div>
-
-                          <?php if ( osc_comment_user_id() && (osc_comment_user_id() == osc_logged_user_id()) ) { ?>
-                            <a rel="nofollow" class="remove" href="<?php echo osc_delete_comment_url(); ?>" title="<?php echo osc_esc_html(__('Delete your comment', 'starter')); ?>">
-                              <span class="not767"><?php _e('Delete', 'starter'); ?></span>
-                              <span class="is767"><i class="fa fa-trash-o"></i></span>
-                            </a>
-                          <?php } ?>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div class="clear"></div>
-                    <?php $class = ($class == 'even') ? 'odd' : 'even'; ?>
-
-                    <?php
-                      $i++;
-                      $i = $i % 3 + 1;
-                    ?>
-                  <?php } ?>
-
-                  <?php if($i == 1) { ?>
-                    <div class="no-comments"><?php _e('This listing has not been commented yet', 'starter'); ?></div>
-                  <?php } ?>
-
-                  <div class="paginate"><?php echo osc_comments_pagination(); ?></div>
-
-                </div>
-              </div>
-
-              <?php if( osc_reg_user_post_comments () && osc_is_web_user_logged_in() || !osc_reg_user_post_comments() ) { ?>
-                <a class="add-com btn btn-primary" href="<?php echo osc_item_send_friend_url(); ?>"><?php _e('Add comment', 'starter'); ?></a>
-              <?php } ?>
-            </div>
-          <?php } ?>
-        </div>
-        
-        <?php osc_run_hook('item_comment'); ?> 
-      <?php } ?>
-
-
-      <?php echo starter_banner('item_bottom'); ?>
-    </div>
-
-
-    <!-- RIGHT SIDEBAR -->
-    <?php if($content_only == 0) { ?>
-      <div id="side-right">
+      <?php if ($content_only == 0) { ?>
         <?php osc_run_hook('item_sidebar_top'); ?>
         <?php echo starter_banner('item_sidebar'); ?>
 
-
-        <!-- SELLER INFO -->
-        <div id="seller" class="item-block <?php if(osc_item_user_id() == 0) { ?> unreg<?php } ?>" data-block="detail">
-          <div class="sc-block body">
-            <div class="inside">
-
-              <!-- USER IS NOT OWNER OF LISTING -->
-              <div class="side-photo">
-                <div class="img">
-                  <img src="<?php echo starter_profile_picture(osc_item_user_id(), 'medium'); ?>" />
-                </div>
-
-
-                <div class="name">
-                  <?php
-                    $c_name = '';
-                    if(osc_item_contact_name() <> '' and osc_item_contact_name() <> __('Anonymous', 'starter')) {
-                      $c_name = osc_item_contact_name();
-                    }
-
-                    if($c_name == '' and $item_user['s_name'] <> '') { 
-                      $c_name = $item_user['s_name'];
-                    }
-
-                    if($c_name == '') {
-                      $c_name = __('Anonymous', 'starter');
-                    }
-                  ?>
-
-                  <?php if(osc_item_user_id() <> 0 and osc_item_user_id() <> '') { ?>
-                    <a href="<?php echo osc_user_public_profile_url(osc_item_user_id()); ?>" title="<?php echo osc_esc_html(__('Check profile of this user', 'starter')); ?>">
-                      <?php echo $c_name; ?>
-                    </a>
-                  <?php } else { ?>
-                    <?php echo $c_name; ?>
-                  <?php } ?>
-                </div>
-
-
-                <div class="elem regdate">
-                  <?php if(osc_item_user_id() <> 0) { ?>
-                    <?php $get_user = User::newInstance()->findByPrimaryKey( osc_item_user_id() ); ?>
-
-                    <?php if(isset($get_user['dt_reg_date']) AND $get_user['dt_reg_date'] <> '') { ?>
-                      <?php echo __('Registered on', 'starter') . ' ' . osc_format_date( $get_user['dt_reg_date'] ); ?>
-                    <?php } else { ?>
-                      <?php echo __('Unknown registration date', 'starter'); ?>
-                    <?php } ?>
-                  <?php } else { ?>
-                    <?php echo __('Unregistered user', 'starter'); ?>
-                  <?php } ?>
-                </div>
-
-                <!-- GLOBAL SELLER BADGE -->
-                <div class="global-seller-badge" style="display:inline-flex;align-items:center;gap:6px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:4px 8px;margin-top:8px;font-size:12px;font-weight:600;color:#0f172a;">
-                  <i class="fa fa-globe" style="color:var(--gold-600);"></i>
-                  <span><?php echo osc_item_country() <> '' ? osc_item_country() : __('Global Seller', 'starter'); ?></span>
-                </div>
-              </div>
-
-
-
-
-              <!-- IF USER OWN THIS LISTING, SHOW SELLER TOOLS -->
-              <?php if(osc_is_web_user_logged_in() && osc_item_user_id() == osc_logged_user_id()) { ?>
-                <div id="s-tools">
-                  <a href="<?php echo osc_item_edit_url(); ?>" class="tr1 round2"><i class="fa fa-edit tr1"></i><span><?php _e('Edit', 'starter'); ?></span></a>
-                  <a href="<?php echo osc_item_delete_url(); ?>" class="tr1 round2" onclick="return confirm('<?php _e('Are you sure you want to delete this listing? This action cannot be undone.', 'starter'); ?>?')"><i class="fa fa-trash-o tr1"></i><span><?php _e('Remove', 'starter'); ?></span></a>
-
-                  <?php 
-                    if (osc_rewrite_enabled()) { 
-                      if( $item_extra['i_sold'] == 0 ) {
-                        $sold_url = '?itemId=' . osc_item_id() . '&markSold=1&secret=' . osc_item_field('s_secret') . '&itemType=active';
-                        $reserved_url = '?itemId=' . osc_item_id() . '&markSold=2&secret=' . osc_item_field('s_secret') . '&itemType=active';
-                      } else {
-                        $sold_url = '?itemId=' . osc_item_id() . '&markSold=0&secret=' . osc_item_field('s_secret') . '&itemType=active';
-                        $reserved_url = '?itemId=' . osc_item_id() . '&markSold=0&secret=' . osc_item_field('s_secret') . '&itemType=active';
-                      }
-                    } else {
-                      if( $item_extra['i_sold'] == 0 ) {
-                        $sold_url = '&itemId=' . osc_item_id() . '&markSold=1&secret=' . osc_item_field('s_secret') . '&itemType=active';
-                        $reserved_url = '&itemId=' . osc_item_id() . '&markSold=2&secret=' . osc_item_field('s_secret') . '&itemType=active';
-                      } else {
-                        $sold_url = '&itemId=' . osc_item_id() . '&markSold=0&secret=' . osc_item_field('s_secret') . '&itemType=active';
-                        $reserved_url = '&itemId=' . osc_item_id() . '&markSold=0&secret=' . osc_item_field('s_secret') . '&itemType=active';
-                      }
-                    }
-                  ?>
-
-
-                  <?php if(!in_array(osc_item_category_id(), starter_extra_fields_hide())) { ?>
-                    <a target="_blank" class="tr1 round2 sold" href="<?php echo osc_user_list_items_url() . $sold_url; ?>"><i class="fa fa-gavel"></i> <span><?php echo ($item_extra['i_sold'] == 1 ? __('Not sold', 'starter') : __('Sold', 'starter')); ?></span></a>
-                    <a target="_blank" class="tr1 round2 reserved" href="<?php echo osc_user_list_items_url() . $reserved_url; ?>"><i class="fa fa-flag-o"></i> <span><?php echo ($item_extra['i_sold'] == 2 ? __('Unreserve', 'starter') : __('Reserved', 'starter')); ?></span></a>
-                  <?php } ?>
-                </div>
+        <?php if ($is_owner) { ?>
+          <?php
+            $sep = osc_rewrite_enabled() ? '?' : '&';
+            $secret = '&secret=' . osc_item_field('s_secret') . '&itemType=active';
+            $sold_url = osc_user_list_items_url() . $sep . 'itemId=' . osc_item_id() . '&markSold=' . ($item_extra['i_sold'] == 1 ? 0 : 1) . $secret;
+            $reserved_url = osc_user_list_items_url() . $sep . 'itemId=' . osc_item_id() . '&markSold=' . ($item_extra['i_sold'] == 2 ? 0 : 2) . $secret;
+          ?>
+          <div class="al-panel al-owner-tools">
+            <h2 class="al-panel-title"><?php _e('Manage your listing', 'starter'); ?></h2>
+            <div class="al-owner-grid">
+              <a class="al-btn al-btn-ink" href="<?php echo osc_item_edit_url(); ?>"><?php _e('Edit listing', 'starter'); ?></a>
+              <?php if ($show_details) { ?>
+                <a class="al-btn al-btn-outline" href="<?php echo osc_esc_html($sold_url); ?>"><?php echo $item_extra['i_sold'] == 1 ? __('Mark as available', 'starter') : __('Mark as sold', 'starter'); ?></a>
+                <a class="al-btn al-btn-outline" href="<?php echo osc_esc_html($reserved_url); ?>"><?php echo $item_extra['i_sold'] == 2 ? __('Remove reservation', 'starter') : __('Mark as reserved', 'starter'); ?></a>
               <?php } ?>
-
+              <a class="al-btn al-btn-danger" href="<?php echo osc_item_delete_url(); ?>" onclick="return confirm('<?php echo osc_esc_js(__('Delete this listing? This cannot be undone.', 'starter')); ?>');"><?php _e('Delete', 'starter'); ?></a>
             </div>
+          </div>
+        <?php } ?>
 
-
-            <div class="item-actions">
-              <?php if($mobile_found) { ?>
-                <div class="row phone">
-                  <i class="fa fa-phone"></i>
-
-                  <?php if($mobile_login_required) { ?>
-                    <a href="<?php echo osc_user_login_url(); ?>" class="phone-block login-required has-tooltip" data-item-id="<?php echo osc_item_id(); ?>" data-item-user-id="<?php echo osc_item_user_id(); ?>" title="<?php echo osc_esc_js(__('Login to show phone number', 'starter')); ?>">
-                      <span>
-                        <?php echo __('Login to show number', 'starter'); ?>
-                      </span>
-                    </a>
-                  <?php } else { ?>
-                    <a href="#" class="phone-block has-tooltip" data-item-id="<?php echo osc_item_id(); ?>" data-item-user-id="<?php echo osc_item_user_id(); ?>" title="<?php echo osc_esc_js(__('Click to show phone number', 'starter')); ?>">
-                      <span>
-                        <?php 
-                          if(strlen($mobile) >= 4 && $mobile <> __('No phone number', 'starter')) {
-                            echo substr($mobile, 0, strlen($mobile) - 4) . 'xxxx'; 
-                          } else {
-                            echo $mobile;
-                          }
-                        ?>
-                      </span>
-                    </a>
-                  <?php } ?>
-                </div>
+        <!-- SELLER -->
+        <div class="al-panel al-seller">
+          <div class="al-seller-head">
+            <img class="al-seller-avatar" src="<?php echo starter_profile_picture(osc_item_user_id(), 'medium'); ?>" alt="" width="56" height="56" />
+            <div>
+              <div class="al-seller-label"><?php _e('Sold by', 'starter'); ?></div>
+              <?php if (osc_item_user_id() <> 0) { ?>
+                <a class="al-seller-name" href="<?php echo osc_user_public_profile_url(osc_item_user_id()); ?>"><?php echo osc_esc_html($seller_name); ?></a>
+              <?php } else { ?>
+                <span class="al-seller-name"><?php echo osc_esc_html($seller_name); ?></span>
               <?php } ?>
-
-
-              <?php if(osc_item_show_email()) { ?>
-                <div class="row">
-                  <i class="fa fa-at"></i>
-
-                  <?php
-                    $mail = osc_item_contact_email();
-                    $mail_start = substr($mail, 0, 3);
-                  ?>
-
-                  <a href="#" class="mail-block has-tooltip" rel="<?php echo substr($mail, 3); ?>" title="<?php echo osc_esc_js(__('Click to show email address', 'starter')); ?>">
-                    <span>
-                      <?php echo $mail_start . 'xxxx@xxxx.xxxx'; ?>
-                    </span>
-                  </a>
-                </div>
-              <?php } ?>
-
-
-              <?php if(function_exists('im_manage_contact_seller')) { ?>
-                <div class="row">
-                  <i class="fa fa-paper-plane-o"></i>
-                  <a class="send-message" href="<?php echo osc_route_url('im-create-thread', array('item-id' => osc_item_id())); ?>"><?php _e('Send message', 'starter'); ?></a>
-                </div>
-              <?php } ?>
-
-
-              <?php if(function_exists('show_feedback_overall') && osc_item_user_id() > 0 && osc_get_preference('bo_mgr_allow_feedback', 'plugin-bo_mgr') == 1) { ?>
-                <div class="row feedback">
-                  <i class="fa fa-thumbs-o-up"></i>
-                  <?php echo show_feedback_overall(); ?>
-                  <?php echo leave_feedback(); ?>
-                </div>
-              <?php } ?>
-
-              <?php if(function_exists('ur_hook_show_rating_stars') && osc_item_user_id() > 0) { ?>
-                <div class="row user-rating">
-                  <i class="fa fa-thumbs-o-up"></i>
-                  <?php echo ur_show_rating_stars(); ?>
-                  <?php echo ur_add_rating_link(); ?>
-                </div>
-              <?php } ?>
-
-              <?php if(osc_item_user_id() <> 0) { ?>
-                <div class="row dash">
-                  <i class="fa fa-dashboard"></i>
-
-                  <?php if(function_exists('seller_post')) { ?>
-                    <?php seller_post(); ?>
-                  <?php } else { ?>
-                    <a href="<?php echo osc_user_public_profile_url(osc_item_user_id()); ?>"><?php _e('Dashboard', 'starter'); ?></a>
-                  <?php } ?>
-                </div>
-              <?php } ?>
-
-
-              <?php if(osc_item_user_id() <> 0) { ?>
-                <div class="row type">
-                  <?php $user = User::newInstance()->findByPrimaryKey( osc_item_user_id() ); ?>
-                  <?php if($user['b_company'] == 1) { ?>
-                    <i class="fa fa-briefcase"></i> <?php _e('Company', 'starter'); ?>
-                  <?php } else { ?>
-                    <i class="fa fa-user-o"></i> <?php _e('Private person', 'starter'); ?>
-                  <?php } ?>
-                </div>
-              <?php } ?>
-
-
-              <?php if(function_exists('fi_save_favorite')) { ?>
-                <div class="row favorite">
-                  <?php echo fi_save_favorite(); ?>
-                </div>
-              <?php } ?>
-
-              <?php if(function_exists('mo_hook_button') && (osc_item_price() <> 0)) { ?>
+              <div class="al-seller-sub">
                 <?php
-                  $hook = osc_get_preference('add_hook', 'plugin-make_offer');
-                  $hook = ($hook <> '' ? $hook : 1);
+                  $sub = array();
+                  if (!empty($item_user)) {
+                    $sub[] = $item_user['b_company'] == 1 ? __('Dealer', 'starter') : __('Private seller', 'starter');
+                    if (!empty($item_user['dt_reg_date'])) { $sub[] = sprintf(__('Member since %s', 'starter'), date('M Y', strtotime($item_user['dt_reg_date']))); }
+                  } else {
+                    $sub[] = __('Guest seller', 'starter');
+                  }
+                  echo osc_esc_html(implode(' · ', $sub));
                 ?>
-
-                <?php if($hook == 1 && mo_show_offer_link()) { ?>
-                  <div class="row make-offer">
-                    <i class="fa fa-gavel"></i>
-                    <?php echo mo_show_offer_link(); ?>
-                  </div>
-                <?php } ?>
-              <?php } ?>
-
-
-              <div class="row friend">
-                <i class="fa fa-users"></i>
-                <a id="send-friend" href="<?php echo osc_item_send_friend_url(); ?>"><?php _e('Send to friend', 'starter'); ?></a>
               </div>
-
-              <?php if (function_exists('print_ad')) { ?>
-                <div class="row print">
-                  <i class="fa fa-print"></i>
-                  <?php print_ad(); ?>
-                </div>
-              <?php } ?>
-
-              <?php if (function_exists('show_printpdf')) { ?>
-                <div class="row pdf">
-                  <i class="fa fa-file-pdf-o"></i>
-                  <a id="print_pdf" target="_blank" href="<?php echo osc_base_url(); ?>oc-content/plugins/printpdf/download.php?item=<?php echo osc_item_id(); ?>" ><?php _e('Download PDF', 'starter'); ?></a>
-                </div>
-              <?php } ?>
             </div>
           </div>
 
-          <?php osc_run_hook('item_contact'); ?> 
-        </div>
-
-
-        <!-- ITEM LOCATION -->
-        <div id="location" class="item-block" data-block="location">
-          <h2 class="sc-click">
-            <?php _e('Location', 'starter') ; ?>
-          </h2>
-
-          <div class="body sc-block">
-            <div class="loc-text">
-              <?php if(trim(osc_item_country() . osc_item_region() . osc_item_city()) == '') {?>
-                <div class="box-empty">
-                  <span><?php _e('Location has not been specified', 'starter'); ?></span>
-                </div>
-              <?php } ?>
-
-              <?php if(count($location_array) > 0) { ?>
-                <?php foreach($location_array as $l) { ?>
-                  <div class="elem"><?php echo $l; ?></div>
+          <?php if (!$is_owner && !osc_item_is_expired()) { ?>
+            <div class="al-seller-actions">
+              <a class="al-btn al-btn-brass al-btn-block" href="#al-contact"><?php _e('Message seller', 'starter'); ?></a>
+              <?php if ($phone_ok) { ?>
+                <?php if ($phone_login) { ?>
+                  <a class="al-btn al-btn-outline al-btn-block" href="<?php echo osc_user_login_url(); ?>"><?php _e('Sign in to see phone number', 'starter'); ?></a>
+                <?php } else { ?>
+                  <button type="button" class="al-btn al-btn-outline al-btn-block al-reveal-phone" data-phone="<?php echo osc_esc_html($mobile); ?>" data-tel="<?php echo osc_esc_html($phone_digits); ?>">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg>
+                    <span><?php echo osc_esc_html(substr($mobile, 0, max(0, strlen($mobile) - 4))); ?>xxxx · <?php _e('Show number', 'starter'); ?></span>
+                  </button>
                 <?php } ?>
               <?php } ?>
-
-              <?php if(osc_item_address() <> '') { ?>
-                <div class="elem"><?php echo osc_item_address(); ?></div>
-              <?php } ?>
             </div>
-
-            <?php if($item_loc <> '') { ?>
-              <a class="btn btn-primary" target="_blank" href="https://www.google.com/maps?daddr=<?php echo urlencode($item_loc); ?>"><?php _e('Get directions', 'starter'); ?></a>
-            <?php } ?>
-          </div>  
-        </div>
-
-
-        <!-- USER PROFILE FOR CONTACT -->
-        <div id="user-card" class="item-block" data-block="contact">
-          <?php $user = User::newInstance()->findByPrimaryKey( osc_item_user_id() ); ?>
-
-          <div class="side-photo">
-            <div class="img">
-              <img src="<?php echo starter_profile_picture(osc_item_user_id(), 'medium'); ?>" />
-            </div>
-
-            <div class="name"><?php echo (osc_item_contact_name() <> '' ? osc_item_contact_name() :  __('Anonymous', 'starter')); ?></div>
-          </div>
-
-          <?php if(isset($user['locale'][osc_current_user_locale()]['s_info']) && $user['locale'][osc_current_user_locale()]['s_info'] <> '') { ?>
-            <div class="about"><?php echo $user['locale'][osc_current_user_locale()]['s_info']; ?></div>
           <?php } ?>
 
-          <div class="body sc-block">
-
-            <div class="elem">
-              <strong><?php _e('Country', 'starter'); ?></strong> 
-              <span><?php echo (@$user['s_country'] <> '' ? $user['s_country'] : (osc_item_country() <> '' ? osc_item_country() : '-')); ?></span>
-            </div>
-
-            <div class="elem">
-              <strong><?php _e('Region', 'starter'); ?></strong> 
-              <span><?php echo (@$user['s_region'] <> '' ? $user['s_region'] : (osc_item_region() <> '' ? osc_item_region() : '-')); ?></span>
-            </div>
-
-            <div class="elem">
-              <strong><?php _e('Address', 'starter'); ?></strong> 
-              <span><?php echo (@$user['s_city'] <> '' ? $user['s_city'] : (osc_item_city() <> '' ? osc_item_city() : '-')); ?></span>
-            </div>
-
-            <div class="elem">
-              <strong><?php _e('Type', 'starter'); ?></strong> 
-              <span><?php echo (@$user['s_country'] == 1 ? __('Company', 'starter') : __('Private', 'starter')); ?></span>
-            </div>
-
-            <div class="elem">
-              <strong><?php _e('Phone', 'starter'); ?></strong> 
-
-              <?php
-                $user_phone = $mobile;
-                $user_phone = ($user_phone == '' ? @$user['s_phone_mobile'] : $user_phone);
-                $user_phone = ($user_phone == '' ? @$user['s_phone_land'] : $user_phone);
-                
-                if(osc_get_preference('reg_user_can_see_phone', 'osclass') == 1 && !osc_is_web_user_logged_in() && strlen(trim($mobile)) >= 4) {
-                  $user_phone = __('Login to see phone number', 'starter');
-                }
-              ?>
-
-              <a href="#" class="phone-block" data-item-id="<?php echo osc_item_id(); ?>" data-item-user-id="<?php echo osc_item_user_id(); ?>">
-                <span>
-                  <?php 
-                    if(strlen($user_phone) >= 4 && $user_phone <> __('No phone number', 'starter') && $user_phone <> __('Login to see phone number', 'starter')) {
-                      echo substr($user_phone, 0, strlen($user_phone) - 4) . 'xxxx'; 
-                    } else {
-                      echo $user_phone;
-                    }
-                  ?>
-                </span>
-              </a>
-            </div>
-
-            <?php if(osc_item_show_email()) { ?>
-              <div class="elem">
-                <strong><?php _e('Email', 'starter'); ?></strong> 
-
-                <?php
-                  $mail = osc_item_contact_email();
-                  $mail_start = substr($mail, 0, 3);
-                ?>
-
-                <a href="#" class="mail-block" rel="<?php echo substr($mail, 3); ?>">
-                  <span>
-                    <?php echo $mail_start . 'xxxx@xxxx.xxxx'; ?>
-                  </span>
-                </a>
-              </div>
+          <ul class="al-seller-links">
+            <?php if (osc_item_user_id() <> 0) { ?>
+              <li><a href="<?php echo osc_search_url(array('page' => 'search', 'seller_post' => osc_item_user_id())); ?>"><?php echo !empty($item_user['i_items']) ? sprintf(_n('See %d listing from this seller', 'See all %d listings from this seller', (int)$item_user['i_items'], 'starter'), (int)$item_user['i_items']) : __('More from this seller', 'starter'); ?></a></li>
             <?php } ?>
-
-          </div>  
+            <li><a href="<?php echo osc_item_send_friend_url(); ?>"><?php _e('Email this listing to a friend', 'starter'); ?></a></li>
+          </ul>
+          <?php osc_run_hook('item_contact'); ?>
         </div>
 
-        <!-- ITEM PREVIEW WHEN COMMENT PAGE -->
-        <div id="comment-card" class="item-block" data-block="comments">
-          <div class="pictures">
-            <?php osc_reset_resources(); ?>
-            <?php for( $i = 0; osc_has_item_resources(); $i++ ) { ?>
-              <div class="img">
-                <div class="wr">
-                  <img src="<?php echo osc_resource_thumbnail_url(); ?>" alt="<?php echo osc_esc_html(osc_item_title()); ?> - <?php echo $i+1;?>/<?php echo osc_count_item_resources();?>"/>
-                </div>
-              </div>
-            <?php } ?>
-          </div> 
-
-          <div class="title"><?php echo osc_item_title(); ?></div>         
-          <div class="description"><?php echo osc_highlight(osc_item_description(), 300); ?></div>     
-          <div class="price"><span><?php echo antique_format_price(osc_item_price()); ?></span></div>
-        </div>
-
- 
-        <?php if(function_exists('sp_buttons') && $content_only == 0) { ?>
-          <div class="sms-payments item-block" data-block="detail">
-            <?php echo sp_buttons( osc_item_id() );?>
-          </div>
+        <?php if (function_exists('sp_buttons')) { ?>
+          <div class="al-panel"><?php echo sp_buttons(osc_item_id()); ?></div>
         <?php } ?>
 
-
-        <?php if($content_only == 0) { ?>
-          <div id="related-block" class="item-block" data-block="detail">
-            <?php if(function_exists('related_ads_start')) { related_ads_start(); } ?>
-          </div>
-        <?php } ?>
-        
         <?php osc_run_hook('item_sidebar_bottom'); ?>
-      </div>
-    <?php } ?>
-    
-    <?php osc_run_hook('item_bottom'); ?>
-  </div>
+      <?php } ?>
+    </aside>
 
-
-
-  <?php if($content_only == 0) { ?>
-    <script type="text/javascript">
-      $(document).ready(function(){
-        // WRAP TEXT IN H2 & H3 IN ATTRIBUTES PLUGIN INTO SPAN
-        $('#plugin-details h2, #plugin-details h3').each(function(){
-          $(this).html('<span>' + $(this).html() + '</span>');
-        });
-
-        // SHOW PHONE NUMBER ON CLICK
-        <?php if($mobile <> __('No phone number', 'starter') && !$mobile_login_required) { ?>  
-          $('.phone-show, .phone-block').click(function(e){
-            e.preventDefault();
-            var mobile = "<?php echo $mobile; ?>";
-
-            if($('.phone-block').attr('href') == '#') {
-              $('.phone-block, .phone-show').attr('href', 'tel:' + mobile).addClass('shown');
-              $('.phone-block span').text(mobile).css('font-weight', 'bold');
-              $('#side-right .btn.contact-button .bot').text(mobile);
-              $('.phone-show').text('<?php echo osc_esc_js(__('Click to call', 'starter')); ?>');
-
-              return false;
-            }
-          });
-        <?php } else { ?>
-          $('.phone-show, .phone-block').click(function(){
-            return false;
-          });
-        <?php } ?>
-
-
-        // SHOW EMAIL
-        <?php if(osc_item_show_email()) { ?>  
-          $('.mail-show, .mail-block').click(function(){
-            var mail_start = $('.mail-block > span').text();
-            mail_start = mail_start.trim();
-            mail_start = mail_start.substring(0, 3);
-            var mail_end = $('.mail-block').attr('rel');
-            var mail = mail_start + mail_end;
-
-            if($('.mail-block').attr('href') == '#') {
-              $('.mail-block, .mail-show').attr('href', 'mailto:' + mail);
-              $('.mail-block span').text(mail).css('font-weight', 'bold');
-              $('.mail-show').text('<?php echo osc_esc_js(__('Click to mail', 'starter')); ?>');
-
-              return false;
-            }
-          });
-        <?php } else { ?>
-          $('.phone-show, .phone-block').click(function(){
-            return false;
-          });
-        <?php } ?>
-      });
-    </script>
-
-       
-    <!-- Scripts -->
-    <script type="text/javascript">
-    $(document).ready(function(){
-      $('.comment-wrap').hover(function(){
-        $(this).find('.hide').fadeIn(200);}, 
-        function(){
-        $(this).find('.hide').fadeOut(200);
-      });
-
-      $('.comment-wrap .hide').click(function(){
-        $(this).parent().fadeOut(200);
-      });
-
-      $('#but-con').click(function(){
-        $(".inner-block").slideToggle();
-        $("#rel_ads").slideToggle();
-      }); 
-
-      
-      <?php if(!$has_custom) { echo '$("#custom_fields").hide();';} ?>
-    });
-    </script>
-
-
-    <!-- CHECK IF PRICE IN THIS CATEGORY IS ENABLED -->
-    <script>
-    $(document).ready(function(){
-      var cat_id = <?php echo osc_item_category_id(); ?>;
-      var catPriceEnabled = new Array();
+    <!-- DETAILS -->
+    <div class="al-item-details">
+      <section class="al-panel al-section-block">
+        <h2 class="al-panel-title"><?php _e('Description', 'starter'); ?></h2>
+        <div class="al-description"><?php echo osc_item_description(); ?></div>
+        <?php osc_run_hook('item_description'); ?>
+      </section>
 
       <?php
-        $categories = Category::newInstance()->listAll( false );
-        foreach( $categories as $c ) {
-          if( $c['b_price_enabled'] != 1 ) {
-            echo 'catPriceEnabled[ '.$c['pk_i_id'].' ] = '.$c[ 'b_price_enabled' ].';';
+        $al_facts = array();
+        if ($condition) { $al_facts[__('Condition', 'starter')] = $condition; }
+        if ($transaction) { $al_facts[__('Transaction', 'starter')] = $transaction; }
+        $al_facts[__('Category', 'starter')] = osc_item_category();
+        if ($item_loc <> '') { $al_facts[__('Item location', 'starter')] = $item_loc; }
+        if (osc_count_item_meta() >= 1) {
+          while (osc_has_item_meta()) {
+            if (osc_item_meta_value() != '') { $al_facts[osc_item_meta_name()] = strip_tags(osc_item_meta_value()); }
           }
         }
       ?>
+      <section class="al-panel al-section-block">
+        <h2 class="al-panel-title"><?php _e('Item details', 'starter'); ?></h2>
+        <dl class="al-facts">
+          <?php foreach ($al_facts as $k => $v) { ?>
+            <div><dt><?php echo osc_esc_html($k); ?></dt><dd><?php echo osc_esc_html($v); ?></dd></div>
+          <?php } ?>
+        </dl>
+        <?php if ($item_loc <> '') { ?>
+          <a class="al-text-link" href="https://www.google.com/maps/search/?api=1&amp;query=<?php echo urlencode($item_loc); ?>" target="_blank" rel="noopener"><?php _e('View location on Google Maps', 'starter'); ?> &rarr;</a>
+        <?php } ?>
+        <?php osc_run_hook('item_meta'); ?>
+        <div id="plugin-details"><?php osc_run_hook('item_detail', osc_item()); ?></div>
+      </section>
 
-      if(catPriceEnabled[cat_id] == 0) {
-        $(".item-details .price.elem").hide(0);
+      <?php echo starter_banner('item_description'); ?>
+
+      <?php if ($content_only == 0) { ?>
+        <!-- CONTACT SELLER -->
+        <section class="al-panel al-section-block" id="al-contact">
+          <h2 class="al-panel-title"><?php _e('Ask the seller a question', 'starter'); ?></h2>
+          <?php if (osc_item_is_expired()) { ?>
+            <p class="al-muted"><?php _e('This listing has expired, so the seller can no longer be contacted.', 'starter'); ?></p>
+          <?php } else if ($is_owner) { ?>
+            <p class="al-muted"><?php _e('This is your listing. Buyers will use this form to contact you.', 'starter'); ?></p>
+          <?php } else if (osc_reg_user_can_contact() && !osc_is_web_user_logged_in()) { ?>
+            <p class="al-muted"><?php _e('Please sign in to contact the seller.', 'starter'); ?></p>
+            <div class="al-inline-actions">
+              <a class="al-btn al-btn-ink" href="<?php echo osc_user_login_url(); ?>"><?php _e('Sign in', 'starter'); ?></a>
+              <a class="al-btn al-btn-outline" href="<?php echo osc_register_account_url(); ?>"><?php _e('Create an account', 'starter'); ?></a>
+            </div>
+          <?php } else { ?>
+            <ul id="error_list"></ul>
+            <?php ContactForm::js_validation(); ?>
+            <form action="<?php echo osc_base_url(true); ?>" method="post" name="contact_form" id="contact_form" class="al-form"<?php if (osc_item_attachment()) { echo ' enctype="multipart/form-data"'; } ?>>
+              <input type="hidden" name="action" value="contact_post" />
+              <input type="hidden" name="page" value="item" />
+              <input type="hidden" name="id" value="<?php echo osc_item_id(); ?>" />
+              <?php osc_prepare_user_info(); ?>
+              <div class="al-form-row al-form-3">
+                <label><span><?php _e('Your name', 'starter'); ?></span><?php ContactForm::your_name(); ?></label>
+                <label><span><?php _e('Email', 'starter'); ?> <em>*</em></span><?php ContactForm::your_email(); ?></label>
+                <label><span><?php _e('Phone (optional)', 'starter'); ?></span><?php ContactForm::your_phone_number(); ?></label>
+              </div>
+              <label class="al-form-full"><span><?php _e('Message', 'starter'); ?> <em>*</em></span><?php ContactForm::your_message(); ?></label>
+              <?php if (osc_item_attachment()) { ?>
+                <label class="al-form-full"><span><?php _e('Attachment', 'starter'); ?></span><?php ContactForm::your_attachment(); ?>
+                  <small><?php echo sprintf(__('Allowed: %1$s. Max %2$s MB.', 'starter'), osc_allowed_extension(), round(osc_max_size_kb() / 1000, 1)); ?></small>
+                </label>
+              <?php } ?>
+              <?php osc_run_hook('item_contact_form', osc_item_id()); ?>
+              <?php osc_show_recaptcha(); ?>
+              <button type="submit" class="al-btn al-btn-brass" id="al-item-message"><?php _e('Send message', 'starter'); ?></button>
+            </form>
+          <?php } ?>
+        </section>
+
+        <?php if (osc_comments_enabled()) { ?>
+          <section class="al-panel al-section-block" id="al-comments">
+            <h2 class="al-panel-title"><?php _e('Questions & comments', 'starter'); ?></h2>
+            <?php $al_has_comments = false; ?>
+            <div class="al-comments">
+              <?php while (osc_has_item_comments()) { $al_has_comments = true; ?>
+                <article class="al-comment">
+                  <img src="<?php echo starter_profile_picture(osc_comment_user_id(), 'small'); ?>" alt="" width="40" height="40" />
+                  <div>
+                    <div class="al-comment-head">
+                      <strong><?php echo osc_comment_author_name() == '' ? __('Anonymous', 'starter') : osc_esc_html(osc_comment_author_name()); ?></strong>
+                      <?php if (osc_comment_title() != '') { ?><span><?php echo osc_esc_html(osc_comment_title()); ?></span><?php } ?>
+                    </div>
+                    <div class="al-comment-body"><?php echo nl2br(osc_esc_html(osc_comment_body())); ?></div>
+                    <?php if (osc_comment_user_id() && osc_comment_user_id() == osc_logged_user_id()) { ?>
+                      <a rel="nofollow" class="al-text-link is-danger" href="<?php echo osc_delete_comment_url(); ?>"><?php _e('Delete', 'starter'); ?></a>
+                    <?php } ?>
+                  </div>
+                </article>
+              <?php } ?>
+              <?php if (!$al_has_comments) { ?>
+                <p class="al-muted"><?php _e('No questions yet.', 'starter'); ?></p>
+              <?php } ?>
+              <?php if ($al_has_comments) { ?><div class="paginate"><?php echo osc_comments_pagination(); ?></div><?php } ?>
+            </div>
+            <?php if ((osc_reg_user_post_comments() && osc_is_web_user_logged_in()) || !osc_reg_user_post_comments()) { ?>
+              <a class="al-btn al-btn-outline" href="<?php echo osc_item_send_friend_url(); ?>"><?php _e('Add a comment', 'starter'); ?></a>
+            <?php } ?>
+          </section>
+        <?php } ?>
+        <?php osc_run_hook('item_comment'); ?>
+      <?php } ?>
+    </div>
+  </div>
+
+  <?php echo starter_banner('item_bottom'); ?>
+
+  <?php
+    // Similar listings: same category first, newest first, never this listing
+    if ($content_only == 0) {
+      $al_current = View::newInstance()->_get('item');
+      $al_rel = Item::newInstance()->dao->query(sprintf(
+        "SELECT pk_i_id FROM %st_item WHERE b_enabled = 1 AND b_active = 1 AND b_spam = 0 AND pk_i_id <> %d
+         AND (dt_expiration IS NULL OR dt_expiration > NOW())
+         ORDER BY (fk_i_category_id = %d) DESC, dt_pub_date DESC LIMIT 4",
+        DB_TABLE_PREFIX, osc_item_id(), osc_item_category_id()
+      ));
+      $al_rel_items = array();
+      if ($al_rel) {
+        foreach ($al_rel->result() as $r) {
+          $it = Item::newInstance()->findByPrimaryKey($r['pk_i_id']);
+          if ($it) { $al_rel_items[] = $it; }
+        }
       }
-    });
-    </script>
-  <?php } ?>
+      if (count($al_rel_items) > 0) {
+  ?>
+    <section class="al-related">
+      <div class="al-section-head">
+        <h2><?php _e('You may also like', 'starter'); ?></h2>
+        <a href="<?php echo osc_search_url(array('page' => 'search', 'sCategory' => osc_item_category_id())); ?>"><?php echo sprintf(__('More in %s', 'starter'), osc_esc_html(osc_item_category())); ?> &rarr;</a>
+      </div>
+      <div class="al-grid">
+        <?php
+          View::newInstance()->_exportVariableToView('items', $al_rel_items);
+          while (osc_has_items()) { include __DIR__ . '/inc.al-card.php'; }
+          View::newInstance()->_erase('items');
+          View::newInstance()->_exportVariableToView('item', $al_current);
+        ?>
+      </div>
+    </section>
+  <?php } } ?>
 
+  <?php osc_run_hook('item_bottom'); ?>
+</div>
 
-  <?php if($content_only == 0) { ?>
-    <?php osc_current_web_theme_path('footer.php') ; ?>
-  <?php } ?>
+<?php if ($content_only == 0) { ?>
+  <script>
+    (function () {
+      // Gallery: arrows, thumbnails and swipe
+      var main = document.querySelector('#al-item .al-gallery-main');
+      if (main) {
+        var slides = main.querySelectorAll('.al-gallery-slide');
+        var thumbs = document.querySelectorAll('#al-item .al-gallery-thumb');
+        var counter = main.querySelector('.al-gallery-current');
+        var current = 0;
+        var show = function (i) {
+          if (!slides.length) return;
+          current = (i + slides.length) % slides.length;
+          for (var k = 0; k < slides.length; k++) {
+            slides[k].hidden = k !== current;
+            slides[k].classList.toggle('is-active', k === current);
+          }
+          for (var t = 0; t < thumbs.length; t++) {
+            thumbs[t].classList.toggle('is-active', t === current);
+          }
+          if (counter) counter.textContent = current + 1;
+        };
+        var prev = main.querySelector('.is-prev'), next = main.querySelector('.is-next');
+        if (prev) prev.addEventListener('click', function () { show(current - 1); });
+        if (next) next.addEventListener('click', function () { show(current + 1); });
+        for (var t = 0; t < thumbs.length; t++) {
+          thumbs[t].addEventListener('click', function () { show(+this.getAttribute('data-index')); });
+        }
+        var x0 = null;
+        main.addEventListener('touchstart', function (e) { x0 = e.touches[0].clientX; }, { passive: true });
+        main.addEventListener('touchend', function (e) {
+          if (x0 === null) return;
+          var dx = e.changedTouches[0].clientX - x0;
+          if (Math.abs(dx) > 40) show(current + (dx < 0 ? 1 : -1));
+          x0 = null;
+        });
+      }
+
+      // Phone number: reveal on request, then call / WhatsApp
+      var btn = document.querySelector('#al-item .al-reveal-phone');
+      if (btn) {
+        btn.addEventListener('click', function () {
+          var phone = btn.getAttribute('data-phone'), tel = btn.getAttribute('data-tel');
+          var wrap = document.createElement('div');
+          wrap.className = 'al-phone-revealed';
+          var call = document.createElement('a');
+          call.className = 'al-btn al-btn-outline al-btn-block';
+          call.href = 'tel:' + tel;
+          call.textContent = '<?php echo osc_esc_js(__('Call', 'starter')); ?> ' + phone;
+          wrap.appendChild(call);
+          if (tel.charAt(0) === '+') {
+            var wa = document.createElement('a');
+            wa.className = 'al-btn al-btn-whatsapp al-btn-block';
+            wa.href = 'https://wa.me/' + tel.replace('+', '');
+            wa.target = '_blank';
+            wa.rel = 'noopener';
+            wa.textContent = 'WhatsApp';
+            wrap.appendChild(wa);
+          }
+          btn.replaceWith(wrap);
+        });
+      }
+    })();
+  </script>
+  <?php osc_current_web_theme_path('footer.php'); ?>
+<?php } ?>
 </body>
-</html>				
+</html>

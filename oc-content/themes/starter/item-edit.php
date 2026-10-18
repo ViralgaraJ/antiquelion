@@ -45,7 +45,7 @@
 
             <div class="row category flat">
               <label for="catId"><span><?php _e('Select Category', 'starter'); ?></span><span class="req">*</span></label>
-              <input id="catId" type="hidden" name="catId" value="<input id="catId" type="hidden" name="catId" value="<?php echo (starter_get_session('sCategory') <> '' ? starter_get_session('sCategory') : osc_item_category_id()); ?>">">
+              <input id="catId" type="hidden" name="catId" value="<?php echo (starter_get_session('sCategory') <> '' ? starter_get_session('sCategory') : osc_item_category_id()); ?>">
 
               <div id="flat-cat">
                 <?php echo starter_flat_category_select(); ?>

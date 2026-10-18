@@ -489,6 +489,64 @@ function starter_user_menu() {
 
 
 
+// ACCOUNT NAVIGATION (account sidebar + header account menu)
+function antique_account_nav($compact = false) {
+  $uid = osc_logged_user_id();
+  $sep = osc_rewrite_enabled() ? '?' : '&';
+  $type = Params::getParam('itemType');
+  $loc = osc_get_osclass_location();
+  $sec = osc_get_osclass_section();
+
+  $counts = array(
+    'active' => Item::newInstance()->countItemTypesByUserID($uid, 'active'),
+    'pending_validate' => Item::newInstance()->countItemTypesByUserID($uid, 'pending_validate'),
+    'expired' => Item::newInstance()->countItemTypesByUserID($uid, 'expired')
+  );
+
+  $groups = array(
+    __('Selling', 'starter') => array(
+      array(__('All listings', 'starter'), osc_user_list_items_url(), $loc == 'user' && in_array($sec, array('items', 'dashboard')) && $type == '', array_sum($counts)),
+      array(__('Active', 'starter'), osc_user_list_items_url() . $sep . 'itemType=active', $type == 'active', $counts['active']),
+      array(__('Awaiting approval', 'starter'), osc_user_list_items_url() . $sep . 'itemType=pending_validate', $type == 'pending_validate', $counts['pending_validate']),
+      array(__('Expired', 'starter'), osc_user_list_items_url() . $sep . 'itemType=expired', $type == 'expired', $counts['expired']),
+      array(__('Sell an item', 'starter'), osc_item_post_url(), false, null)
+    ),
+    __('Account', 'starter') => array(
+      array(__('Saved searches', 'starter'), osc_user_alerts_url(), $loc == 'user' && $sec == 'alerts', null),
+      array(__('Account settings', 'starter'), osc_user_profile_url(), $loc == 'user' && $sec == 'profile', null),
+      array(__('Public profile', 'starter'), osc_user_public_profile_url($uid), $loc == 'user' && $sec == 'pub_profile', null)
+    )
+  );
+
+  $html = '<nav class="al-acc-nav' . ($compact ? ' is-compact' : '') . '" aria-label="' . osc_esc_html(__('My account', 'starter')) . '">';
+  if (!$compact) {
+    $html .= '<div class="al-acc-user"><img src="' . starter_profile_picture($uid, 'small', true) . '" alt="" width="44" height="44" />';
+    $html .= '<div><strong>' . osc_esc_html(osc_logged_user_name()) . '</strong><span>' . osc_esc_html(osc_logged_user_email()) . '</span></div></div>';
+  }
+  foreach ($groups as $title => $links) {
+    $html .= '<div class="al-acc-group"><div class="al-acc-title">' . osc_esc_html($title) . '</div><ul>';
+    foreach ($links as $l) {
+      $html .= '<li><a href="' . osc_esc_html($l[1]) . '"' . ($l[2] ? ' class="is-active" aria-current="page"' : '') . '><span>' . osc_esc_html($l[0]) . '</span>' . ($l[3] !== null ? '<em>' . (int)$l[3] . '</em>' : '') . '</a></li>';
+    }
+    $html .= '</ul></div>';
+  }
+
+  // plugin links (user_menu hook prints <li> items)
+  ob_start();
+  osc_run_hook('user_menu');
+  osc_run_hook('user_menu_items');
+  $extra = trim(ob_get_clean());
+  if ($extra !== '') {
+    $html .= '<div class="al-acc-group"><ul class="al-acc-plugins">' . $extra . '</ul></div>';
+  }
+
+  $html .= '<div class="al-acc-group"><ul><li><a class="al-acc-logout" href="' . osc_user_logout_url() . '"><span>' . __('Sign out', 'starter') . '</span></a></li></ul></div>';
+  $html .= '</nav>';
+  return $html;
+}
+
+
+
 // GET TERM NAME BASED ON COUNTRY, REGION & CITY
 function starter_get_term($term = '', $country = '', $region = '', $city = ''){
   if( $term == '') {
@@ -1288,6 +1346,32 @@ function mb_filter_extend() {
 }
 
 osc_add_hook('search_conditions', 'mb_filter_extend');
+
+
+// Osclass 8.3.1 calls osc_get_user() when a visitor messages a seller from their
+// public profile (user-non-secure.php contact_post) but never defines it.
+if (!function_exists('osc_get_user')) {
+  function osc_get_user($id) {
+    return User::newInstance()->findByPrimaryKey((int)$id);
+  }
+}
+
+
+// SEARCH - ITEM COUNTRY
+// Core sCountry filtering is broken in Osclass 8.3.1 (location join is aliased
+// "l" but the condition uses the full table name), so the search page sends
+// sItemCountry and we filter with a subquery instead.
+function antique_filter_item_country() {
+  $code = strtoupper(substr(preg_replace('/[^A-Za-z]/', '', (string)Params::getParam('sItemCountry')), 0, 2));
+  if (strlen($code) == 2) {
+    Search::newInstance()->addConditions(sprintf(
+      "%st_item.pk_i_id IN (SELECT fk_i_item_id FROM %st_item_location WHERE fk_c_country_code = '%s')",
+      DB_TABLE_PREFIX, DB_TABLE_PREFIX, $code
+    ));
+  }
+}
+
+osc_add_hook('search_conditions', 'antique_filter_item_country');
 
 
 
