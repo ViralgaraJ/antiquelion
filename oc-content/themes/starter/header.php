@@ -180,11 +180,7 @@
     $al_where = array_filter(array(osc_search_city(), osc_search_region(), osc_search_country()));
     $al_sub = sprintf(_n('%d result', '%d results', osc_search_total_items(), 'starter'), osc_search_total_items()) . (count($al_where) ? ' · ' . implode(', ', $al_where) : '');
   } else if ($loc == 'register' || $loc == 'login') {
-    if ($sec == 'recover' || $sec == 'forgot') {
-      $al_title = __('Reset your password', 'starter');
-    } else {
-      $al_title = '';   // the sign-in / register card carries its own heading
-    }
+    $al_title = '';   // the sign-in / register / reset cards carry their own heading
   } else if ($loc == 'item' && $sec == 'item_add') {
     $al_title = __('Sell an item', 'starter');
     $al_sub = __('Listing is free. Add clear photos and an honest description to sell faster.', 'starter');

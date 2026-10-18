@@ -1,33 +1,31 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" dir="ltr" lang="<?php echo str_replace('_', '-', osc_current_user_locale()); ?>">
+<!DOCTYPE html>
+<html dir="ltr" lang="<?php echo str_replace('_', '-', osc_current_user_locale()); ?>">
 <head>
-  <?php osc_current_web_theme_path('head.php') ; ?>
+  <?php osc_current_web_theme_path('head.php'); ?>
   <meta name="robots" content="noindex, nofollow" />
-  <meta name="googlebot" content="noindex, nofollow" />
 </head>
-<body id="body-user-recover">
-  <?php osc_current_web_theme_path('header.php') ; ?>
-  <div class="clear"></div>
-  <div id="i-forms" class="content recover">
+<body id="body-user-recover" class="al-auth-page">
+  <?php osc_current_web_theme_path('header.php'); ?>
 
-    <div class="user_forms round5">
-      <div class="inner">
-        <form action="<?php echo osc_base_url(true) ; ?>" method="post" >
-          <h2><span><?php _e('Recover password', 'starter'); ?></span></h2>
+  <div id="i-forms" class="al-auth">
+    <div class="al-auth-card">
+      <div class="al-auth-body">
+        <h1><?php _e('Reset your password', 'starter'); ?></h1>
+        <p class="al-auth-lead"><?php _e('Enter the email you signed up with and we will send you a link to choose a new password.', 'starter'); ?></p>
 
+        <form action="<?php echo osc_base_url(true); ?>" method="post" class="al-form">
           <input type="hidden" name="page" value="login" />
           <input type="hidden" name="action" value="recover_post" />
-          <fieldset>
-            <span class="input-box"><i class="fa fa-envelope"></i><?php UserForm::email_text() ; ?></span>
-            <?php osc_show_recaptcha('recover_password'); ?>
-            <button type="submit" id="blue"><?php _e('Send a new password', 'starter') ; ?></button>
-          </fieldset>
+          <label class="al-form-full"><span><?php _e('Email', 'starter'); ?></span><input type="email" name="s_email" id="s_email" required autocomplete="email" value="" /></label>
+          <?php osc_show_recaptcha('recover_password'); ?>
+          <button type="submit" class="al-btn al-btn-ink al-btn-block"><?php _e('Send reset link', 'starter'); ?></button>
         </form>
+
+        <p class="al-auth-foot"><a href="<?php echo osc_user_login_url(); ?>"><?php _e('Back to sign in', 'starter'); ?></a></p>
       </div>
     </div>
   </div>
 
-
-  <?php osc_current_web_theme_path('footer.php') ; ?>
+  <?php osc_current_web_theme_path('footer.php'); ?>
 </body>
 </html>

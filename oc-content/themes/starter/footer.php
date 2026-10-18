@@ -382,15 +382,13 @@
 
 
     // PLACEHOLDERS
+    // phone fields get a country example number from js/al-phone.js
     $('#yourName, #authorName, #comment_form #authorName, #s_name').attr('placeholder', '<?php echo osc_esc_js(__('Your name', 'starter')); ?>');
     $('#yourEmail, #authorEmail, #comment_form #authorEmail, #s_email').attr('placeholder', '<?php echo osc_esc_js(__('Email address', 'starter')); ?>');
     $('#login #email').attr('placeholder', '<?php echo osc_esc_js(__('Email address', 'starter')); ?>');
     $('#login #password').attr('placeholder', '<?php echo osc_esc_js(__('Password', 'starter')); ?>');
     $('#register #s_password').attr('placeholder', '<?php echo osc_esc_js(__('At least 6 characters', 'starter')); ?>');
     $('#register #s_password2').attr('placeholder', '<?php echo osc_esc_js(__('Repeat password', 'starter')); ?>');
-    $('#phoneNumber').attr('placeholder', '<?php echo osc_esc_js(__('Phone number', 'starter')); ?>');
-    $('#s_phone_mobile').attr('placeholder', '<?php echo osc_esc_js(__('Mobile phone', 'starter')); ?>');
-    $('#s_phone_land').attr('placeholder', '<?php echo osc_esc_js(__('Land phone', 'starter')); ?>');
     $('#message, #body, #body').attr('placeholder', '<?php echo osc_esc_js(__('I want to ask...', 'starter')); ?>');
     $('#sendfriend #message').attr('placeholder', '<?php echo osc_esc_js(__('I want to share this item...', 'starter')); ?>');
     $('#comment_form #body').attr('placeholder', '<?php echo osc_esc_js(__('I want to ask/share...', 'starter')); ?>');
@@ -405,7 +403,6 @@
     $('.add_item textarea[name^="description"]').attr('placeholder', '<?php echo osc_esc_js(__('Detail description of listing...', 'starter')); ?>');
     $('.add_item #contactName').attr('placeholder', '<?php echo osc_esc_js(__('Your name', 'starter')); ?>');
     $('.add_item #cityArea').attr('placeholder', '<?php echo osc_esc_js(__('City area', 'starter')); ?>');
-    $('.add_item #sPhone').attr('placeholder', '<?php echo osc_esc_js(__('Mobile phone', 'starter')); ?>');
     $('.add_item #zip').attr('placeholder', '<?php echo osc_esc_js(__('Zip code', 'starter')); ?>');
     $('.add_item #contactEmail').attr('placeholder', '<?php echo osc_esc_js(__('Email address', 'starter')); ?>');
     $('.add_item #address').attr('placeholder', '<?php echo osc_esc_js(__('Address', 'starter')); ?>');

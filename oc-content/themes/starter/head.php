@@ -108,20 +108,30 @@ osc_enqueue_style('antique', osc_current_web_theme_url('css/antique.css') . '?v=
 osc_enqueue_style('al-design', osc_current_web_theme_url('css/al-design.css') . '?v=' . filemtime(__DIR__ . '/css/al-design.css'));
 
 // International phone inputs on the forms that collect a phone number
-$al_phone_page = in_array(osc_get_osclass_location(), array('register'))
-  || (osc_get_osclass_location() == 'item' && in_array(osc_get_osclass_section(), array('item_add', 'item_edit')))
-  || (osc_get_osclass_location() == 'user' && osc_get_osclass_section() == 'profile');
+$al_phone_page = in_array(osc_get_osclass_location(), array('register', 'item'))
+  || (osc_get_osclass_location() == 'user' && in_array(osc_get_osclass_section(), array('profile', 'pub_profile')));
 if ($al_phone_page) {
   $al_geo = antique_visitor_country();
+  $al_phone_fallback = array();
+  if ($al_geo['code'] !== '') { $al_phone_fallback[] = strtolower($al_geo['code']); }
   // a signed-in user's saved country beats the IP guess (old numbers were saved without +code)
   if (osc_is_web_user_logged_in()) {
     $al_me = User::newInstance()->findByPrimaryKey(osc_logged_user_id());
     if (!empty($al_me['fk_c_country_code'])) { $al_geo['code'] = $al_me['fk_c_country_code']; }
   }
+  // the site started in Sri Lanka, so most early numbers without +code are local ones
+  $al_phone_fallback[] = 'lk';
   echo '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@24.6.0/build/css/intlTelInput.min.css">' . PHP_EOL;
   echo '<script>window.alPhone = ' . json_encode(array(
     'country' => strtolower($al_geo['code'] !== '' ? $al_geo['code'] : 'us'),
-    'invalid' => __('Please enter a valid phone number for the selected country.', 'starter')
+    'fallback' => array_values(array_unique($al_phone_fallback)),
+    'msg' => array(
+      'invalid' => __('Please enter a valid phone number for the selected country.', 'starter'),
+      'short' => __('This number is too short for the selected country.', 'starter'),
+      'long' => __('This number is too long for the selected country.', 'starter'),
+      'country' => __('Please choose the country this number belongs to.', 'starter'),
+      'search' => __('Search country', 'starter')
+    )
   )) . ';</script>' . PHP_EOL;
   echo '<script defer src="https://cdn.jsdelivr.net/npm/intl-tel-input@24.6.0/build/js/intlTelInputWithUtils.min.js"></script>' . PHP_EOL;
   echo '<script defer src="' . osc_current_web_theme_js_url('al-phone.js') . '?v=' . filemtime(__DIR__ . '/js/al-phone.js') . '"></script>' . PHP_EOL;

@@ -5,6 +5,7 @@ define('THEME_COMPATIBLE_WITH_OSCLASS_HOOKS', 820);     // Compatibility with ne
 
 require_once __DIR__ . '/inc.geo.php';
 require_once __DIR__ . '/inc.currency.php';
+require_once __DIR__ . '/inc.phone.php';
 
 
 function starter_theme_info() {
@@ -1416,6 +1417,54 @@ function antique_filter_item_country() {
 }
 
 osc_add_hook('search_conditions', 'antique_filter_item_country');
+
+// Price range filter (pmin / pmax) typed in the visitor's display currency.
+// Listings are priced in many currencies, so the range is converted into each
+// listing currency instead of comparing raw numbers across currencies.
+function antique_price_filter_range() {
+  $min = (float)str_replace(',', '', (string)Params::getParam('pmin'));
+  $max = (float)str_replace(',', '', (string)Params::getParam('pmax'));
+  if ($min > 0 && $max > 0 && $min > $max) { $t = $min; $min = $max; $max = $t; }
+  return array($min > 0 ? $min : 0, $max > 0 ? $max : 0);
+}
+
+function antique_filter_item_price() {
+  list($min, $max) = antique_price_filter_range();
+  if ($min == 0 && $max == 0) { return; }
+
+  $to = antique_visitor_currency();
+  $codes = array();
+  $res = Item::newInstance()->dao->query("SELECT DISTINCT fk_c_currency_code AS c FROM " . DB_TABLE_PREFIX . "t_item WHERE fk_c_currency_code IS NOT NULL AND fk_c_currency_code <> ''");
+  if ($res) { foreach ($res->result() as $r) { $codes[] = $r['c']; } }
+
+  $t = DB_TABLE_PREFIX . 't_item';
+  $or = array();
+  foreach ($codes as $code) {
+    $code = preg_replace('/[^A-Z]/', '', strtoupper($code));
+    $lo = $min > 0 ? antique_convert($min, $to, $code) : 0;
+    $hi = $max > 0 ? antique_convert($max, $to, $code) : 0;
+    if ($lo === null || $hi === null) { continue; }
+    $c = sprintf("(%s.fk_c_currency_code = '%s' AND %s.i_price IS NOT NULL AND %s.i_price > 0", $t, $code, $t, $t);
+    if ($lo > 0) { $c .= sprintf(' AND %s.i_price >= %d', $t, floor($lo * 1000000)); }
+    if ($hi > 0) { $c .= sprintf(' AND %s.i_price <= %d', $t, ceil($hi * 1000000)); }
+    $or[] = $c . ')';
+  }
+  Search::newInstance()->addConditions(count($or) ? '(' . implode(' OR ', $or) . ')' : '1 = 0');
+}
+
+osc_add_hook('search_conditions', 'antique_filter_item_price');
+
+// Core answers every empty search with 404. A real category page that simply has
+// no listings yet is a valid page (linked from the menu and footer): answer 200.
+function antique_empty_category_status() {
+  if (osc_count_items() > 0 || trim((string)Params::getParam('sPattern')) != '') { return; }
+  $param = Params::getParam('sCategory');
+  if (is_array($param) || $param == '') { return; }
+  $cat = is_numeric($param) ? osc_get_category_row((int)$param) : osc_get_category_row_by_slug(basename(trim($param, '/')));
+  if (!empty($cat['pk_i_id']) && !headers_sent()) { header('HTTP/1.1 200 OK', true, 200); }
+}
+
+osc_add_hook('after_search', 'antique_empty_category_status');
 
 
 

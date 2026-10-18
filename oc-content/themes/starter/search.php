@@ -31,7 +31,7 @@
   // Active filter chips: label => URL without that filter
   $al_chips = array();
   // Every filter the page understands; a chip link keeps all of them except its own
-  $al_keep = array('sPattern', 'sCategory', 'sAuction', 'sItemCountry', 'sCondition', 'sTransaction', 'sPeriod', 'bPic', 'seller_post', 'sOrder', 'iOrderType', 'sCompany');
+  $al_keep = array('sPattern', 'sCategory', 'sAuction', 'sItemCountry', 'sCondition', 'sTransaction', 'sPeriod', 'bPic', 'seller_post', 'sOrder', 'iOrderType', 'sCompany', 'pmin', 'pmax');
   $al_strip = function ($keys) use ($al_keep) {
     $p = array('page' => 'search');
     foreach ($al_keep as $k) {
@@ -53,6 +53,15 @@
   }
   if (Params::getParam('sCondition') != '') { $al_chips[Params::getParam('sCondition') == 1 ? __('New', 'starter') : __('Used', 'starter')] = $al_strip('sCondition'); }
   if (Params::getParam('sPeriod') != '') { $al_chips[sprintf(__('Listed in last %d days', 'starter'), (int)Params::getParam('sPeriod'))] = $al_strip('sPeriod'); }
+  list($al_pmin, $al_pmax) = antique_price_filter_range();
+  $al_cur = antique_visitor_currency();
+  if ($al_pmin > 0 && $al_pmax > 0) {
+    $al_chips[antique_money($al_pmin, $al_cur) . ' – ' . antique_money($al_pmax, $al_cur)] = $al_strip(array('pmin', 'pmax'));
+  } elseif ($al_pmin > 0) {
+    $al_chips[sprintf(__('From %s', 'starter'), antique_money($al_pmin, $al_cur))] = $al_strip('pmin');
+  } elseif ($al_pmax > 0) {
+    $al_chips[sprintf(__('Up to %s', 'starter'), antique_money($al_pmax, $al_cur))] = $al_strip('pmax');
+  }
   if (osc_search_has_pic()) { $al_chips[__('With photos', 'starter')] = $al_strip('bPic'); }
   if (Params::getParam('seller_post') != '') { $al_chips[__('This seller', 'starter')] = $al_strip('seller_post'); }
 ?>
@@ -106,6 +115,15 @@
           </select>
         </label>
       <?php } ?>
+
+      <fieldset class="al-price-range">
+        <legend><?php echo sprintf(__('Price (%s)', 'starter'), osc_esc_html($al_cur)); ?></legend>
+        <div class="al-price-range-row">
+          <label><span class="al-sr"><?php _e('Minimum price', 'starter'); ?></span><input type="number" name="pmin" min="0" step="any" inputmode="decimal" placeholder="<?php echo osc_esc_html(__('Min', 'starter')); ?>" value="<?php echo $al_pmin > 0 ? osc_esc_html(rtrim(rtrim(number_format($al_pmin, 2, '.', ''), '0'), '.')) : ''; ?>" /></label>
+          <span class="al-price-range-sep" aria-hidden="true">–</span>
+          <label><span class="al-sr"><?php _e('Maximum price', 'starter'); ?></span><input type="number" name="pmax" min="0" step="any" inputmode="decimal" placeholder="<?php echo osc_esc_html(__('Max', 'starter')); ?>" value="<?php echo $al_pmax > 0 ? osc_esc_html(rtrim(rtrim(number_format($al_pmax, 2, '.', ''), '0'), '.')) : ''; ?>" /></label>
+        </div>
+      </fieldset>
 
       <label><span><?php _e('Condition', 'starter'); ?></span>
         <select name="sCondition">

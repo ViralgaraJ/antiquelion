@@ -38,9 +38,7 @@
   <div class="al-card-body">
     <div class="al-card-cat"><?php echo osc_esc_html(osc_item_category()); ?></div>
     <h3 class="al-card-title"><a href="<?php echo osc_item_url(); ?>"><?php echo osc_esc_html(osc_highlight(osc_item_title(), 80)); ?></a></h3>
-    <?php if ($al_place !== '') { ?>
-      <div class="al-card-place"><?php echo osc_esc_html($al_place); ?></div>
-    <?php } ?>
+    <div class="al-card-place"><?php if ($al_place !== '') { ?><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg><span><?php echo osc_esc_html($al_place); ?></span><?php } else { ?>&nbsp;<?php } ?></div>
     <?php if (osc_price_enabled_at_items()) { ?>
       <div class="al-card-price">
         <?php if ($al_auction) { ?>

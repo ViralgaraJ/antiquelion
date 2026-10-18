@@ -6,7 +6,9 @@
   $phone = trim((string)(osc_user_phone_mobile() != '' ? osc_user_phone_mobile() : osc_user_phone_land()));
   $phone_ok = strlen($phone) >= 4;
   $phone_login = $phone_ok && osc_get_preference('reg_user_can_see_phone', 'osclass') == 1 && !osc_is_web_user_logged_in();
-  $phone_digits = preg_replace('/[^0-9+]/', '', $phone);
+  $al_phone = antique_phone_parts($phone, array(osc_user_field('fk_c_country_code')));
+  $phone_digits = $al_phone['e164'] !== '' ? $al_phone['e164'] : preg_replace('/[^0-9+]/', '', $phone);
+  $phone = $al_phone['display'];
 
   $place = implode(', ', array_filter(array(osc_user_city(), osc_user_region(), osc_user_country())));
   $about = osc_user_info();

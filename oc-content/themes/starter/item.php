@@ -34,7 +34,9 @@
   if ($mobile == '' && !empty($item_user)) { $mobile = trim((string)$item_user['s_phone_land']); }
   $phone_ok = strlen($mobile) >= 4;
   $phone_login = $phone_ok && osc_get_preference('reg_user_can_see_phone', 'osclass') == 1 && !osc_is_web_user_logged_in();
-  $phone_digits = preg_replace('/[^0-9+]/', '', $mobile);
+  $al_phone = antique_phone_parts($mobile, array(osc_item_country_code(), !empty($item_user['fk_c_country_code']) ? $item_user['fk_c_country_code'] : ''));
+  $phone_digits = $al_phone['e164'] !== '' ? $al_phone['e164'] : preg_replace('/[^0-9+]/', '', $mobile);
+  $mobile = $al_phone['display'];
 
   $seller_name = osc_item_contact_name();
   if ($seller_name == '' || $seller_name == __('Anonymous', 'starter')) {
@@ -354,10 +356,30 @@
               <?php if (!$al_has_comments) { ?>
                 <p class="al-muted"><?php _e('No questions yet.', 'starter'); ?></p>
               <?php } ?>
-              <?php if ($al_has_comments) { ?><div class="paginate"><?php echo osc_comments_pagination(); ?></div><?php } ?>
+              <?php $al_cpages = $al_has_comments ? osc_comments_pagination() : ''; ?>
+              <?php if (trim(strip_tags((string)$al_cpages)) !== '') { ?><nav class="al-pagination" aria-label="<?php echo osc_esc_html(__('Comment pages', 'starter')); ?>"><?php echo $al_cpages; ?></nav><?php } ?>
             </div>
             <?php if ((osc_reg_user_post_comments() && osc_is_web_user_logged_in()) || !osc_reg_user_post_comments()) { ?>
-              <a class="al-btn al-btn-outline" href="<?php echo osc_item_send_friend_url(); ?>"><?php _e('Add a comment', 'starter'); ?></a>
+              <form action="<?php echo osc_base_url(true); ?>" method="post" name="comment_form" id="comment_form" class="al-form al-comment-form">
+                <input type="hidden" name="action" value="add_comment" />
+                <input type="hidden" name="page" value="item" />
+                <input type="hidden" name="id" value="<?php echo osc_item_id(); ?>" />
+                <h3><?php _e('Ask a question', 'starter'); ?></h3>
+                <?php if (osc_is_web_user_logged_in()) { ?>
+                  <input type="hidden" name="authorName" value="<?php echo osc_esc_html(osc_logged_user_name()); ?>" />
+                  <input type="hidden" name="authorEmail" value="<?php echo osc_esc_html(osc_logged_user_email()); ?>" />
+                <?php } else { ?>
+                  <div class="al-form-row al-form-2">
+                    <label><span><?php _e('Your name', 'starter'); ?></span><input type="text" name="authorName" autocomplete="name" value="" /></label>
+                    <label><span><?php _e('Email (not shown)', 'starter'); ?> <em>*</em></span><input type="email" name="authorEmail" required autocomplete="email" value="" /></label>
+                  </div>
+                <?php } ?>
+                <label class="al-form-full"><span><?php _e('Your question or comment', 'starter'); ?> <em>*</em></span><textarea name="body" required rows="4" maxlength="2000"></textarea></label>
+                <?php osc_show_recaptcha(); ?>
+                <button type="submit" class="al-btn al-btn-ink"><?php _e('Post', 'starter'); ?></button>
+              </form>
+            <?php } else { ?>
+              <p class="al-comment-signin"><a class="al-btn al-btn-outline" href="<?php echo osc_user_login_url(); ?>"><?php _e('Sign in to ask a question', 'starter'); ?></a></p>
             <?php } ?>
           </section>
         <?php } ?>
