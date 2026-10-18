@@ -1875,3 +1875,134 @@ html body #i-forms h2 { font-family: var(--al-font-display) !important; font-wei
 #body-item-send-friend .price .price-converted { color: var(--al-muted) !important; font-weight: 500 !important; }
 #body-user-recover #i-forms h2 { display: none !important; }
 #al-footer { border-top: 1px solid rgba(232, 226, 212, 0.12); }
+
+/* ---------- Header search + Sell button hardening ----------
+   legacy "#body-item-post form { gap: 30px !important }" and ".btn, button { height: 36px }"
+   reached the header search; "a { color: … !important }" turned the Sell label navy */
+html body #al-header form.al-search { gap: 0 !important; padding: 0 !important; margin: 0 !important; flex-direction: row !important; }
+html body #al-header form.al-search .al-search-btn {
+  height: auto !important;
+  align-self: stretch;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+}
+html body #al-header a.al-sell,
+html body #al-header a.al-sell:hover,
+html body #al-header a.al-sell:visited { color: #FFFFFF !important; }
+html body #al-header a.al-signin { color: var(--al-ink) !important; }
+html body #al-header a.al-signin:hover { color: var(--al-brass-text) !important; }
+
+/* ---------- Sell form: price block with native selects ---------- */
+html body:is(#body-item-post, #body-item-edit) .content.add_item .price-wrap .price-type-row,
+html body:is(#body-item-post, #body-item-edit) .content.add_item .price-wrap .price-value-row,
+html body:is(#body-item-post, #body-item-edit) .status-wrap > div { display: flex !important; flex-direction: column !important; gap: 6px !important; margin: 0 0 16px !important; padding: 0 !important; width: auto !important; float: none !important; }
+html body:is(#body-item-post, #body-item-edit) .content.add_item .price-wrap .price-label,
+html body:is(#body-item-post, #body-item-edit) .status-wrap label { margin: 0 !important; padding: 0 !important; color: var(--al-ink) !important; font-size: 14px !important; font-weight: 700 !important; }
+html body:is(#body-item-post, #body-item-edit) .content.add_item .al-native.al-native { position: relative; display: block !important; width: 100% !important; margin: 0 !important; padding: 0 !important; float: none !important; }
+html body:is(#body-item-post, #body-item-edit) .content.add_item select.al-select.al-select.al-select,
+html body:is(#body-item-post, #body-item-edit) .content.add_item .status-wrap select.al-x, html body:is(#body-item-post, #body-item-edit) .content.add_item .status-wrap select:not(.al-none):not(.al-none2) {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  display: block !important;
+  width: 100% !important;
+  height: 48px !important;
+  margin: 0 !important;
+  padding: 0 40px 0 14px !important;
+  border: 1px solid #CFC7B7 !important;
+  border-radius: var(--al-radius) !important;
+  background: var(--al-paper) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2314213D' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 14px center !important;
+  box-shadow: none !important;
+  color: var(--al-ink) !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  cursor: pointer;
+}
+html body:is(#body-item-post, #body-item-edit) .content.add_item select.al-select.al-select.al-select:focus,
+html body:is(#body-item-post, #body-item-edit) .content.add_item .status-wrap select.al-x, html body:is(#body-item-post, #body-item-edit) .content.add_item .status-wrap select:not(.al-none):not(.al-none2):focus { border-color: var(--al-brass) !important; outline: none !important; box-shadow: 0 0 0 3px rgba(166, 124, 46, 0.2) !important; }
+
+/* amount + currency as one joined field */
+html body:is(#body-item-post, #body-item-edit) .content.add_item .price-wrap .price-amount-currency.price-amount-currency {
+  display: flex !important;
+  align-items: stretch !important;
+  width: 100% !important;
+  height: 48px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 1px solid #CFC7B7 !important;
+  border-radius: var(--al-radius) !important;
+  background: var(--al-paper) !important;
+  overflow: hidden;
+  box-sizing: border-box !important;
+}
+html body:is(#body-item-post, #body-item-edit) .content.add_item .price-wrap .price-amount-currency.price-amount-currency:focus-within { border-color: var(--al-brass) !important; box-shadow: 0 0 0 3px rgba(166, 124, 46, 0.2) !important; }
+html body:is(#body-item-post, #body-item-edit) .content.add_item .price-wrap .price-amount-currency.price-amount-currency input#price {
+  flex: 1 1 auto !important;
+  width: auto !important;
+  min-width: 0 !important;
+  height: 100% !important;
+  margin: 0 !important;
+  padding: 0 14px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: var(--al-ink) !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  text-indent: 0 !important;
+}
+html body:is(#body-item-post, #body-item-edit) .content.add_item .price-wrap .price-amount-currency.price-amount-currency input#price[readonly] { background: #F6F3EC !important; color: var(--al-muted) !important; }
+html body:is(#body-item-post, #body-item-edit) .content.add_item .price-wrap .price-amount-currency.price-amount-currency .al-native { flex: 0 0 96px !important; width: 96px !important; border-left: 1px solid var(--al-line) !important; }
+html body:is(#body-item-post, #body-item-edit) .content.add_item .price-wrap .price-amount-currency.price-amount-currency select.al-select {
+  height: 100% !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background-color: #FBF9F4 !important;
+  padding: 0 32px 0 14px !important;
+  background-position: right 10px center !important;
+  font-weight: 700 !important;
+}
+html body:is(#body-item-post, #body-item-edit) .content.add_item .price-wrap .price-amount-currency.price-amount-currency .simple-currency.disabled { opacity: 0.55; pointer-events: none; }
+html body:is(#body-item-post, #body-item-edit) .content.add_item .price-wrap .price-amount-currency.price-amount-currency .price-tag-icon,
+html body:is(#body-item-post, #body-item-edit) .content.add_item .price-wrap .price-amount-currency.price-amount-currency > i { display: none !important; }
+
+/* shipping select written with inline styles */
+html body:is(#body-item-post, #body-item-edit) .shipping-wrap { border-color: var(--al-line) !important; border-radius: var(--al-radius) !important; box-shadow: none !important; }
+html body:is(#body-item-post, #body-item-edit) .shipping-wrap select { border-radius: var(--al-radius) !important; border-color: #CFC7B7 !important; background-color: var(--al-paper) !important; }
+
+html body:is(#body-item-post, #body-item-edit) .content.add_item select.al-select.al-select.al-select,
+html body:is(#body-item-post, #body-item-edit) .content.add_item .status-wrap select:not(.al-none):not(.al-none2) { text-transform: none !important; line-height: 46px !important; }
+html body:is(#body-item-post, #body-item-edit) .content.add_item .price-wrap .inside.inside { border: 0 !important; padding: 0 !important; box-shadow: none !important; background: transparent !important; border-radius: 0 !important; }
+html body:is(#body-item-post, #body-item-edit) .content.add_item .price-wrap.price-wrap,
+html body:is(#body-item-post, #body-item-edit) .content.add_item .shipping-wrap.shipping-wrap { border: 0 !important; padding: 0 !important; margin: 0 0 16px !important; box-shadow: none !important; background: transparent !important; border-radius: 0 !important; }
+html body:is(#body-item-post, #body-item-edit) .content.add_item .shipping-wrap label { color: var(--al-ink) !important; font-size: 14px !important; font-weight: 700 !important; margin: 0 0 6px !important; }
+html body:is(#body-item-post, #body-item-edit) .content.add_item .shipping-wrap label i { display: none !important; }
+html body:is(#body-item-post, #body-item-edit) .content.add_item .shipping-wrap select.simple-select.simple-select {
+  appearance: none !important; -webkit-appearance: none !important;
+  height: 48px !important; padding: 0 40px 0 14px !important;
+  border: 1px solid #CFC7B7 !important; border-radius: var(--al-radius) !important;
+  background: var(--al-paper) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2314213D' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 14px center !important;
+  color: var(--al-ink) !important; font-size: 15px !important; font-weight: 600 !important;
+}
+
+/* category tiles (sell / edit form) */
+html body:is(#body-item-post, #body-item-edit) .al-cat-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; margin: 0; }
+html body:is(#body-item-post, #body-item-edit) .content.add_item button.al-cat-pick {
+  display: flex !important; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+  width: auto !important; height: auto !important; min-height: 96px; margin: 0 !important; padding: 14px 10px !important;
+  border: 1px solid var(--al-line) !important; border-radius: var(--al-radius) !important;
+  background: var(--al-paper) !important; background-image: none !important; box-shadow: none !important;
+  color: var(--al-ink) !important; font-size: 14px !important; font-weight: 700 !important; line-height: 1.25 !important;
+  text-align: center; text-transform: none !important; letter-spacing: 0 !important; white-space: normal !important; cursor: pointer;
+  transition: border-color 0.15s, background-color 0.15s;
+}
+html body:is(#body-item-post, #body-item-edit) .content.add_item button.al-cat-pick:hover { border-color: var(--al-brass) !important; background: #FBF7EF !important; }
+html body:is(#body-item-post, #body-item-edit) .content.add_item button.al-cat-pick.is-selected { border-color: var(--al-brass) !important; background: #FBF7EF !important; box-shadow: inset 0 0 0 1px var(--al-brass) !important; color: var(--al-brass-text) !important; }
+html body:is(#body-item-post, #body-item-edit) .al-cat-pick .cat-icon { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; background: var(--al-ivory); color: var(--al-brass); font-size: 16px; }
+html body:is(#body-item-post, #body-item-edit) .al-cat-pick .cat-icon i { color: var(--al-brass) !important; }
+html body:is(#body-item-post, #body-item-edit) .al-cat-pick.is-selected .cat-icon { background: var(--al-brass); }
+html body:is(#body-item-post, #body-item-edit) .al-cat-pick.is-selected .cat-icon i { color: #FFFFFF !important; }

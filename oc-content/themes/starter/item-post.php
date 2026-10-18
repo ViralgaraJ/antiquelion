@@ -152,14 +152,14 @@
               <div class="inside">
                 <div class="price-type-row">
                   <label class="price-label"><?php _e('Price Type', 'starter'); ?></label>
-                  <?php echo starter_simple_price_type(); ?>
+                  <?php echo starter_simple_price_type(true); ?>
                 </div>
 
                 <div class="enter price-value-row">
                   <label class="price-label"><?php _e('Price Amount', 'starter'); ?></label>
                   <div class="price-amount-currency">
                     <?php ItemForm::price_input_text(); ?>
-                    <?php echo starter_simple_currency(); ?>
+                    <?php echo starter_simple_currency(true); ?>
                   </div>
                 </div>
               </div>
@@ -171,12 +171,12 @@
           <div class="status-wrap">
             <div class="transaction">
               <label for="sTransaction"><?php _e('Transaction', 'starter'); ?></label>
-              <?php echo starter_simple_transaction(); ?>
+              <?php echo starter_simple_transaction(true); ?>
             </div>
 
             <div class="condition">
               <label for="sCondition"><?php _e('Condition', 'starter'); ?></label>
-              <?php echo starter_simple_condition(); ?>
+              <?php echo starter_simple_condition(true); ?>
             </div>
           </div>
 
@@ -354,7 +354,9 @@
       $('input#price').attr('placeholder', '<?php echo osc_esc_js(__('Price', 'starter')); ?>');         
 
       
-      $('body').on('click change', '.simple-price-type .option, .simple-price-type > select.text', function() {
+      $('body').on('click change', '.simple-price-type .option, .simple-price-type > select.text', function(e) {
+        // a native select also fires "click" when it is opened; only react to the actual change
+        if (this.tagName === 'SELECT' && e.type !== 'change') { return; }
 
         if( $('.simple-price-type > select.text').length ) {
           var type = $(this).val();

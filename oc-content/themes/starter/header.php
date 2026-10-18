@@ -89,7 +89,6 @@
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg>
             <span><?php _e('Sign in', 'starter'); ?></span>
           </a>
-          <a class="al-register" href="<?php echo osc_register_account_url(); ?>"><?php _e('Register', 'starter'); ?></a>
         <?php } ?>
         <a class="al-sell" href="<?php echo osc_item_post_url(); ?>"><?php _e('Sell an item', 'starter'); ?></a>
       </div>

@@ -255,18 +255,41 @@ function starter_category_loop( $parent_id = NULL, $parent_color = NULL ) {
 
 
 // FLAT CATEGORIES SELECT (Publish)
-function starter_flat_category_select(){  
-  $root = Category::newInstance()->findRootCategoriesEnabled();
-
-  $html = '<div class="category-box tr1">';
-  foreach( $root as $c ) {
-    $html .= '<div class="option tr1" style="background:' . starter_get_cat_color( $c['pk_i_id'] ) . ';" title="' . osc_esc_html($c['s_name']) . '">';
-    $html .= '<span class="cat-icon">' . starter_get_cat_icon( $c['pk_i_id'] ) . '</span>';
-    $html .= '<span class="cat-name">' . osc_esc_html($c['s_name']) . '</span>';
-    $html .= '</div>';
+function starter_flat_category_select(){
+  // Category tiles on the sell/edit form: a tile selects its category directly.
+  // A category with subcategories opens the existing picker (#flat-cat-fancy).
+  if (Params::getParam('sCategory') <> '') {
+    $current = Params::getParam('sCategory');
+  } else if (starter_get_session('sCategory') <> '' && (osc_is_publish_page() || osc_is_edit_page())) {
+    $current = starter_get_session('sCategory');
+  } else {
+    $current = osc_item_category_id();
   }
- 
+
+  $html = '<div class="al-cat-tiles" role="group" aria-label="' . osc_esc_html(__('Category', 'starter')) . '">';
+  foreach (Category::newInstance()->findRootCategoriesEnabled() as $c) {
+    $kids = count(Category::newInstance()->findSubcategoriesEnabled($c['pk_i_id'])) > 0;
+    $on = ((string)$current === (string)$c['pk_i_id']);
+    $html .= '<button type="button" class="al-cat-pick' . ($on ? ' is-selected' : '') . '" data-id="' . (int)$c['pk_i_id'] . '" data-children="' . ($kids ? 1 : 0) . '" aria-pressed="' . ($on ? 'true' : 'false') . '">';
+    $html .= '<span class="cat-icon">' . starter_get_cat_icon($c['pk_i_id']) . '</span>';
+    $html .= '<span class="cat-name">' . osc_esc_html($c['s_name']) . '</span>';
+    $html .= '</button>';
+  }
   $html .= '</div>';
+  // hidden trigger for the legacy subcategory picker
+  $html .= '<div class="category-box" hidden></div>';
+  $html .= '<script>
+    jQuery(function ($) {
+      $(document).on("click", ".al-cat-pick", function () {
+        var btn = $(this);
+        if (btn.data("children") == 1) { $("#flat-cat .category-box").trigger("click"); return; }
+        $(".al-cat-pick").removeClass("is-selected").attr("aria-pressed", "false");
+        btn.addClass("is-selected").attr("aria-pressed", "true");
+        $("#catId").val(btn.data("id")).trigger("click").trigger("change");
+        if ($("#catId").closest("form").data("validator")) { $("#catId").valid(); }
+      });
+    });
+  </script>';
   return $html;
 }
 
@@ -906,7 +929,7 @@ function starter_simple_condition( $select = false, $item_id = false ) {
 
 
 // SIMPLE CURRENCY SELECT (publish)
-function starter_simple_currency() {
+function starter_simple_currency($select = false) {
   $currencies = osc_get_currencies();
   $item = osc_item(); 
 
@@ -936,6 +959,16 @@ function starter_simple_currency() {
     $default_currency = array('pk_c_code' => '', 's_description' => '');
   }
 
+  if ($select) {
+    $html  = '<div class="simple-currency al-native">';
+    $html .= '<select name="currency" id="currency" class="al-select" aria-label="' . osc_esc_html(__('Currency', 'starter')) . '">';
+    foreach ($currencies as $c) {
+      $html .= '<option value="' . osc_esc_html($c['pk_c_code']) . '"' . ($c['pk_c_code'] == $default_key ? ' selected' : '') . '>' . osc_esc_html($c['pk_c_code']) . '</option>';
+    }
+    $html .= '</select></div>';
+    return $html;
+  }
+
   $html  = '<div class="simple-currency simple-select">';
   $html .= '<input type="hidden" name="currency" id="currency" class="input-hidden" value="' . $default_currency['pk_c_code'] . '"/>';
   //$html .= '<span class="text round3 tr1"><span>' . $default_currency['pk_c_code'] . ' (' . $default_currency['s_description'] . ')</span> <i class="fa fa-angle-down"></i></span>';
@@ -957,7 +990,7 @@ function starter_simple_currency() {
 
 
 // SIMPLE PRICE TYPE SELECT (publish)
-function starter_simple_price_type() {
+function starter_simple_price_type($select = false) {
   $item = osc_item(); 
 
   // Item edit
@@ -979,6 +1012,17 @@ function starter_simple_price_type() {
     $default_name = '<i class="fa fa-pencil help"></i> ' . __('Enter price', 'starter');
   }
 
+
+  if ($select) {
+    // select.text keeps the publish/edit page script (".simple-price-type > select.text") working
+    $html  = '<div class="simple-price-type al-native">';
+    $html .= '<select class="text al-select" aria-label="' . osc_esc_html(__('Price type', 'starter')) . '">';
+    $html .= '<option value="0"' . ($default_key == 0 ? ' selected' : '') . '>' . __('Fixed price', 'starter') . '</option>';
+    $html .= '<option value="1"' . ($default_key == 1 ? ' selected' : '') . '>' . __('Free', 'starter') . '</option>';
+    $html .= '<option value="2"' . ($default_key == 2 ? ' selected' : '') . '>' . __('Price on request (check with seller)', 'starter') . '</option>';
+    $html .= '</select></div>';
+    return $html;
+  }
 
   $html  = '<div class="simple-price-type simple-select">';
   $html .= '<span class="text round3 tr1"><span>' . $default_name . '</span> <i class="fa fa-angle-down"></i></span>';

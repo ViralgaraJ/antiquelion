@@ -55,7 +55,9 @@
 
     function validate() {
       var value = input.value.trim();
-      var ok = value === '' || iti.isValidNumber();
+      // v24: isValidNumber() only checks length; the precise check knows real number ranges
+      var precise = typeof iti.isValidNumberPrecise === 'function';
+      var ok = value === '' || (precise ? iti.isValidNumberPrecise() : iti.isValidNumber());
       error.hidden = ok;
       error.textContent = ok ? '' : (cfg.invalid || 'Please enter a valid phone number.');
       input.setAttribute('aria-invalid', ok ? 'false' : 'true');
@@ -71,6 +73,24 @@
 
     var form = input.form;
     if (form) {
+      // Some forms (sell/edit listing) submit through jQuery Validate's form.submit(),
+      // which skips the submit event, so also check when a submit button is clicked.
+      form.addEventListener('click', function (e) {
+        var btn = e.target.closest('button[type="submit"], input[type="submit"]');
+        if (!btn || btn.form !== form) {
+          return;
+        }
+        if (!validate()) {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          input.focus();
+          return;
+        }
+        if (input.value.trim() !== '') {
+          input.value = iti.getNumber();   // E.164
+        }
+      }, true);
+
       // capture phase: runs before the theme's jQuery validation/submit handlers
       form.addEventListener('submit', function (e) {
         if (!validate()) {
