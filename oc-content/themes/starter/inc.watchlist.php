@@ -66,7 +66,7 @@ function antique_watch_count($itemId) {
 function antique_watch_button($itemId, $variant = 'card') {
   $on = antique_is_watched($itemId);
   $label = $on ? __('Remove from watchlist', 'starter') : __('Add to watchlist', 'starter');
-  $icon = '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-9.3-9.4C1.5 7.9 3.6 4.5 7.2 4.5c2 0 3.6 1.1 4.8 2.8 1.2-1.7 2.8-2.8 4.8-2.8 3.6 0 5.7 3.4 4.5 6.6-1.8 4.8-9.3 9.4-9.3 9.4z"/></svg>';
+  $icon = '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7z"/></svg>';
   $html = '<button type="button" class="al-watch al-watch-' . $variant . ($on ? ' is-on' : '') . '" data-al-watch="' . (int)$itemId . '" aria-pressed="' . ($on ? 'true' : 'false') . '" aria-label="' . osc_esc_html($label) . '" title="' . osc_esc_html($label) . '">' . $icon;
   if ($variant == 'item') {
     $html .= '<span class="al-watch-text" data-on="' . osc_esc_html(__('Watching', 'starter')) . '" data-off="' . osc_esc_html(__('Watch', 'starter')) . '">' . ($on ? __('Watching', 'starter') : __('Watch', 'starter')) . '</span>';

@@ -2837,3 +2837,24 @@ html:not(#al-a):not(#al-b) body:not(#al-c) fieldset.hook-block .antique-bids-pos
 html:not(#al-a):not(#al-b) body:not(#al-c) .plugin-hook-data .antique-bids-post-card { margin: 0 !important; padding: 0 !important; border: 0 !important; border-radius: 0 !important; background: transparent !important; box-shadow: none !important; }
 html:not(#al-a):not(#al-b) body:not(#al-c) .plugin-hook-data .antique-bids-post-card .header-section h3 { border: 0 !important; padding-bottom: 0 !important; font-size: 20px !important; }
 @media (max-width: 767px) { html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item :is(.left-col, .right-col) { gap: 0 !important; } }
+
+/* Watchlist hearts: rounded joins so the tip has no notch, slightly bolder outline */
+.al-watch svg, #al-header .al-watch-link svg { stroke-linejoin: round; stroke-linecap: round; overflow: visible; }
+.al-watch svg { stroke-width: 2; }
+#al-header .al-watch-link svg { stroke-width: 2; width: 24px; height: 24px; }
+html body .al-card .al-watch-card { color: var(--al-ink); }
+html body .al-card .al-watch-card svg { width: 20px; height: 20px; margin-top: 1px; }
+/* the legacy button:focus / :active styles turned the heart and label white on white after a click */
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-watch,
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-watch:focus,
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-watch:active { color: var(--al-ink); text-decoration: none; }
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-watch:hover { color: #B4232A; }
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-watch-item,
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-watch-item:focus,
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-watch-item:active { background: var(--al-paper); }
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-watch-item.is-on,
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-watch-item.is-on:focus,
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-watch-item.is-on:active { color: #8E1C22; background: #FDF2F2; }
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-card .al-watch-card,
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-card .al-watch-card:focus,
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-card .al-watch-card:active { background: rgba(255, 255, 255, 0.94); }

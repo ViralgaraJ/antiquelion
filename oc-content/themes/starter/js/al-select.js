@@ -300,6 +300,9 @@
       st.search.addEventListener('input', function () { filter(st); });
     }
     st.list.addEventListener('mousedown', function (e) { e.preventDefault(); });   // keep focus
+    // the dropdown often sits inside a <label>: without preventDefault the click on an option
+    // also "clicks" the label, which presses the button and opens the list again
+    st.panel.addEventListener('click', function (e) { e.preventDefault(); });
     st.list.addEventListener('click', function (e) {
       var li = e.target.closest('.al-dd-opt');
       if (li) { choose(st, +li.getAttribute('data-index')); }
