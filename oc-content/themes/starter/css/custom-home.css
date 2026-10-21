@@ -23,7 +23,7 @@
 
 /* Global Font Override for Home Page */
 #body-home {
-  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+  font-family: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif !important;
   background-color: #f8fafc !important;
   color: var(--slate-800) !important;
 }
@@ -43,7 +43,7 @@ body {
   height: 68px !important;
   border-bottom: 1px solid rgba(245, 158, 11, 0.2) !important;
   box-shadow: 0 4px 25px rgba(0, 0, 0, 0.3) !important;
-  font-family: 'Outfit', sans-serif !important;
+  font-family: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif !important;
   position: fixed !important;
   left: 0 !important;
   top: 0 !important;
@@ -415,7 +415,7 @@ body {
   z-index: 1000 !important;
 }
 #header-bar #lang-box li a {
-  font-family: 'Outfit', sans-serif !important;
+  font-family: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif !important;
   color: var(--slate-700) !important;
   font-weight: 600 !important;
   font-size: 13px !important;
@@ -1226,7 +1226,7 @@ html body .input-box i {
 */
 
 #body-search {
-  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+  font-family: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif !important;
   background-color: #f8fafc !important;
 }
 
@@ -1821,7 +1821,7 @@ html body .input-box i {
 
 #body-item-post, #body-item-edit {
   background-color: #f8fafc !important;
-  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  font-family: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif !important;
 }
 
 #body-item-post .content.add_item, 
@@ -1938,7 +1938,7 @@ html body .input-box i {
   border: 1px solid #cbd5e1 !important;
   border-radius: 8px !important;
   padding: 10px 14px !important;
-  font-family: 'Outfit', sans-serif !important;
+  font-family: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif !important;
   font-size: 14px !important;
   color: var(--slate-800) !important;
   width: 100% !important;
@@ -2391,7 +2391,7 @@ html body .input-box i {
 /* Category Selection Pop-up Modal Styling */
 .flat-cat-box {
   background: #ffffff !important;
-  font-family: 'Outfit', sans-serif !important;
+  font-family: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif !important;
 }
 
 .flat-wrap {
@@ -2549,7 +2549,7 @@ html body .input-box i {
 .add_item .price-wrap .price-label,
 .price-wrap .price-label {
   display: block !important;
-  font-family: 'Outfit', sans-serif !important;
+  font-family: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif !important;
   font-size: 13px !important;
   font-weight: 700 !important;
   color: #475569 !important;
@@ -3257,7 +3257,7 @@ html body .input-box i {
   font-size: 20px !important;
   font-weight: 700 !important;
   color: var(--slate-900) !important;
-  font-family: 'Outfit', sans-serif !important;
+  font-family: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif !important;
 }
 
 .modern-location-modal-card .modal-close-btn {
@@ -3326,7 +3326,7 @@ html body .input-box i {
   border-radius: 12px !important;
   padding: 0 16px 0 44px !important;
   font-size: 15px !important;
-  font-family: 'Outfit', sans-serif !important;
+  font-family: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif !important;
   background: var(--slate-50) !important;
   color: var(--slate-900) !important;
   box-sizing: border-box !important;
@@ -3532,7 +3532,7 @@ body.no-scroll {
   margin: 40px auto !important;
   padding: 0 20px !important;
   box-sizing: border-box !important;
-  font-family: 'Outfit', sans-serif !important;
+  font-family: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif !important;
   align-items: flex-start !important;
 }
 
@@ -3571,7 +3571,7 @@ body.no-scroll {
   font-size: 15px !important;
   font-weight: 700 !important;
   color: #ffffff !important;
-  font-family: 'Outfit', sans-serif !important;
+  font-family: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif !important;
 }
 
 #sidebar .um.s0 ul.user_menu li.uname span {
@@ -3605,7 +3605,7 @@ body.no-scroll {
   text-decoration: none !important;
   border-radius: 8px !important;
   transition: all 0.2s ease !important;
-  font-family: 'Outfit', sans-serif !important;
+  font-family: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif !important;
   box-sizing: border-box !important;
 }
 
@@ -3793,7 +3793,7 @@ body.no-scroll {
   box-sizing: border-box !important;
   transition: all 0.2s ease !important;
   float: none !important;
-  font-family: 'Outfit', sans-serif !important;
+  font-family: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif !important;
   box-shadow: none !important;
 }
 
@@ -3939,7 +3939,7 @@ body.no-scroll {
   cursor: pointer !important;
   box-shadow: 0 4px 10px rgba(217, 119, 6, 0.25) !important;
   transition: all 0.3s ease !important;
-  font-family: 'Outfit', sans-serif !important;
+  font-family: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif !important;
 }
 
 #body-user-profile .box .row.user-buttons button:hover {
@@ -3988,7 +3988,7 @@ body.no-scroll {
   margin: 60px auto !important;
   padding: 0 16px !important;
   box-sizing: border-box !important;
-  font-family: 'Outfit', sans-serif !important;
+  font-family: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif !important;
 }
 
 #contact-wrap.cont_us h1 {
@@ -4097,7 +4097,7 @@ body.no-scroll {
   box-sizing: border-box !important;
   transition: all 0.2s ease !important;
   float: none !important;
-  font-family: 'Outfit', sans-serif !important;
+  font-family: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif !important;
   box-shadow: none !important;
   height: 42px !important;
 }
@@ -4197,7 +4197,7 @@ body.no-scroll {
   margin-top: 24px !important;
   cursor: pointer !important;
   float: none !important;
-  font-family: 'Outfit', sans-serif !important;
+  font-family: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif !important;
 }
 
 #contact-wrap button#blue:hover {
@@ -4322,7 +4322,7 @@ body {
   margin: 40px auto !important;
   padding: 0 20px !important;
   box-sizing: border-box !important;
-  font-family: 'Outfit', sans-serif !important;
+  font-family: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif !important;
   align-items: flex-start !important;
   flex-wrap: wrap !important;
 }
@@ -4652,7 +4652,7 @@ body {
   margin: 40px auto !important;
   padding: 0 20px !important;
   box-sizing: border-box !important;
-  font-family: 'Outfit', sans-serif !important;
+  font-family: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif !important;
   align-items: flex-start !important;
 }
 
@@ -5454,7 +5454,7 @@ body, html, #body-home, #body-search, #body-item, #body-item-post, #body-item-ed
   display: block !important;
   max-width: 440px !important;
   margin: 60px auto 100px auto !important;
-  font-family: 'Outfit', sans-serif !important;
+  font-family: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif !important;
   text-align: left !important;
 }
 
@@ -5539,7 +5539,7 @@ body, html, #body-home, #body-search, #body-item, #body-item-post, #body-item-ed
   max-width: 100% !important;
   padding: 12px 16px 12px 38px !important;
   font-size: 14px !important;
-  font-family: 'Outfit', sans-serif !important;
+  font-family: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif !important;
   color: var(--slate-900) !important;
   background-color: #ffffff !important;
   border: 1px solid #cbd5e1 !important;
@@ -5843,7 +5843,7 @@ body#body-user-recover {
   border-radius: 12px !important;
   padding: 24px !important;
   box-shadow: var(--shadow-md) !important;
-  font-family: 'Outfit', sans-serif !important;
+  font-family: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif !important;
   margin-bottom: 24px !important;
   box-sizing: border-box !important;
   width: 100% !important;
@@ -5865,7 +5865,7 @@ body#body-user-recover {
   font-weight: 700 !important;
   color: var(--slate-900) !important;
   margin: 0 !important;
-  font-family: 'Outfit', sans-serif !important;
+  font-family: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif !important;
   line-height: normal !important;
   float: none !important;
 }
@@ -6225,7 +6225,7 @@ body#body-user-recover {
   text-transform: uppercase !important;
   letter-spacing: 0.3px !important;
   margin: 0 0 10px 0 !important;
-  font-family: 'Outfit', sans-serif !important;
+  font-family: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif !important;
 }
 
 .antique-bidding-card #bid-history-list {
@@ -6283,7 +6283,7 @@ body#body-user-recover {
   border-radius: 12px !important;
   padding: 24px !important;
   margin-top: 24px !important;
-  font-family: 'Outfit', sans-serif !important;
+  font-family: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif !important;
   box-sizing: border-box !important;
 }
 
@@ -6411,7 +6411,7 @@ body#body-user-recover {
   border-radius: 8px !important;
   padding: 0 14px 0 45px !important;
   font-size: 14px !important;
-  font-family: 'Outfit', sans-serif !important;
+  font-family: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif !important;
   font-weight: 500 !important;
   color: var(--slate-900) !important;
   transition: all 0.2s ease !important;
@@ -6431,7 +6431,7 @@ body#body-user-recover {
   border-radius: 8px !important;
   padding: 0 14px !important;
   font-size: 14px !important;
-  font-family: 'Outfit', sans-serif !important;
+  font-family: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif !important;
   font-weight: 600 !important;
   color: var(--slate-900) !important;
   background-color: #ffffff !important;
@@ -7205,7 +7205,7 @@ body, html, button, input, select, textarea, h1, h2, h3, h4, h5, h6,
   border-radius: 8px !important;
   border: 1px solid #cbd5e1 !important;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03) !important;
-  font-family: 'Inter', 'Nunito', sans-serif !important;
+  font-family: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif !important;
 }
 
 .upload-guide-banner .guide-item i {
@@ -7271,7 +7271,7 @@ body, html, button, input, select, textarea, h1, h2, h3, h4, h5, h6,
   border-radius: 12px !important;
   padding: 14px 60px 14px 20px !important; /* Right padding ensures close X button never overlaps text or controls */
   box-shadow: 0 4px 20px rgba(15, 23, 42, 0.12) !important;
-  font-family: 'Inter', 'Nunito', sans-serif !important;
+  font-family: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif !important;
   font-size: 14px !important;
   font-weight: 600 !important;
   margin-bottom: 15px !important;
@@ -7452,7 +7452,7 @@ form label,
 #sidebar-search label,
 .row label,
 .field-row label {
-  font-family: 'Inter', 'Nunito', sans-serif !important;
+  font-family: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif !important;
   font-size: 13.5px !important;
   font-weight: 700 !important;
   color: #0f172a !important;
@@ -7469,7 +7469,7 @@ input[type="number"],
 input[type="url"],
 select:not(.no-custom),
 textarea {
-  font-family: 'Inter', 'Nunito', sans-serif !important;
+  font-family: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif !important;
   font-size: 14px !important;
   color: #0f172a !important;
   background: #f8fafc !important;
@@ -7512,7 +7512,7 @@ textarea:focus {
 #sidebar-search #location-picker .term,
 .input-box input.term {
   padding-left: 48px !important;
-  font-family: 'Inter', 'Nunito', sans-serif !important;
+  font-family: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif !important;
   font-size: 14px !important;
   box-sizing: border-box !important;
   border-radius: 12px !important;
@@ -7618,7 +7618,7 @@ textarea:focus {
 .user-login-form button,
 .user-register-form button,
 .btn-submit-form {
-  font-family: 'Inter', 'Nunito', sans-serif !important;
+  font-family: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif !important;
   font-size: 14.5px !important;
   font-weight: 700 !important;
   height: 48px !important;
@@ -9222,7 +9222,7 @@ select:not(.no-custom):focus,
 }
 
 #sidebar-search h3.head span {
-  font-family: 'Outfit', sans-serif !important;
+  font-family: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif !important;
   font-size: 18px !important;
   font-weight: 700 !important;
   color: #0f172a !important;
@@ -9248,7 +9248,7 @@ select:not(.no-custom):focus,
 }
 
 #sidebar-search .search-wrap h4 {
-  font-family: 'Outfit', sans-serif !important;
+  font-family: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif !important;
   font-size: 13px !important;
   font-weight: 600 !important;
   color: #475569 !important;
@@ -9671,7 +9671,7 @@ select:not(.no-custom):focus,
 .add_item .price-wrap .price-label,
 .add_item .status-wrap label,
 .add_item fieldset h2 {
-  font-family: 'Outfit', sans-serif !important;
+  font-family: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif !important;
   font-size: 13px !important;
   font-weight: 700 !important;
   color: #475569 !important;

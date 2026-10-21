@@ -190,7 +190,7 @@
               <i class="fa fa-plane" style="color:var(--gold-600);margin-right:6px;"></i> <?php _e('Shipping & Delivery Scope', 'starter'); ?>
             </label>
             <div class="select-box">
-              <select name="sShippingScope" class="simple-select" style="width:100%;height:44px;border:1px solid #cbd5e1;border-radius:10px;padding:0 12px;font-size:14px;background:#f8fafc;color:#0f172a;font-weight:500;">
+              <select name="sShippingScope" class="al-select">
                 <option value="worldwide"><?php _e('Worldwide Shipping Available', 'starter'); ?></option>
                 <option value="domestic"><?php _e('Domestic Shipping Only', 'starter'); ?></option>
                 <option value="pickup"><?php _e('Local Pickup Only', 'starter'); ?></option>

@@ -2149,3 +2149,109 @@ html body#body-item #al-item #comment_form button.al-btn {
   box-shadow: none !important; color: #FFFFFF !important; font-size: 15px !important; font-weight: 700 !important;
 }
 html body#body-item #al-item #comment_form button.al-btn:hover { background: #22304F !important; }
+
+/* sell / edit form: legacy floats every input, so the country search box floated
+   and squeezed the country list to 0px wide (list looked empty) */
+html body .iti .iti__dropdown-content .iti__search-input,
+html body:is(#body-item-post, #body-item-edit) .content.add_item .iti .iti__search-input { float: none !important; clear: both; }
+html body .iti .iti__country-list,
+html body:is(#body-item-post, #body-item-edit) .content.add_item .iti .iti__country-list { float: none !important; clear: both; width: 100% !important; margin: 0 !important; padding: 4px 0 !important; list-style: none !important; }
+html body:is(#body-item-post, #body-item-edit) .content.add_item .iti .iti__country { float: none !important; width: auto !important; margin: 0 !important; display: flex !important; align-items: center; gap: 8px; }
+/* keep the open country list above the next field's icon */
+html body .input-box.al-phone-box,
+html body .al-phone-host { position: relative !important; z-index: 30 !important; }
+
+/* ======================================================================
+   Dropdowns: one look for every <select> on the site
+   (ID-weighted :not(#…) so legacy ID + !important rules cannot win;
+   the header search, joined price/currency field and sort keep their own frame)
+   ====================================================================== */
+:root { --al-field-line: #CFC7B7; --al-field-line-hover: #B3A890; }
+html:not(#al-x) body:not(#al-x) select:not([multiple]):not(#al-header select):not(.price-amount-currency select):not(.al-sort select) {
+  -webkit-appearance: none !important; -moz-appearance: none !important; appearance: none !important;
+  display: block; width: 100% !important; max-width: 100%; height: 48px !important; min-height: 48px !important;
+  margin: 0 !important; padding: 0 42px 0 14px !important; text-indent: 0 !important;
+  border: 1px solid var(--al-field-line) !important; border-radius: var(--al-radius) !important;
+  background-color: var(--al-paper) !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2314213D' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important; background-position: right 15px center !important; background-size: 14px 14px !important;
+  box-shadow: none !important; color: var(--al-ink) !important;
+  font-family: var(--al-font-ui) !important; font-size: 15px !important; font-weight: 500 !important; line-height: 46px !important;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; float: none !important;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+html:not(#al-x) body:not(#al-x) select:not([multiple]):not(#al-header select):not(.price-amount-currency select):not(.al-sort select):hover { border-color: var(--al-field-line-hover) !important; }
+html:not(#al-x) body:not(#al-x) select:not([multiple]):not(#al-header select):not(.price-amount-currency select):not(.al-sort select):focus,
+html:not(#al-x) body:not(#al-x) select:not([multiple]):not(#al-header select):not(.price-amount-currency select):not(.al-sort select):focus-visible {
+  border-color: var(--al-brass) !important; box-shadow: 0 0 0 3px rgba(166, 124, 46, 0.2) !important; outline: none !important;
+}
+html:not(#al-x) body:not(#al-x) select:not([multiple]).error,
+html:not(#al-x) body:not(#al-x) select:not([multiple])[aria-invalid="true"] { border-color: var(--al-danger) !important; }
+html:not(#al-x) body:not(#al-x) select:not([multiple]):disabled { background-color: #F3F0E9 !important; color: var(--al-muted) !important; cursor: not-allowed; opacity: 1; }
+html body select option { color: var(--al-ink); background: #FFFFFF; font-weight: 500; }
+html body select option:disabled { color: #9AA0AA; }
+/* the legacy select replacements draw their own arrow icon next to a native select */
+html body .select-box > i.fa, html body .select-box .fa-angle-down, html body .simple-select > select ~ i.fa { display: none !important; }
+
+/* ---------- Sell / edit form: text fields match the dropdowns ---------- */
+html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item fieldset { box-sizing: border-box !important; width: 100% !important; max-width: 100% !important; min-width: 0 !important; }
+html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item :is(.title-desc-box, .location, .seller, .title-desc-box .title, .title-desc-box .description) { box-sizing: border-box !important; float: none !important; width: 100% !important; max-width: 100% !important; padding: 0 !important; }
+html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item :is(.title-desc-box .title, .title-desc-box .description) { margin-left: 0 !important; }
+html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item :is(.title-desc-box, .location, .seller) .row { display: block !important; width: 100% !important; float: none !important; }
+html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item .status-wrap, html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item .status-wrap > div { min-width: 0 !important; max-width: 100% !important; }
+html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item :is(#location-picker, .input-box) { width: 100% !important; background: transparent !important; float: none !important; }
+html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item :is(input[type="text"], input[type="email"], input[type="url"], input[type="number"], input:not([type])):not(.iti__tel-input):not(.iti__search-input):not(.price-amount-currency input),
+html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item textarea {
+  box-sizing: border-box !important; width: 100% !important; height: 48px !important; min-height: 48px !important; margin: 0 !important; float: none !important;
+  padding: 0 14px !important; text-indent: 0 !important;
+  border: 1px solid var(--al-field-line) !important; border-radius: var(--al-radius) !important; background: var(--al-paper) !important; box-shadow: none !important;
+  color: var(--al-ink) !important; font-family: var(--al-font-ui) !important; font-size: 15px !important; font-weight: 500 !important;
+}
+html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item textarea { height: 200px !important; padding: 12px 14px !important; line-height: 1.55 !important; resize: vertical; }
+html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item :is(input[type="text"], input[type="email"], input[type="url"], input[type="number"], input:not([type])):not(.iti__tel-input):not(.iti__search-input):hover,
+html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item textarea:hover { border-color: var(--al-field-line-hover) !important; }
+html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item :is(input[type="text"], input[type="email"], input[type="url"], input[type="number"], input:not([type])):not(.iti__tel-input):not(.iti__search-input):focus,
+html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item textarea:focus { border-color: var(--al-brass) !important; box-shadow: 0 0 0 3px rgba(166, 124, 46, 0.2) !important; outline: none !important; }
+html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item :is(input, textarea)::placeholder { color: #9AA0AA !important; font-weight: 400 !important; }
+/* field icons from the old theme (person, @, pin…) are gone; labels say what the field is */
+html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item .input-box > i.fa,
+html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item #location-picker > i.fa,
+html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item #location-picker::before { display: none !important; }
+html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item :is(fieldset label, .row > label) { color: var(--al-ink) !important; font-family: var(--al-font-ui) !important; font-size: 14px !important; font-weight: 700 !important; margin: 0 0 6px !important; }
+/* one vertical rhythm for every field in the sell / edit cards */
+html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item :is(.price-type-row, .price-amount-row, .price-wrap > div, .status-wrap > div, .shipping-wrap, :is(.location, .seller) .row) { margin: 0 0 18px !important; padding: 0 !important; }
+html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item :is(.status-wrap, .price-wrap) { display: block !important; margin: 0 !important; }
+html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item .shipping-wrap { margin-bottom: 0 !important; }
+html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item :is(fieldset > div:last-child .row:last-child) { margin-bottom: 0 !important; }
+html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item :is(.price-label, .status-wrap label, .shipping-wrap label) { display: block !important; margin: 0 0 6px !important; color: var(--al-ink) !important; font-size: 14px !important; font-weight: 700 !important; }
+html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item #location-picker { border: 0 !important; box-shadow: none !important; padding: 0 !important; }
+html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item #location-picker input#term { border-left-width: 1px !important; }
+@media (max-width: 767px) {
+  html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item .al-cat-tiles { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 10px !important; }
+  html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item .al-cat-tiles .al-cat-pick { width: auto !important; min-height: 96px; padding: 14px 8px !important; margin: 0 !important; font-size: 13px !important; }
+}
+html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item .price-wrap .inside { display: block !important; margin: 0 !important; padding: 0 !important; gap: 0 !important; }
+html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item .price-wrap :is(.price-type-row, .price-value-row) { margin: 0 0 18px !important; padding: 0 !important; }
+html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item .price-wrap .simple-price-type { margin: 0 !important; }
+
+/* ---------- Location suggestions (sell / edit form) as a site dropdown ---------- */
+html:not(#al-x) body #location-picker { position: relative !important; }
+html:not(#al-x) body #location-picker .shower-wrap { position: absolute !important; top: calc(100% + 4px) !important; left: 0 !important; right: 0 !important; width: auto !important; z-index: 1300 !important; }
+html:not(#al-x) body #location-picker .shower {
+  float: none !important; width: 100% !important; max-height: 280px !important; overflow-y: auto !important; padding: 6px 0 !important; margin: 0 !important;
+  border: 1px solid var(--al-line) !important; border-radius: var(--al-radius) !important; background: var(--al-paper) !important;
+  box-shadow: 0 12px 32px rgba(18, 31, 58, 0.16) !important;
+}
+html:not(#al-x) body #location-picker .shower .option {
+  float: none !important; display: block !important; width: auto !important; margin: 0 !important; padding: 10px 14px !important; border: 0 !important;
+  color: var(--al-ink) !important; font-family: var(--al-font-ui) !important; font-size: 14px !important; font-weight: 500 !important; line-height: 1.35 !important;
+  text-decoration: none !important; background: transparent !important; cursor: pointer;
+}
+html:not(#al-x) body #location-picker .shower .option:hover,
+html:not(#al-x) body #location-picker .shower .option.selected { background: var(--al-ivory) !important; color: var(--al-ink) !important; font-weight: 600 !important; text-decoration: none !important; }
+html:not(#al-x) body #location-picker .shower .option.service { color: var(--al-muted) !important; font-weight: 500 !important; cursor: default; background: transparent !important; }
+html:not(#al-x) body #location-picker .shower .option.empty-pick { display: none !important; }
+html:not(#al-x) body #location-picker .shower .option.empty-pick:only-child,
+html:not(#al-x) body #location-picker .shower:not(:has(.option:not(.service))) .option.empty-pick:first-child { display: block !important; }
+html:not(#al-x) body #location-picker .shower .option strong, html:not(#al-x) body #location-picker .shower .option b { font-weight: 700; }
+html:not(#al-x) body #location-picker .shower .option .flag, html:not(#al-x) body #location-picker .shower .option i { margin-right: 8px; }

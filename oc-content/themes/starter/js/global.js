@@ -804,7 +804,8 @@ $(document).ready(function(){
 
 
   // SHOW LIST OF LOCATIONS WHEN CLICK ON TERM
-  $('body').on('click', '#location-picker .term', function() {
+  // (also on keyboard focus and typing, not only a mouse click)
+  $('body').on('click focus input', '#location-picker .term', function() {
     $('#location-picker .shower').fadeIn(200);
     $('#location-picker .term').addClass('open');
   });

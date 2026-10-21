@@ -849,8 +849,9 @@ function starter_simple_transaction( $select = false, $item_id = false ) {
 
   } else {
 
+    $empty = (osc_is_publish_page() || osc_is_edit_page()) ? __('Select transaction type', 'starter') : __('Any transaction', 'starter');
     $html  = '<select class="sTransaction" id="sTransaction" name="sTransaction">';
-    $html .= '<option value="" ' . ($id == "" ? ' selected="selected"' : '') . '>' . __('Any transaction', 'starter') . '</option>';
+    $html .= '<option value="" ' . ($id == "" ? ' selected="selected"' : '') . '>' . $empty . '</option>';
     $html .= '<option value="1" ' . ($id == "1" ? ' selected="selected"' : '') . '>' . __('Sell', 'starter') . '</option>';
     $html .= '<option value="2" ' . ($id == "2" ? ' selected="selected"' : '') . '>' . __('Buy', 'starter') . '</option>';
     $html .= '<option value="3" ' . ($id == "3" ? ' selected="selected"' : '') . '>' . __('Rent', 'starter') . '</option>';
@@ -916,8 +917,9 @@ function starter_simple_condition( $select = false, $item_id = false ) {
 
   } else {
 
+    $empty = (osc_is_publish_page() || osc_is_edit_page()) ? __('Select condition', 'starter') : __('Any condition', 'starter');
     $html  = '<select class="sCondition" id="sCondition" name="sCondition">';
-    $html .= '<option value="" ' . ($id == "" ? ' selected="selected"' : '') . '>' . __('Any condition', 'starter') . '</option>';
+    $html .= '<option value="" ' . ($id == "" ? ' selected="selected"' : '') . '>' . $empty . '</option>';
     $html .= '<option value="1" ' . ($id == "1" ? ' selected="selected"' : '') . '>' . __('New', 'starter') . '</option>';
     $html .= '<option value="2" ' . ($id == "2" ? ' selected="selected"' : '') . '>' . __('Used', 'starter') . '</option>';
     $html .= '</select>';
