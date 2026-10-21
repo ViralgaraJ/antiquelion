@@ -2879,3 +2879,13 @@ html:not(#al-a):not(#al-b) body:not(#al-c) .al-card .al-watch-card:active { back
   html body .al-acc-nav:not(.is-compact) li a em { flex: 0 0 auto; }
   html body .al-acc-nav:not(.is-compact) .al-acc-logout { border-color: #F0D4D4; }
 }
+
+/* site maker credit, next to the copyright line */
+#al-footer .al-footer-copy { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
+#al-footer .al-footer-maker::before { content: "·"; margin-right: 10px; color: rgba(232, 226, 212, 0.35); }
+#al-footer .al-footer-maker a { color: var(--al-gilt) !important; font-weight: 700; text-decoration: none !important; }
+#al-footer .al-footer-maker a:hover { color: #FFFFFF !important; text-decoration: underline !important; }
+@media (max-width: 480px) {
+  #al-footer .al-footer-copy { flex-direction: column; align-items: flex-start; }
+  #al-footer .al-footer-maker::before { content: none; }
+}

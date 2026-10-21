@@ -85,7 +85,10 @@
 
   <div class="al-footer-bottom">
     <div class="al-wrap">
-      <span>&copy; <?php echo date('Y'); ?> <?php echo osc_esc_html(osc_page_title()); ?></span>
+      <span class="al-footer-copy">
+        <span>&copy; <?php echo date('Y'); ?> <?php echo osc_esc_html(osc_page_title()); ?></span>
+        <span class="al-footer-maker"><?php printf(__('Designed, developed &amp; distributed by %s', 'starter'), '<a href="https://www.viralgaraj.com/" target="_blank" rel="noopener">ViralGaraj</a>'); ?></span>
+      </span>
       <span class="al-footer-credits">
         <a href="https://www.exchangerate-api.com" target="_blank" rel="noopener"><?php _e('Rates by Exchange Rate API', 'starter'); ?></a>
         <a href="https://db-ip.com" target="_blank" rel="noopener"><?php _e('IP geolocation by DB-IP', 'starter'); ?></a>
