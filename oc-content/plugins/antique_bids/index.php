@@ -699,9 +699,9 @@ function antique_bids_render_form($auction = null) {
             <div class="form-row">
                 <label for="bids_starting_price">Starting bid</label>
                 <div class="input-wrap-post">
-                    <input type="number" name="bids_starting_price" id="bids_starting_price"<?php echo $locked ? ' disabled' : ''; ?> value="<?php echo osc_esc_html($startingPrice); ?>" placeholder="Same as your price if left empty">
+                    <input type="number" name="bids_starting_price" id="bids_starting_price"<?php echo $locked ? ' disabled' : ''; ?> value="<?php echo osc_esc_html($startingPrice); ?>" placeholder="Same as your price">
                 </div>
-                <span class="help-text">In the same currency as your listing price. Bidding starts here.</span>
+                <span class="help-text">In the same currency as your listing price. Leave empty to start at your price.</span>
             </div>
             
             <div class="form-row">

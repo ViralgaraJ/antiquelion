@@ -150,17 +150,15 @@ function antique_details_form($itemId = 0) {
         <?php echo antique_details_select('al_origin', antique_details_countries(), strtoupper((string)$d['s_origin']), __('Select country', 'starter')); ?>
       </label>
       <label class="al-df"><span><?php _e('Maker, artist or brand', 'starter'); ?> <em><?php _e('(optional)', 'starter'); ?></em></span>
-        <input type="text" name="al_maker" id="al_maker" maxlength="120" value="<?php echo osc_esc_html($d['s_maker']); ?>" placeholder="<?php echo osc_esc_html(__('e.g. Wedgwood, unknown', 'starter')); ?>" />
+        <input type="text" name="al_maker" id="al_maker" maxlength="120" value="<?php echo osc_esc_html($d['s_maker']); ?>" placeholder="<?php echo osc_esc_html(__('e.g. Wedgwood', 'starter')); ?>" />
       </label>
       <fieldset class="al-df al-df-wide al-dims">
         <legend><?php _e('Dimensions', 'starter'); ?> <em><?php _e('(optional)', 'starter'); ?></em></legend>
         <div class="al-dims-row">
-          <label><span class="al-sr"><?php _e('Height', 'starter'); ?></span><input type="number" name="al_height" min="0" step="any" inputmode="decimal" value="<?php echo osc_esc_html(antique_details_num($d['d_height'])); ?>" placeholder="<?php echo osc_esc_html(__('Height', 'starter')); ?>" /></label>
-          <span aria-hidden="true">×</span>
-          <label><span class="al-sr"><?php _e('Width', 'starter'); ?></span><input type="number" name="al_width" min="0" step="any" inputmode="decimal" value="<?php echo osc_esc_html(antique_details_num($d['d_width'])); ?>" placeholder="<?php echo osc_esc_html(__('Width', 'starter')); ?>" /></label>
-          <span aria-hidden="true">×</span>
-          <label><span class="al-sr"><?php _e('Depth', 'starter'); ?></span><input type="number" name="al_depth" min="0" step="any" inputmode="decimal" value="<?php echo osc_esc_html(antique_details_num($d['d_depth'])); ?>" placeholder="<?php echo osc_esc_html(__('Depth', 'starter')); ?>" /></label>
-          <label class="al-dims-unit"><span class="al-sr"><?php _e('Unit', 'starter'); ?></span><?php echo str_replace('<option value="">' . osc_esc_html(__('Unit', 'starter')) . '</option>', '', antique_details_select('al_unit', $o['unit'], $d['s_unit'] ? $d['s_unit'] : 'cm', __('Unit', 'starter'))); ?></label>
+          <label><span><?php _e('Height', 'starter'); ?></span><input type="number" name="al_height" min="0" step="any" inputmode="decimal" value="<?php echo osc_esc_html(antique_details_num($d['d_height'])); ?>" /></label>
+          <label><span><?php _e('Width', 'starter'); ?></span><input type="number" name="al_width" min="0" step="any" inputmode="decimal" value="<?php echo osc_esc_html(antique_details_num($d['d_width'])); ?>" /></label>
+          <label><span><?php _e('Depth', 'starter'); ?></span><input type="number" name="al_depth" min="0" step="any" inputmode="decimal" value="<?php echo osc_esc_html(antique_details_num($d['d_depth'])); ?>" /></label>
+          <label class="al-dims-unit"><span><?php _e('Unit', 'starter'); ?></span><?php echo str_replace('<option value="">' . osc_esc_html(__('Unit', 'starter')) . '</option>', '', antique_details_select('al_unit', $o['unit'], $d['s_unit'] ? $d['s_unit'] : 'cm', __('Unit', 'starter'))); ?></label>
         </div>
       </fieldset>
       <label class="al-df al-df-wide"><span><?php _e('Provenance and history', 'starter'); ?> <em><?php _e('(optional)', 'starter'); ?></em></span>

@@ -2692,16 +2692,19 @@ html:not(#al-a):not(#al-b) body:is(#body-item-post, #body-item-edit) .al-details
 }
 html:not(#al-a):not(#al-b) body:is(#body-item-post, #body-item-edit) .al-details-form textarea { height: 96px !important; padding: 12px 14px !important; resize: vertical; }
 html:not(#al-a):not(#al-b) body:is(#body-item-post, #body-item-edit) .al-details-form :is(input, textarea):focus { border-color: var(--al-brass) !important; box-shadow: 0 0 0 3px rgba(166, 124, 46, 0.2) !important; outline: none !important; }
-html body:is(#body-item-post, #body-item-edit) .al-dims-row { display: flex; align-items: center; gap: 8px; }
-html body:is(#body-item-post, #body-item-edit) .al-dims-row > label { flex: 1 1 0; min-width: 0; margin: 0 !important; }
-html body:is(#body-item-post, #body-item-edit) .al-dims-row > span { color: var(--al-muted); }
-html body:is(#body-item-post, #body-item-edit) .al-dims-row > .al-dims-unit { flex: 0 0 86px; }
+html body:is(#body-item-post, #body-item-edit) .al-details-form { container-type: inline-size; }
+html body:is(#body-item-post, #body-item-edit) fieldset.al-dims { border: 0 !important; background: none !important; box-shadow: none !important; }
+html body:is(#body-item-post, #body-item-edit) .al-dims-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+html body:is(#body-item-post, #body-item-edit) .al-dims-row > label { display: flex !important; flex-direction: column; gap: 4px; min-width: 0; margin: 0 !important; float: none !important; width: auto !important; }
+html body:is(#body-item-post, #body-item-edit) .al-dims-row > label > span { display: block !important; float: none !important; margin: 0 !important; padding: 0 !important; color: var(--al-muted) !important; font-size: 12px !important; font-weight: 600 !important; line-height: 1.3 !important; }
+@container (max-width: 560px) {
+  html body:is(#body-item-post, #body-item-edit) .al-details-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@container (max-width: 380px) {
+  html body:is(#body-item-post, #body-item-edit) .al-dims-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
 @media (max-width: 640px) {
   html body:is(#body-item-post, #body-item-edit) .al-details-form { padding: 16px; }
-  html body:is(#body-item-post, #body-item-edit) .al-details-grid { grid-template-columns: minmax(0, 1fr); }
-  html body:is(#body-item-post, #body-item-edit) .al-dims-row { flex-wrap: wrap; }
-  html body:is(#body-item-post, #body-item-edit) .al-dims-row > label { flex: 1 1 calc(33% - 20px); }
-  html body:is(#body-item-post, #body-item-edit) .al-dims-row > .al-dims-unit { flex: 1 1 100%; }
 }
 .al-provenance { margin: 18px 0 14px; padding: 14px 16px; border-left: 3px solid var(--al-brass); background: var(--al-ivory); border-radius: 0 var(--al-radius) var(--al-radius) 0; }
 .al-provenance h3 { margin: 0 0 6px !important; font-family: var(--al-font-display) !important; font-size: 19px !important; font-weight: 600 !important; color: var(--al-ink) !important; }
@@ -2716,3 +2719,4 @@ html body:is(#body-item-post, #body-item-edit) .al-dims-row > .al-dims-unit { fl
 .al-report ul { margin: 0; padding: 0; list-style: none; }
 .al-report li a { display: block; padding: 8px 10px; border-radius: var(--al-radius); color: var(--al-ink) !important; text-decoration: none !important; }
 .al-report li a:hover { background: #FDF1EF; color: #A23B2C !important; }
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-details-form fieldset.al-dims { margin: 0 !important; padding: 0 !important; border: 0 !important; background: none !important; box-shadow: none !important; }
