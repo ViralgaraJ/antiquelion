@@ -121,11 +121,20 @@
     input.addEventListener('keydown', function (e) {
       if (e.key === '+') { e.stopImmediatePropagation(); }
     }, true);
+    // setNumber() fires its own input / countrychange events; without this guard they
+    // re-enter the handler and loop until the browser runs out of stack ("+9", "+1"...)
+    var syncing = false;
     input.addEventListener('input', function () {
+      if (syncing) { return; }
       var v = input.value.trim();
       if (v.charAt(0) !== '+' || v.replace(/\D/g, '').length < 1) { return; }
       var before = iti.getSelectedCountryData().iso2;
-      iti.setNumber(v);                       // picks the country from the code, keeps the rest
+      syncing = true;
+      try {
+        iti.setNumber(v);                     // picks the country from the code, keeps the rest
+      } finally {
+        syncing = false;
+      }
       var now = iti.getSelectedCountryData().iso2;
       if (now && (now !== before || input.value.charAt(0) !== '+')) {
         var end = input.value.length;
