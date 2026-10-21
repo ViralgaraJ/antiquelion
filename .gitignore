@@ -17,3 +17,6 @@ oc-content/explain_queries.log
 
 # Local-only helper scripts (debug / FTP) - must never be deployed to public_html
 _local_tools/
+
+# Profile photos uploaded on the live site
+oc-content/uploads/avatars/

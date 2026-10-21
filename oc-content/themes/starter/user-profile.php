@@ -27,16 +27,67 @@
           <h3 class="al-panel-title"><?php _e('Profile', 'starter'); ?></h3>
           <?php osc_run_hook('user_profile_top'); ?>
 
-          <?php if (function_exists('profile_picture_show')) { ?>
-            <div class="al-avatar-row">
-              <a href="#" id="pict-update" aria-label="<?php echo osc_esc_html(__('Change photo', 'starter')); ?>"><?php profile_picture_show(null, null, 72); ?></a>
-              <div>
-                <strong><?php _e('Profile photo', 'starter'); ?></strong>
-                <span><?php _e('Shown to buyers on your listings.', 'starter'); ?></span>
-                <a href="#" id="pict-update-secondary" class="al-btn al-btn-outline"><?php _e('Change photo', 'starter'); ?></a>
+          <?php $al_has_photo = antique_avatar_url(osc_logged_user_id()) !== '' || strpos(starter_profile_picture(osc_logged_user_id(), 'large', true), '/images/profile-') === false; ?>
+          <div class="al-avatar-row" id="al-avatar">
+            <img class="al-avatar-img" src="<?php echo osc_esc_html(starter_profile_picture(osc_logged_user_id(), 'large', true)); ?>" alt="<?php echo osc_esc_html(__('Your profile photo', 'starter')); ?>" width="96" height="96" />
+            <div class="al-avatar-body">
+              <strong><?php _e('Profile photo', 'starter'); ?></strong>
+              <span><?php _e('A clear photo of you or your shop builds trust with buyers. JPG, PNG or WebP, up to 8 MB.', 'starter'); ?></span>
+              <div class="al-avatar-actions">
+                <label class="al-btn al-btn-outline al-avatar-pick">
+                  <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" hidden />
+                  <span><?php echo $al_has_photo ? __('Change photo', 'starter') : __('Upload photo', 'starter'); ?></span>
+                </label>
+                <button type="button" class="al-text-link is-danger al-avatar-remove"<?php echo $al_has_photo ? '' : ' hidden'; ?>><?php _e('Remove', 'starter'); ?></button>
               </div>
+              <div class="al-avatar-msg" role="status" aria-live="polite"></div>
             </div>
-          <?php } ?>
+          </div>
+          <script>
+            (function () {
+              var box = document.getElementById('al-avatar');
+              var input = box.querySelector('input[type=file]'), img = box.querySelector('.al-avatar-img');
+              var pickText = box.querySelector('.al-avatar-pick span'), remove = box.querySelector('.al-avatar-remove'), msg = box.querySelector('.al-avatar-msg');
+              var url = <?php echo json_encode(osc_base_url(true) . '?page=ajax&action=runhook&hook=al_avatar'); ?>;
+              var token = <?php echo json_encode(osc_csrfguard_generate_token()); ?>;
+              var t = <?php echo json_encode(array('saving' => __('Saving…', 'starter'), 'saved' => __('Photo updated.', 'starter'), 'removed' => __('Photo removed.', 'starter'), 'change' => __('Change photo', 'starter'), 'upload' => __('Upload photo', 'starter'), 'big' => __('This file is too big. The limit is 8 MB.', 'starter'), 'fail' => __('Something went wrong. Please try again.', 'starter'), 'confirm' => __('Remove your profile photo?', 'starter'))); ?>;
+              function say(text, bad) { msg.textContent = text; msg.className = 'al-avatar-msg' + (bad ? ' is-error' : ' is-ok'); }
+              function send(data, previous) {
+                data.append('octoken', token);
+                box.classList.add('is-busy');
+                var xhr = new XMLHttpRequest();
+                xhr.open('POST', url, true);
+                xhr.onload = function () {
+                  box.classList.remove('is-busy');
+                  try {
+                    var res = JSON.parse(xhr.responseText);
+                    if (!res.success) { throw new Error(res.error || t.fail); }
+                    img.src = res.url;
+                    document.querySelectorAll('#al-header .al-account-btn img').forEach(function (h) { h.src = res.url; });
+                    remove.hidden = !!res.removed;
+                    pickText.textContent = res.removed ? t.upload : t.change;
+                    say(res.removed ? t.removed : t.saved, false);
+                  } catch (e) { if (previous) { img.src = previous; } say(e.message || t.fail, true); }
+                };
+                xhr.onerror = function () { box.classList.remove('is-busy'); if (previous) { img.src = previous; } say(t.fail, true); };
+                xhr.send(data);
+              }
+              input.addEventListener('change', function () {
+                var f = input.files && input.files[0];
+                input.value = '';
+                if (!f) { return; }
+                if (f.size > 8 * 1024 * 1024) { say(t.big, true); return; }
+                var previous = img.src;
+                img.src = URL.createObjectURL(f);     // preview straight away
+                say(t.saving, false);
+                var d = new FormData(); d.append('photo', f); send(d, previous);
+              });
+              remove.addEventListener('click', function () {
+                if (!window.confirm(t.confirm)) { return; }
+                var d = new FormData(); d.append('op', 'delete'); send(d, null);
+              });
+            })();
+          </script>
 
           <div class="al-form-row al-form-2">
             <label><span><?php _e('Full name', 'starter'); ?> <em>*</em></span><?php UserForm::name_text(osc_user()); ?></label>
@@ -108,7 +159,6 @@
     </main>
   </div>
 
-  <?php if(function_exists('profile_picture_upload')) { profile_picture_upload(); } ?>
   <?php osc_current_web_theme_path('footer.php'); ?>
 </body>
 </html>

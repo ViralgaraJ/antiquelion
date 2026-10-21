@@ -12,6 +12,7 @@ require_once __DIR__ . '/inc.countries.php';
 require_once __DIR__ . '/inc.details.php';
 require_once __DIR__ . '/inc.report.php';
 require_once __DIR__ . '/inc.seller.php';
+require_once __DIR__ . '/inc.avatar.php';
 
 // "JPG, PNG or GIF" from the allowed upload extensions (Settings > Media)
 function antique_upload_formats() {
@@ -408,9 +409,9 @@ function starter_profile_picture($user_id = 0, $size = 'small', $id_set = false)
     $dimension = 256;
   }
 
-  $img = '';
+  $img = $user_id > 0 ? antique_avatar_url($user_id) : '';
 
-  if($user_id > 0 && function_exists('profile_picture_show')) {
+  if($img == '' && $user_id > 0 && function_exists('profile_picture_show')) {
     try {
       $conn = DBConnectionClass::newInstance()->getOsclassDb();
       $comm = new DBCommandClass($conn);

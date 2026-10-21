@@ -2777,3 +2777,18 @@ html:not(#al-a):not(#al-b) body:not(#al-c) .al-sell-form fieldset.al-sell-type {
 html:not(#al-a):not(#al-b) body:not(#al-c) .al-sell-form fieldset.al-sell-type legend { float: left; width: 100%; margin: 0 0 10px !important; padding: 0 !important; }
 html body .al-buy-stats > .al-stat { margin: 0 !important; }
 .al-stat strong { font-family: var(--al-font-ui) !important; font-size: 28px; font-weight: 800; letter-spacing: -0.5px; }
+
+/* Profile photo */
+.al-avatar-row { display: flex !important; align-items: center; gap: 18px; margin: 0 0 20px; padding: 0 0 20px; border-bottom: 1px solid var(--al-line-soft); }
+html body .al-avatar-row img.al-avatar-img { flex: 0 0 96px; width: 96px !important; height: 96px !important; border-radius: 50% !important; object-fit: cover; border: 1px solid var(--al-line); background: var(--al-ivory); }
+#al-avatar.is-busy img.al-avatar-img { opacity: 0.55; }
+.al-avatar-body { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.al-avatar-body > span { color: var(--al-muted); font-size: 13px; line-height: 1.5; }
+.al-avatar-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; margin-top: 8px; }
+.al-avatar-pick { cursor: pointer; margin: 0 !important; }
+.al-avatar-remove { background: none; border: 0; padding: 0; font: 600 14px var(--al-font-ui); cursor: pointer; color: var(--al-danger); }
+.al-avatar-remove[hidden] { display: none; }
+.al-avatar-msg { min-height: 18px; font-size: 13px; font-weight: 600; }
+.al-avatar-msg.is-ok { color: #157F3C; }
+.al-avatar-msg.is-error { color: #A23B2C; }
+@media (max-width: 480px) { .al-avatar-row { align-items: flex-start; } html body .al-avatar-row img.al-avatar-img { flex-basis: 72px; width: 72px !important; height: 72px !important; } }
