@@ -2537,3 +2537,19 @@ html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item #pho
 
 /* phone text always starts after the flag + dial code (width set by js/al-phone.js) */
 html:not(#al-a):not(#al-b) body:not(#al-c) .iti input.iti__tel-input { padding-left: var(--al-iti-pad, 100px) !important; }
+
+/* ---------- Home hero on phones: headline, text, photo, then the buttons ---------- */
+@media (max-width: 767px) {
+  .al-hero .al-wrap { flex-direction: column; flex-wrap: nowrap; align-items: stretch; gap: 0 !important; padding-top: 32px !important; padding-bottom: 32px !important; }
+  .al-hero .al-hero-text { display: contents; }
+  .al-hero .al-eyebrow { order: 1; }
+  .al-hero .al-hero-title { order: 2; margin: 12px 0 14px !important; font-size: 36px !important; }
+  .al-hero .al-hero-lead { order: 3; margin: 0 0 22px; }
+  .al-hero .al-hero-media { order: 4; flex: none; width: 100%; max-width: none; margin: 0 0 22px; }
+  .al-hero .al-hero-media img { height: auto; aspect-ratio: 4 / 3; border-width: 4px; }
+  .al-hero .al-hero-actions { order: 5; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .al-hero .al-hero-actions .al-btn { width: 100%; padding-left: 10px; padding-right: 10px; justify-content: center; text-align: center; }
+}
+@media (max-width: 360px) {
+  .al-hero .al-hero-actions { grid-template-columns: 1fr; }
+}

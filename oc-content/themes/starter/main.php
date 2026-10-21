@@ -6,7 +6,9 @@
 <?php
   $al_ending = function_exists('antique_bids_ending_soon') ? antique_bids_ending_soon(4) : array();
 
-  // Hero photo: a running auction's picture, else the newest listing with one
+  // Hero photo: a fixed image uploaded to oc-content/uploads/hero.(jpg|jpeg|png|webp)
+  // wins (it links to live auctions); otherwise a running auction's picture, else
+  // the newest listing with one
   $al_hero_img = '';
   $al_hero_alt = '';
   $al_hero_url = '';
@@ -17,7 +19,16 @@
      WHERE i.b_enabled = 1 AND i.b_active = 1 AND i.b_spam = 0
      ORDER BY " . (count($al_ending) ? "FIELD(i.pk_i_id, " . implode(',', array_map('intval', array_reverse($al_ending))) . ") DESC, " : "") . "i.dt_pub_date DESC, r.pk_i_id ASC LIMIT 12"
   );
-  if ($al_res) {
+  foreach (array('jpg', 'jpeg', 'png', 'webp') as $al_ext) {
+    $al_fixed = osc_content_path() . 'uploads/hero.' . $al_ext;
+    if (is_file($al_fixed)) {
+      $al_hero_img = osc_content_url() . 'uploads/hero.' . $al_ext . '?v=' . filemtime($al_fixed);
+      $al_hero_alt = __('Antiques on AntiqueLion', 'starter');
+      $al_hero_url = osc_search_url(array('page' => 'search', 'sAuction' => 1));
+      break;
+    }
+  }
+  if ($al_res && $al_hero_img === '') {
     foreach ($al_res->result() as $r) {
       if (is_file(osc_base_path() . $r['s_path'] . $r['pk_i_id'] . '.' . $r['s_extension'])) {
         $al_hero_img = osc_base_url() . $r['s_path'] . $r['pk_i_id'] . '.' . $r['s_extension'];
