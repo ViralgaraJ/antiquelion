@@ -50,7 +50,8 @@
       nationalMode: true,
       formatOnDisplay: true,
       formatAsYouType: true,
-      strictMode: true,
+      // no strictMode: it silently blocks keystrokes once a number reaches the selected
+      // country's length (a saved or foreign number felt "locked"); validation explains instead
       autoPlaceholder: 'aggressive',
       placeholderNumberType: input.name === 's_phone_land' ? 'FIXED_LINE' : 'MOBILE',
       countryOrder: ['gb', 'us', 'au', 'ca', 'lk', 'in', 'nz', 'sg', 'ae'],
@@ -102,7 +103,36 @@
       return ok;
     }
 
-    input.addEventListener('blur', function () { validate(); });
+    input.addEventListener('blur', function () {
+      // tidy a valid number into the country's usual format ("7911 123456")
+      if (input.value.trim() !== '' && validate(false)) { iti.setNumber(iti.getNumber()); }
+      validate();
+    });
+    // With a separate dial code the library turns "+" into "open the country list" and
+    // the rest of the number lands in that list's search box. Let people type or paste
+    // a full international number instead: the flag follows the code they type.
+    input.addEventListener('keydown', function (e) {
+      if (e.key === '+') { e.stopImmediatePropagation(); }
+    }, true);
+    input.addEventListener('input', function () {
+      var v = input.value.trim();
+      if (v.charAt(0) !== '+' || v.replace(/\D/g, '').length < 1) { return; }
+      var before = iti.getSelectedCountryData().iso2;
+      iti.setNumber(v);                       // picks the country from the code, keeps the rest
+      var now = iti.getSelectedCountryData().iso2;
+      if (now && (now !== before || input.value.charAt(0) !== '+')) {
+        var end = input.value.length;
+        input.setSelectionRange(end, end);
+      }
+    });
+
+    // only phone characters can be typed (pasted text is cleaned up by validation)
+    input.addEventListener('beforeinput', function (e) {
+      if (e.inputType === 'insertText' && e.data && /[^0-9+\-() .]/.test(e.data)) {
+        e.preventDefault();
+      }
+    });
+
     // clear the error as soon as the number is fixed; never nag mid-typing
     input.addEventListener('input', function () { validate(!error.hidden); });
     input.addEventListener('countrychange', function () {
