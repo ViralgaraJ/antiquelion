@@ -73,6 +73,11 @@
       </form>
 
       <div class="al-actions">
+        <?php $al_watch_total = count(antique_watch_ids()); ?>
+        <a class="al-watch-link" href="<?php echo osc_is_web_user_logged_in() ? antique_watchlist_url() : osc_user_login_url(); ?>" aria-label="<?php echo osc_esc_html(__('Watchlist', 'starter')); ?>" title="<?php echo osc_esc_html(__('Watchlist', 'starter')); ?>">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-9.3-9.4C1.5 7.9 3.6 4.5 7.2 4.5c2 0 3.6 1.1 4.8 2.8 1.2-1.7 2.8-2.8 4.8-2.8 3.6 0 5.7 3.4 4.5 6.6-1.8 4.8-9.3 9.4-9.3 9.4z"/></svg>
+          <span class="al-watch-badge" data-al-watch-total<?php echo $al_watch_total ? '' : ' hidden'; ?>><?php echo $al_watch_total; ?></span>
+        </a>
         <?php if (osc_is_web_user_logged_in()) { ?>
           <div class="al-account">
             <button type="button" class="al-account-btn" aria-haspopup="true" aria-expanded="false">

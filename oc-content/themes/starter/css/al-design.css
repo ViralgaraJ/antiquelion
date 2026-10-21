@@ -2644,3 +2644,31 @@ html body .al-card-media img:not(.is-placeholder) { position: relative; z-index:
 .antique-bids-post-card .bids-locked-note { width: 100%; margin: 0 0 8px; padding: 10px 12px; border-radius: var(--al-radius); background: var(--al-ivory); color: var(--al-ink); font-size: 13px; }
 #al-auction .al-bid-quick[hidden] { display: none !important; }
 html:not(#al-a):not(#al-b) body:not(#al-c) .antique-bids-post-card input:disabled { background: #F4F1EA !important; color: var(--al-muted) !important; cursor: not-allowed; }
+
+/* ======================================================================
+   Watchlist
+   ====================================================================== */
+.al-watch { display: inline-flex; align-items: center; justify-content: center; gap: 8px; margin: 0; padding: 0; border: 0; background: none; color: var(--al-ink); font: inherit; cursor: pointer; }
+.al-watch svg { fill: transparent; stroke: currentColor; stroke-width: 1.8; transition: fill 0.15s, transform 0.2s; }
+.al-watch.is-on svg { fill: #B4232A; stroke: #B4232A; }
+.al-watch.is-pop svg { transform: scale(1.25); }
+.al-watch:focus-visible { outline: 2px solid var(--al-brass); outline-offset: 2px; }
+/* on cards: round button over the photo, above the card's stretched link */
+html body .al-card .al-watch-card { position: absolute; top: 10px; right: 10px; z-index: 3; width: 38px; height: 38px; border-radius: 50% !important; background: rgba(255, 255, 255, 0.94) !important; box-shadow: 0 2px 8px rgba(20, 33, 61, 0.18) !important; padding: 0 !important; }
+html body .al-card .al-watch-card:hover { background: #FFFFFF !important; color: #B4232A; }
+/* item page */
+.al-watch-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin: 14px 0 4px; }
+html body .al-watch-item { height: 40px; padding: 0 16px !important; border: 1px solid var(--al-line) !important; border-radius: 999px !important; background: var(--al-paper) !important; font-size: 14px; font-weight: 700; }
+html body .al-watch-item:hover { border-color: #B4232A !important; }
+html body .al-watch-item.is-on { border-color: #E9B8BB !important; background: #FDF2F2 !important; color: #8E1C22; }
+.al-watch-count { color: var(--al-muted); font-size: 13px; font-weight: 600; }
+.al-watch-count[hidden] { display: none; }
+/* header */
+#al-header .al-watch-link { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: 50%; color: var(--al-ink); text-decoration: none; }
+#al-header .al-watch-link:hover { background: var(--al-ivory); color: #B4232A; }
+#al-header .al-watch-badge { position: absolute; top: 2px; right: 0; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; background: #B4232A; color: #FFFFFF; font-size: 11px; font-weight: 800; line-height: 18px; text-align: center; }
+#al-header .al-watch-badge[hidden] { display: none; }
+.al-account-count { color: var(--al-muted); font-weight: 600; }
+.al-account-intro { margin: -6px 0 18px; color: var(--al-muted); font-size: 14px; }
+.al-watch-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+@media (max-width: 480px) { #al-header .al-watch-link { display: none; } }

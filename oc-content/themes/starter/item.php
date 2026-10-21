@@ -159,6 +159,12 @@
           <?php if ($transaction) { ?><span class="al-tag"><?php echo osc_esc_html($transaction); ?></span><?php } ?>
         </div>
 
+        <?php $al_watchers = antique_watch_count(osc_item_id()); ?>
+        <div class="al-watch-row">
+          <?php if (!$is_owner) { echo antique_watch_button(osc_item_id(), 'item'); } ?>
+          <span class="al-watch-count" data-al-watch-count="<?php echo osc_item_id(); ?>"<?php echo $al_watchers > 0 ? '' : ' hidden'; ?>><?php echo sprintf(_n('%d person watching', '%d people watching', $al_watchers, 'starter'), $al_watchers); ?></span>
+        </div>
+
         <?php osc_run_hook('item_title'); ?>
 
         <?php if (!$al_auction && osc_price_enabled_at_items()) { ?>

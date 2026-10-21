@@ -111,6 +111,19 @@ osc_enqueue_style('al-design', osc_current_web_theme_url('css/al-design.css') . 
 echo '<script>window.alSelect = ' . json_encode(array('search' => __('Search', 'starter'))) . ';</script>' . PHP_EOL;
 echo '<script defer src="' . osc_current_web_theme_js_url('al-select.js') . '?v=' . filemtime(__DIR__ . '/js/al-select.js') . '"></script>' . PHP_EOL;
 
+// Watchlist hearts
+echo '<script>window.alWatch = ' . json_encode(array(
+  'url' => osc_ajax_hook_url('al_watch'),
+  'token' => osc_is_web_user_logged_in() ? osc_csrfguard_generate_token() : '',
+  'login' => osc_user_login_url(),
+  'add' => __('Add to watchlist', 'starter'),
+  'remove' => __('Remove from watchlist', 'starter'),
+  'one' => __('%d person watching', 'starter'),
+  'many' => __('%d people watching', 'starter'),
+  'error' => __('Could not update your watchlist. Please try again.', 'starter')
+)) . ';</script>' . PHP_EOL;
+echo '<script defer src="' . osc_current_web_theme_js_url('al-watch.js') . '?v=' . filemtime(__DIR__ . '/js/al-watch.js') . '"></script>' . PHP_EOL;
+
 // International phone inputs on the forms that collect a phone number
 $al_phone_page = in_array(osc_get_osclass_location(), array('register', 'item'))
   || (osc_get_osclass_location() == 'user' && in_array(osc_get_osclass_section(), array('profile', 'pub_profile')));

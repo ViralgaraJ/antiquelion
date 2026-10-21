@@ -10,11 +10,9 @@
   <div class="al-wrap al-account-layout">
     <aside class="al-account-side"><?php echo antique_account_nav(); ?></aside>
 
-    <div id="main" class="user-custom-maim">
-      <div class="inside">
-        <?php osc_render_file(); ?>
-      </div>
-    </div>
+    <main class="al-account-main">
+      <?php osc_render_file(); ?>
+    </main>
   </div>
 
   <?php osc_current_web_theme_path('footer.php') ; ?>

@@ -35,6 +35,7 @@
       <span class="al-card-badge<?php echo $al_badge_class; ?>"><?php echo osc_esc_html($al_badge); ?></span>
     <?php } ?>
   </a>
+  <?php if (!osc_is_web_user_logged_in() || osc_item_user_id() != osc_logged_user_id()) { echo antique_watch_button(osc_item_id(), 'card'); } ?>
   <div class="al-card-body">
     <div class="al-card-cat"><?php echo osc_esc_html(osc_item_category()); ?></div>
     <h3 class="al-card-title"><a href="<?php echo osc_item_url(); ?>"><?php echo osc_esc_html(osc_highlight(osc_item_title(), 80)); ?></a></h3>

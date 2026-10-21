@@ -7,6 +7,7 @@ require_once __DIR__ . '/inc.geo.php';
 require_once __DIR__ . '/inc.currency.php';
 require_once __DIR__ . '/inc.phone.php';
 require_once __DIR__ . '/inc.pages.php';
+require_once __DIR__ . '/inc.watchlist.php';
 
 // "JPG, PNG or GIF" from the allowed upload extensions (Settings > Media)
 function antique_upload_formats() {
@@ -572,6 +573,7 @@ function antique_account_nav($compact = false) {
       array(__('Sell an item', 'starter'), osc_item_post_url(), false, null)
     ),
     __('Account', 'starter') => array(
+      array(__('Watchlist', 'starter'), antique_watchlist_url(), Params::getParam('route') == 'al-watchlist', count(antique_watch_ids())),
       array(__('Saved searches', 'starter'), osc_user_alerts_url(), $loc == 'user' && $sec == 'alerts', null),
       array(__('Account settings', 'starter'), osc_user_profile_url(), $loc == 'user' && $sec == 'profile', null),
       array(__('Public profile', 'starter'), osc_user_public_profile_url($uid), $loc == 'user' && $sec == 'pub_profile', null)
