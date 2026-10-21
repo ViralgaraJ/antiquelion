@@ -2570,3 +2570,35 @@ html:not(#al-a):not(#al-b) body:not(#al-c) .iti input.iti__tel-input { padding-l
   }
   html body.al-filters-is-open, html.al-filters-is-open body { overflow: hidden; }
 }
+
+/* ======================================================================
+   Listing photos: always the whole photo, never cropped. Tall vases and
+   wide panels keep their shape; the space around them is filled with a
+   soft, blurred copy of the same photo instead of empty bars.
+   ====================================================================== */
+.al-card-media[style*="--al-photo"]::before,
+.al-gallery-slide[style*="--al-photo"]::before {
+  content: "";
+  position: absolute;
+  inset: -24px;
+  background: var(--al-photo) center / cover no-repeat;
+  filter: blur(18px) saturate(1.1);
+  opacity: 0.5;
+  pointer-events: none;
+}
+.al-card-media[style*="--al-photo"]::after,
+.al-gallery-slide[style*="--al-photo"]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(247, 244, 238, 0.35);
+  pointer-events: none;
+}
+html body .al-card-media img:not(.is-placeholder) { position: relative; z-index: 1; object-fit: contain; }
+.al-card:hover .al-card-media img:not(.is-placeholder) { transform: scale(1.02); }
+.al-card-media .al-card-badge { z-index: 2; }
+.al-gallery-slide { position: relative; overflow: hidden; }
+.al-gallery-slide img { position: relative; z-index: 1; }
+.al-gallery-thumb img,
+.al-listing-thumb img,
+.al-share-thumb img { object-fit: contain !important; background: var(--al-line-soft); }

@@ -111,7 +111,12 @@
         <?php osc_reset_resources(); $al_n = osc_count_item_resources(); ?>
         <div class="al-gallery-main">
           <?php for ($i = 0; osc_has_item_resources(); $i++) { ?>
-            <a href="<?php echo osc_resource_url(); ?>" data-fancybox="gallery" class="al-gallery-slide<?php echo $i == 0 ? ' is-active' : ''; ?>" data-index="<?php echo $i; ?>"<?php echo $i == 0 ? '' : ' hidden'; ?>>
+            <?php
+              // zoom opens the photo as uploaded when the original is kept (Settings > Media)
+              $al_zoom = osc_resource_url();
+              if (osc_keep_original_image() && is_file(osc_base_path() . osc_resource_field('s_path') . osc_resource_id() . '_original.' . osc_resource_field('s_extension'))) { $al_zoom = osc_resource_original_url(); }
+            ?>
+            <a href="<?php echo $al_zoom; ?>" style="--al-photo: url('<?php echo osc_esc_html(osc_resource_url()); ?>')" data-fancybox="gallery" class="al-gallery-slide<?php echo $i == 0 ? ' is-active' : ''; ?>" data-index="<?php echo $i; ?>"<?php echo $i == 0 ? '' : ' hidden'; ?>>
               <img src="<?php echo osc_resource_url(); ?>" alt="<?php echo osc_esc_html(osc_item_title()); ?> - <?php echo sprintf(__('photo %1$d of %2$d', 'starter'), $i + 1, $al_n); ?>"<?php echo $i == 0 ? '' : ' loading="lazy"'; ?> />
             </a>
           <?php } ?>

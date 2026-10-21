@@ -25,7 +25,7 @@
   }
 ?>
 <article class="al-card<?php echo osc_item_is_premium() ? ' is-premium' : ''; ?>">
-  <a class="al-card-media" href="<?php echo osc_item_url(); ?>" tabindex="-1" aria-hidden="true">
+  <a class="al-card-media" href="<?php echo osc_item_url(); ?>" tabindex="-1" aria-hidden="true"<?php if (osc_count_item_resources()) { ?> style="--al-photo: url('<?php echo osc_esc_html(osc_resource_preview_url()); ?>')"<?php } ?>>
     <?php if (osc_count_item_resources()) { ?>
       <img src="<?php echo osc_resource_preview_url(); ?>" alt="" loading="lazy" />
     <?php } else { ?>

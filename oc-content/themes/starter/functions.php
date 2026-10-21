@@ -23,6 +23,26 @@ if (!is_dir(osc_content_path() . 'uploads/temp')) {
   @mkdir(osc_content_path() . 'uploads/temp', 0755, true);
 }
 
+// Listing photos are saved in three sizes that fit inside these boxes without cropping
+// (portrait photos stay portrait). The old 640x480 / 480x340 / 240x200 sizes looked soft
+// on the item page and on high-density phone screens, so raise them once. Photos uploaded
+// before the change are rebuilt from their originals in oc-admin: Settings > Media >
+// Regenerate images.
+function antique_image_sizes() {
+  if (osc_get_preference('al_image_sizes', 'starter_theme') == '1') { return; }
+  $sizes = array('dimNormal' => '1280x1280', 'dimPreview' => '640x640', 'dimThumbnail' => '320x320');
+  foreach ($sizes as $name => $size) {
+    $now = explode('x', (string)osc_get_preference($name));
+    $want = explode('x', $size);
+    if ((int)@$now[0] < (int)$want[0] || (int)@$now[1] < (int)$want[1]) {
+      osc_set_preference($name, $size);
+    }
+  }
+  osc_set_preference('al_image_sizes', '1', 'starter_theme');
+  osc_reset_preferences();
+}
+osc_add_hook('init', 'antique_image_sizes');
+
 
 function starter_theme_info() {
   return array(
