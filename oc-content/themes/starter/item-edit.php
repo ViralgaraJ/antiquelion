@@ -165,21 +165,9 @@
             </div>
           </div>
 
-          <!-- INTERNATIONAL SHIPPING & DELIVERY -->
-          <div class="shipping-wrap" style="margin-top:16px;background:#ffffff;border:1px solid #cbd5e1;border-radius:12px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,0.04);">
-            <label style="display:block;font-size:13px;font-weight:600;color:#0f172a;margin-bottom:8px;">
-              <i class="fa fa-plane" style="color:var(--gold-600);margin-right:6px;"></i> <?php _e('Shipping & Delivery Scope', 'starter'); ?>
-            </label>
-            <div class="select-box">
-              <select name="sShippingScope" class="al-select">
-                <option value="worldwide"><?php _e('Worldwide Shipping Available', 'starter'); ?></option>
-                <option value="domestic"><?php _e('Domestic Shipping Only', 'starter'); ?></option>
-                <option value="pickup"><?php _e('Local Pickup Only', 'starter'); ?></option>
-                <option value="custom"><?php _e('Contact Seller for International Quote', 'starter'); ?></option>
-              </select>
-            </div>
-          </div>
-
+          <!-- PERIOD, MATERIAL, ORIGIN, DIMENSIONS, PROVENANCE, SHIPPING -->
+          <?php antique_details_form(osc_item_id()); ?>
+          
           <?php osc_run_hook('item_publish_price'); ?>
         </fieldset>
 

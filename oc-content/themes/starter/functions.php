@@ -8,6 +8,7 @@ require_once __DIR__ . '/inc.currency.php';
 require_once __DIR__ . '/inc.phone.php';
 require_once __DIR__ . '/inc.pages.php';
 require_once __DIR__ . '/inc.watchlist.php';
+require_once __DIR__ . '/inc.details.php';
 
 // "JPG, PNG or GIF" from the allowed upload extensions (Settings > Media)
 function antique_upload_formats() {

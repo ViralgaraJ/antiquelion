@@ -70,6 +70,11 @@
       'url' => osc_item_url()
     );
     if (osc_count_item_resources() > 0) { $ld['image'] = osc_resource_url(); }
+    $al_ld_det = antique_item_details(osc_item_id());
+    $al_ld_opt = antique_detail_options();
+    if (isset($al_ld_opt['material'][$al_ld_det['s_material']])) { $ld['material'] = $al_ld_opt['material'][$al_ld_det['s_material']]; }
+    if ($al_ld_det['s_origin']) { $ld['countryOfOrigin'] = array('@type' => 'Country', 'name' => strtoupper($al_ld_det['s_origin'])); }
+    if ($al_ld_det['s_maker'] !== '') { $ld['brand'] = array('@type' => 'Brand', 'name' => $al_ld_det['s_maker']); }
     if (osc_item_price() > 0) {
       $ld['offers'] = array(
         '@type' => 'Offer',
@@ -277,7 +282,8 @@
       </section>
 
       <?php
-        $al_facts = array();
+        $al_facts = antique_details_facts(osc_item_id());
+        $al_details = antique_item_details(osc_item_id());
         if ($condition) { $al_facts[__('Condition', 'starter')] = $condition; }
         if ($transaction) { $al_facts[__('Transaction', 'starter')] = $transaction; }
         $al_facts[__('Category', 'starter')] = osc_item_category();
@@ -295,6 +301,12 @@
             <div><dt><?php echo osc_esc_html($k); ?></dt><dd><?php echo osc_esc_html($v); ?></dd></div>
           <?php } ?>
         </dl>
+        <?php if (trim((string)$al_details['s_provenance']) !== '') { ?>
+          <div class="al-provenance">
+            <h3><?php _e('Provenance and history', 'starter'); ?></h3>
+            <p><?php echo nl2br(osc_esc_html($al_details['s_provenance'])); ?></p>
+          </div>
+        <?php } ?>
         <?php if ($item_loc <> '') { ?>
           <a class="al-text-link" href="https://www.google.com/maps/search/?api=1&amp;query=<?php echo urlencode($item_loc); ?>" target="_blank" rel="noopener"><?php _e('View location on Google Maps', 'starter'); ?> &rarr;</a>
         <?php } ?>

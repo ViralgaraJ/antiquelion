@@ -2672,3 +2672,37 @@ html body .al-watch-item.is-on { border-color: #E9B8BB !important; background: #
 .al-account-intro { margin: -6px 0 18px; color: var(--al-muted); font-size: 14px; }
 .al-watch-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
 @media (max-width: 480px) { #al-header .al-watch-link { display: none; } }
+
+/* ======================================================================
+   Structured item details (sell form + listing)
+   ====================================================================== */
+html body:is(#body-item-post, #body-item-edit) .al-details-form { clear: both; margin: 22px 0 6px; padding: 20px; border: 1px solid var(--al-line); border-radius: var(--al-radius); background: #FCFAF6; }
+html body:is(#body-item-post, #body-item-edit) .al-details-head h3 { margin: 0 0 4px !important; padding: 0 !important; color: var(--al-ink) !important; font-family: var(--al-font-display) !important; font-size: 22px !important; font-weight: 600 !important; text-align: left !important; }
+html body:is(#body-item-post, #body-item-edit) .al-details-head p { margin: 0 0 16px !important; color: var(--al-muted) !important; font-size: 13px !important; line-height: 1.5 !important; }
+html body:is(#body-item-post, #body-item-edit) .al-details-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 18px; }
+html body:is(#body-item-post, #body-item-edit) .al-df { display: flex !important; flex-direction: column; gap: 6px; float: none !important; width: auto !important; margin: 0 !important; padding: 0 !important; border: 0 !important; min-width: 0; }
+html body:is(#body-item-post, #body-item-edit) .al-df-wide { grid-column: 1 / -1; }
+html body:is(#body-item-post, #body-item-edit) .al-df > span,
+html body:is(#body-item-post, #body-item-edit) .al-df > legend { display: block !important; float: none !important; margin: 0 !important; padding: 0 !important; color: var(--al-ink) !important; font-size: 13px !important; font-weight: 700 !important; line-height: 1.3 !important; }
+html body:is(#body-item-post, #body-item-edit) .al-df em { color: var(--al-muted); font-style: normal; font-weight: 500; }
+html:not(#al-a):not(#al-b) body:is(#body-item-post, #body-item-edit) .al-details-form :is(input[type="text"], input[type="number"], textarea) {
+  box-sizing: border-box !important; display: block !important; width: 100% !important; height: 46px !important; margin: 0 !important; padding: 0 14px !important; float: none !important;
+  border: 1px solid var(--al-field-line) !important; border-radius: var(--al-radius) !important; background: var(--al-paper) !important; box-shadow: none !important;
+  color: var(--al-ink) !important; font: 500 15px/1.4 var(--al-font-ui) !important; text-indent: 0 !important;
+}
+html:not(#al-a):not(#al-b) body:is(#body-item-post, #body-item-edit) .al-details-form textarea { height: 96px !important; padding: 12px 14px !important; resize: vertical; }
+html:not(#al-a):not(#al-b) body:is(#body-item-post, #body-item-edit) .al-details-form :is(input, textarea):focus { border-color: var(--al-brass) !important; box-shadow: 0 0 0 3px rgba(166, 124, 46, 0.2) !important; outline: none !important; }
+html body:is(#body-item-post, #body-item-edit) .al-dims-row { display: flex; align-items: center; gap: 8px; }
+html body:is(#body-item-post, #body-item-edit) .al-dims-row > label { flex: 1 1 0; min-width: 0; margin: 0 !important; }
+html body:is(#body-item-post, #body-item-edit) .al-dims-row > span { color: var(--al-muted); }
+html body:is(#body-item-post, #body-item-edit) .al-dims-row > .al-dims-unit { flex: 0 0 86px; }
+@media (max-width: 640px) {
+  html body:is(#body-item-post, #body-item-edit) .al-details-form { padding: 16px; }
+  html body:is(#body-item-post, #body-item-edit) .al-details-grid { grid-template-columns: minmax(0, 1fr); }
+  html body:is(#body-item-post, #body-item-edit) .al-dims-row { flex-wrap: wrap; }
+  html body:is(#body-item-post, #body-item-edit) .al-dims-row > label { flex: 1 1 calc(33% - 20px); }
+  html body:is(#body-item-post, #body-item-edit) .al-dims-row > .al-dims-unit { flex: 1 1 100%; }
+}
+.al-provenance { margin: 18px 0 14px; padding: 14px 16px; border-left: 3px solid var(--al-brass); background: var(--al-ivory); border-radius: 0 var(--al-radius) var(--al-radius) 0; }
+.al-provenance h3 { margin: 0 0 6px !important; font-family: var(--al-font-display) !important; font-size: 19px !important; font-weight: 600 !important; color: var(--al-ink) !important; }
+.al-provenance p { margin: 0; color: var(--al-ink); font-size: 14px; line-height: 1.6; }

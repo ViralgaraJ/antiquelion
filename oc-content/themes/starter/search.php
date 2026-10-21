@@ -31,7 +31,7 @@
   // Active filter chips: label => URL without that filter
   $al_chips = array();
   // Every filter the page understands; a chip link keeps all of them except its own
-  $al_keep = array('sPattern', 'sCategory', 'sAuction', 'sItemCountry', 'sCondition', 'sTransaction', 'sPeriod', 'bPic', 'seller_post', 'sOrder', 'iOrderType', 'sCompany', 'pmin', 'pmax');
+  $al_keep = array('sPattern', 'sCategory', 'sAuction', 'sItemCountry', 'sCondition', 'sTransaction', 'sPeriod', 'bPic', 'seller_post', 'sOrder', 'iOrderType', 'sCompany', 'pmin', 'pmax', 'sEra', 'sMaterial', 'sOrigin');
   $al_strip = function ($keys) use ($al_keep) {
     $p = array('page' => 'search');
     foreach ($al_keep as $k) {
@@ -52,6 +52,11 @@
     }
   }
   if (Params::getParam('sCondition') != '') { $al_chips[Params::getParam('sCondition') == 1 ? __('New', 'starter') : __('Used', 'starter')] = $al_strip('sCondition'); }
+  $al_det_opt = antique_detail_options();
+  $al_origins = antique_details_origin_counts();
+  if (isset($al_det_opt['era'][Params::getParam('sEra')])) { $al_chips[$al_det_opt['era'][Params::getParam('sEra')]] = $al_strip('sEra'); }
+  if (isset($al_det_opt['material'][Params::getParam('sMaterial')])) { $al_chips[$al_det_opt['material'][Params::getParam('sMaterial')]] = $al_strip('sMaterial'); }
+  if (isset($al_origins[strtoupper(Params::getParam('sOrigin'))])) { $al_chips[sprintf(__('Made in %s', 'starter'), $al_origins[strtoupper(Params::getParam('sOrigin'))][0])] = $al_strip('sOrigin'); }
   if (Params::getParam('sPeriod') != '') { $al_chips[sprintf(__('Listed in last %d days', 'starter'), (int)Params::getParam('sPeriod'))] = $al_strip('sPeriod'); }
   list($al_pmin, $al_pmax) = antique_price_filter_range();
   $al_cur = antique_visitor_currency();
@@ -132,6 +137,35 @@
           <option value="2"<?php echo Params::getParam('sCondition') == '2' ? ' selected' : ''; ?>><?php _e('Used', 'starter'); ?></option>
         </select>
       </label>
+
+      <label><span><?php _e('Period', 'starter'); ?></span>
+        <select name="sEra">
+          <option value=""><?php _e('Any period', 'starter'); ?></option>
+          <?php foreach ($al_det_opt['era'] as $k => $l) { if ($k == 'unknown') { continue; } ?>
+            <option value="<?php echo $k; ?>"<?php echo Params::getParam('sEra') === (string)$k ? ' selected' : ''; ?>><?php echo osc_esc_html($l); ?></option>
+          <?php } ?>
+        </select>
+      </label>
+
+      <label><span><?php _e('Material', 'starter'); ?></span>
+        <select name="sMaterial">
+          <option value=""><?php _e('Any material', 'starter'); ?></option>
+          <?php foreach ($al_det_opt['material'] as $k => $l) { ?>
+            <option value="<?php echo $k; ?>"<?php echo Params::getParam('sMaterial') === (string)$k ? ' selected' : ''; ?>><?php echo osc_esc_html($l); ?></option>
+          <?php } ?>
+        </select>
+      </label>
+
+      <?php if (count($al_origins) > 0) { ?>
+        <label><span><?php _e('Country of origin', 'starter'); ?></span>
+          <select name="sOrigin">
+            <option value=""><?php _e('Any origin', 'starter'); ?></option>
+            <?php foreach ($al_origins as $code => $o) { ?>
+              <option value="<?php echo osc_esc_html($code); ?>"<?php echo strtoupper(Params::getParam('sOrigin')) == $code ? ' selected' : ''; ?>><?php echo osc_esc_html($o[0]); ?> (<?php echo (int)$o[1]; ?>)</option>
+            <?php } ?>
+          </select>
+        </label>
+      <?php } ?>
 
       <label><span><?php _e('Listed', 'starter'); ?></span>
         <select name="sPeriod">
