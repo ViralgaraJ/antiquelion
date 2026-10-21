@@ -262,6 +262,17 @@
             <?php } ?>
             <li><a href="<?php echo osc_item_send_friend_url(); ?>"><?php _e('Email this listing to a friend', 'starter'); ?></a></li>
           </ul>
+          <?php if (!$is_owner && !osc_item_mark_disable()) { ?>
+            <details class="al-report">
+              <summary><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 22V4M4 4h13l-2 4 2 4H4"/></svg><?php _e('Report this listing', 'starter'); ?></summary>
+              <p><?php _e('Tell us what is wrong. Reports are anonymous to the seller.', 'starter'); ?></p>
+              <ul>
+                <?php foreach (antique_report_reasons() as $al_r) { ?>
+                  <li><a rel="nofollow" href="<?php echo call_user_func($al_r[1]); ?>"><?php echo osc_esc_html($al_r[0]); ?></a></li>
+                <?php } ?>
+              </ul>
+            </details>
+          <?php } ?>
           <?php osc_run_hook('item_contact'); ?>
         </div>
 

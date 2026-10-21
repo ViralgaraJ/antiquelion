@@ -2706,3 +2706,13 @@ html body:is(#body-item-post, #body-item-edit) .al-dims-row > .al-dims-unit { fl
 .al-provenance { margin: 18px 0 14px; padding: 14px 16px; border-left: 3px solid var(--al-brass); background: var(--al-ivory); border-radius: 0 var(--al-radius) var(--al-radius) 0; }
 .al-provenance h3 { margin: 0 0 6px !important; font-family: var(--al-font-display) !important; font-size: 19px !important; font-weight: 600 !important; color: var(--al-ink) !important; }
 .al-provenance p { margin: 0; color: var(--al-ink); font-size: 14px; line-height: 1.6; }
+
+/* Report this listing */
+.al-report { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--al-line-soft); font-size: 13px; }
+.al-report summary { display: inline-flex; align-items: center; gap: 6px; color: var(--al-muted); font-weight: 600; cursor: pointer; list-style: none; }
+.al-report summary::-webkit-details-marker { display: none; }
+.al-report summary:hover, .al-report[open] summary { color: var(--al-danger); }
+.al-report p { margin: 10px 0 6px; color: var(--al-muted); }
+.al-report ul { margin: 0; padding: 0; list-style: none; }
+.al-report li a { display: block; padding: 8px 10px; border-radius: var(--al-radius); color: var(--al-ink) !important; text-decoration: none !important; }
+.al-report li a:hover { background: #FDF1EF; color: #A23B2C !important; }
