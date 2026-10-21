@@ -2792,3 +2792,9 @@ html body .al-avatar-row img.al-avatar-img { flex: 0 0 96px; width: 96px !import
 .al-avatar-msg.is-ok { color: #157F3C; }
 .al-avatar-msg.is-error { color: #A23B2C; }
 @media (max-width: 480px) { .al-avatar-row { align-items: flex-start; } html body .al-avatar-row img.al-avatar-img { flex-basis: 72px; width: 72px !important; height: 72px !important; } }
+
+/* Buying / Selling switch: same compact pill everywhere (header menu links are styled larger) */
+html body .al-mode-switch { align-items: stretch; }
+html body .al-mode-switch a,
+html body #al-header .al-account-menu .al-mode-switch a { display: flex !important; align-items: center; justify-content: center; min-height: 36px; margin: 0 !important; padding: 6px 10px !important; white-space: nowrap; font-family: var(--al-font-ui) !important; font-size: 13px !important; font-weight: 700 !important; line-height: 1.2 !important; letter-spacing: 0 !important; border: 0 !important; }
+html body #al-header .al-account-menu .al-mode-switch { margin: 12px 14px 6px !important; }
