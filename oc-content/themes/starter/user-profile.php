@@ -40,7 +40,7 @@
 
           <div class="al-form-row al-form-2">
             <label><span><?php _e('Full name', 'starter'); ?> <em>*</em></span><?php UserForm::name_text(osc_user()); ?></label>
-            <label><span><?php _e('Account type', 'starter'); ?></span><?php UserForm::is_company_select(osc_user()); ?></label>
+            <label><span><?php _e('Account type', 'starter'); ?></span><?php UserForm::is_company_select(osc_user(), __('Private seller', 'starter'), __('Dealer / business', 'starter')); ?></label>
           </div>
           <div class="al-form-row al-form-2">
             <label><span><?php _e('Mobile phone', 'starter'); ?></span><span class="input-box"><?php UserForm::mobile_text(osc_user()); ?></span></label>

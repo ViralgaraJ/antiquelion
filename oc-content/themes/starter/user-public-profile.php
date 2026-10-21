@@ -65,7 +65,7 @@
                 <a class="al-btn al-btn-outline al-btn-block" href="<?php echo osc_user_login_url(); ?>"><?php _e('Sign in to see phone number', 'starter'); ?></a>
               <?php } else { ?>
                 <button type="button" class="al-btn al-btn-outline al-btn-block al-reveal-phone" data-phone="<?php echo osc_esc_html($phone); ?>" data-tel="<?php echo osc_esc_html($phone_digits); ?>">
-                  <span><?php echo osc_esc_html(substr($phone, 0, max(0, strlen($phone) - 4))); ?>xxxx · <?php _e('Show number', 'starter'); ?></span>
+                  <span><?php _e('Show phone number', 'starter'); ?></span>
                 </button>
               <?php } ?>
             <?php } ?>
@@ -106,9 +106,11 @@
             <input type="hidden" name="page" value="user" />
             <input type="hidden" name="action" value="contact_post" />
             <input type="hidden" name="id" value="<?php echo osc_user_id(); ?>" />
-            <div class="al-form-row al-form-3">
-              <label><span><?php _e('Your name', 'starter'); ?> <em>*</em></span><input type="text" name="yourName" required value="<?php echo osc_esc_html(osc_is_web_user_logged_in() ? osc_logged_user_name() : ''); ?>" /></label>
-              <label><span><?php _e('Email', 'starter'); ?> <em>*</em></span><input type="email" name="yourEmail" required value="<?php echo osc_esc_html(osc_is_web_user_logged_in() ? osc_logged_user_email() : ''); ?>" /></label>
+            <div class="al-form-row al-form-2">
+              <label><span><?php _e('Your name', 'starter'); ?> <em>*</em></span><input type="text" name="yourName" required autocomplete="name" value="<?php echo osc_esc_html(osc_is_web_user_logged_in() ? osc_logged_user_name() : ''); ?>" /></label>
+              <label><span><?php _e('Email', 'starter'); ?> <em>*</em></span><input type="email" name="yourEmail" required autocomplete="email" value="<?php echo osc_esc_html(osc_is_web_user_logged_in() ? osc_logged_user_email() : ''); ?>" /></label>
+            </div>
+            <div class="al-form-row al-form-2">
               <label><span><?php _e('Phone (optional)', 'starter'); ?></span><input type="tel" name="phoneNumber" value="" /></label>
             </div>
             <label class="al-form-full"><span><?php _e('Message', 'starter'); ?> <em>*</em></span><textarea name="message" required rows="5"></textarea></label>

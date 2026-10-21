@@ -149,11 +149,23 @@ function antique_bids_search_conditions($params = array()) {
 /**
  * Renders the live bidding card widget
  */
+/**
+ * 0 = available, 1 = marked sold, 2 = reserved (the theme stores this per listing)
+ */
+function antique_bids_sold_state($itemId) {
+    if (!function_exists('starter_item_extra')) {
+        return 0;
+    }
+    $extra = starter_item_extra($itemId);
+    return isset($extra['i_sold']) ? (int)$extra['i_sold'] : 0;
+}
+
 function antique_bids_sidebar_widget() {
     $itemId = osc_item_id();
     $userId = osc_logged_user_id();
     $isOwner = (osc_is_web_user_logged_in() && osc_item_user_id() == $userId);
-    
+    $soldState = antique_bids_sold_state($itemId);
+
     // Fetch auction details
     $auction = ModelBids::newInstance()->getAuction($itemId);
     if (!$auction || $auction['b_active'] == 0) {
@@ -201,10 +213,10 @@ function antique_bids_sidebar_widget() {
         $statLabel = 'Winning Bid';
         $statAmount = $wonBid['d_amount'];
     } elseif ($highestBidRow) {
-        $statLabel = 'Current Highest Bid';
+        $statLabel = 'Current bid';
         $statAmount = $currentHighest;
     } else {
-        $statLabel = 'Starting Price';
+        $statLabel = 'Starting bid';
         $statAmount = $auction['d_starting_price'];
     }
     // ISO 8601 with offset so the countdown is correct in every visitor timezone
@@ -212,11 +224,11 @@ function antique_bids_sidebar_widget() {
     ?>
     <div class="antique-bidding-card">
         <div class="bid-header">
-            <h3>Live Bidding Box</h3>
+            <h3>Auction</h3>
             <?php if ($isExpired): ?>
                 <span class="live-indicator expired"><i class="fa fa-circle"></i> Closed</span>
             <?php else: ?>
-                <span class="live-indicator"><i class="fa fa-circle"></i> Live Auction</span>
+                <span class="live-indicator"><i class="fa fa-circle"></i> Live</span>
             <?php endif; ?>
         </div>
         
@@ -226,7 +238,7 @@ function antique_bids_sidebar_widget() {
                 <span class="value gold-accent" id="live-highest-bid"><?php echo osc_esc_html(antique_bids_money($statAmount, $currency)); ?></span>
             </div>
             <div class="stat-col">
-                <span class="label">Time Remaining</span>
+                <span class="label">Time left</span>
                 <span class="value <?php echo $isExpired ? 'text-danger' : ''; ?>" id="countdown-timer" data-endtime="<?php echo $endTimeIso; ?>">
                     <?php echo $isExpired ? 'Ended' : 'Calculating...'; ?>
                 </span>
@@ -237,7 +249,7 @@ function antique_bids_sidebar_widget() {
             <?php if ($isOwner): ?>
                 <?php if ($wonBid): ?>
                     <div class="seller-console-card">
-                        <h4><i class="fa fa-cogs"></i> Seller Admin Console</h4>
+                        <h4>Auction result</h4>
                         <p class="console-desc">Bidding closed. The winning bid details are:</p>
                         <div class="console-winner-details">
                             <div class="winner-row"><strong>Name:</strong> <span><?php echo osc_esc_html($wonBid['user_name']); ?></span></div>
@@ -273,16 +285,20 @@ function antique_bids_sidebar_widget() {
                     </div>
                 <?php endif; ?>
             <?php endif; ?>
+        <?php elseif ($soldState): ?>
+            <div class="bid-expired-notice">
+                <i class="fa fa-gavel"></i> <?php echo $soldState == 1 ? 'This item has been sold. Bidding is closed.' : 'This item is reserved. Bidding is paused.'; ?>
+            </div>
         <?php elseif (!osc_is_web_user_logged_in()): ?>
             <div class="bid-action-form guest">
                 <a href="<?php echo osc_user_login_url(); ?>" class="btn btn-secondary login-to-bid">
-                    <i class="fa fa-sign-in"></i> Log in to place a bid
+                    Sign in to bid
                 </a>
             </div>
         <?php elseif ($isOwner): ?>
             <div class="bid-action-form owner">
                 <span class="owner-notice">
-                    <i class="fa fa-info-circle"></i> You cannot bid on your own antique.
+                    This is your listing, so you cannot bid on it.
                 </span>
             </div>
         <?php else: ?>
@@ -291,17 +307,17 @@ function antique_bids_sidebar_widget() {
                     <span class="currency-label"><?php echo osc_esc_html($currency); ?></span>
                     <input type="number" id="user-bid-amount" placeholder="Min. <?php echo osc_esc_html(number_format($minNextBid)); ?>" min="<?php echo $minNextBid; ?>" step="<?php echo $auction['d_min_increment']; ?>">
                 </div>
-                <button type="button" id="place-bid-btn" class="btn btn-primary">Place Bid</button>
+                <button type="button" id="place-bid-btn" class="btn btn-primary">Place bid</button>
             </div>
             <div id="bid-feedback-msg"></div>
         <?php endif; ?>
 
         <!-- Live Bid History Log -->
         <div class="bid-history">
-            <h4>Recent Bids</h4>
+            <h4>Bid history</h4>
             <ul id="bid-history-list">
                 <?php if (empty($bidsHistory)): ?>
-                    <li class="no-bids-msg"><?php echo $isExpired ? 'No bids were placed.' : 'No bids yet. Be the first!'; ?></li>
+                    <li class="no-bids-msg"><?php echo $isExpired ? 'No bids were placed.' : 'No bids yet. Be the first to bid.'; ?></li>
                 <?php else: ?>
                     <?php foreach ($bidsHistory as $bid): ?>
                         <li>
@@ -389,7 +405,7 @@ function antique_bids_sidebar_widget() {
                 xhr.onreadystatechange = function() {
                     if (xhr.readyState === 4) {
                         placeBidBtn.disabled = false;
-                        placeBidBtn.innerText = 'Place Bid';
+                        placeBidBtn.innerText = 'Place bid';
                         if (xhr.status === 200) {
                             try {
                                 var response = JSON.parse(xhr.responseText);
@@ -397,7 +413,7 @@ function antique_bids_sidebar_widget() {
                                     feedback.innerHTML = '<span class="text-success success-alert"><i class="fa fa-check-circle"></i> ' + response.message + '</span>';
                                     feedback.style.display = 'block';
                                     document.getElementById('live-highest-bid').textContent = fmtMoney(response.newHighest);
-                                    document.getElementById('live-bid-label').textContent = 'Current Highest Bid';
+                                    document.getElementById('live-bid-label').textContent = 'Current bid';
                                     
                                     var increment = <?php echo (float)$auction['d_min_increment']; ?>;
                                     var nextMin = parseFloat(response.newHighest) + increment;
@@ -484,7 +500,7 @@ function antique_bids_sidebar_widget() {
                                 
                                 if (apiHighest > currentHighest) {
                                     liveBidEl.textContent = fmtMoney(apiHighest);
-                                    document.getElementById('live-bid-label').textContent = 'Current Highest Bid';
+                                    document.getElementById('live-bid-label').textContent = 'Current bid';
                                     var increment = <?php echo (float)$auction['d_min_increment']; ?>;
                                     var nextMin = apiHighest + increment;
                                     var bidInput = document.getElementById('user-bid-amount');
@@ -605,6 +621,17 @@ function antique_bids_ajax_place_bid() {
         exit;
     }
 
+    if ($item['b_active'] != 1 || $item['b_enabled'] != 1 || $item['b_spam'] == 1) {
+        echo json_encode(array('success' => false, 'error' => 'This listing is not available for bidding.'));
+        exit;
+    }
+
+    $soldState = antique_bids_sold_state($itemId);
+    if ($soldState) {
+        echo json_encode(array('success' => false, 'error' => $soldState == 1 ? 'This item has been sold. Bidding is closed.' : 'This item is reserved. Bidding is paused.'));
+        exit;
+    }
+
     // 5. Model execution
     $res = ModelBids::newInstance()->placeBid($itemId, $userId, $bidAmount, $ipAddress, $item['fk_c_currency_code']);
 
@@ -693,46 +720,46 @@ function antique_bids_render_form($auction = null) {
     ?>
     <fieldset class="hook-block i-shadow round3 antique-bids-post-card">
         <div class="header-section">
-            <h3><i class="fa fa-gavel"></i> Live Bidding Configuration</h3>
+            <h3>Sell by auction</h3>
         </div>
         <div class="form-row checkbox-row">
             <label class="toggle-switch">
                 <input type="checkbox" name="bids_enabled" id="bids_enabled" value="1" <?php echo $enabled ? 'checked' : ''; ?>>
                 <span class="slider-toggle"></span>
             </label>
-            <span class="toggle-label">Enable Live Bidding / Auction for this item</span>
+            <label class="toggle-label" for="bids_enabled">Run this listing as a timed auction</label>
         </div>
         
         <div id="bids-details-panel" class="bids-slide-panel" style="<?php echo $enabled ? 'display: flex;' : 'display: none;'; ?>">
             <div class="form-row">
-                <label for="bids_starting_price">Starting Price</label>
+                <label for="bids_starting_price">Starting bid</label>
                 <div class="input-wrap-post">
-                    <input type="number" name="bids_starting_price" id="bids_starting_price" value="<?php echo osc_esc_html($startingPrice); ?>" placeholder="Leave blank to use main listing price">
+                    <input type="number" name="bids_starting_price" id="bids_starting_price" value="<?php echo osc_esc_html($startingPrice); ?>" placeholder="Same as your price if left empty">
                 </div>
                 <span class="help-text">In the same currency as your listing price. Bidding starts here.</span>
             </div>
             
             <div class="form-row">
-                <label for="bids_min_increment">Minimum Bid Increment</label>
+                <label for="bids_min_increment">Minimum bid increase</label>
                 <div class="input-wrap-post">
                     <input type="number" name="bids_min_increment" id="bids_min_increment" value="<?php echo osc_esc_html($minIncrement); ?>" min="1">
                 </div>
-                <span class="help-text">The minimum extra amount a bidder must add to the current highest bid.</span>
+                <span class="help-text">Each new bid must beat the current bid by at least this amount.</span>
             </div>
             
             <div class="form-row">
-                <label for="bids_duration">Auction Duration (Days)</label>
+                <label for="bids_duration">Auction length</label>
                 <div class="input-wrap-post select-wrap">
                     <select name="bids_duration" id="bids_duration">
-                        <option value="3" <?php echo $duration == 3 ? 'selected' : ''; ?>>3 Days</option>
-                        <option value="5" <?php echo $duration == 5 ? 'selected' : ''; ?>>5 Days</option>
-                        <option value="7" <?php echo $duration == 7 ? 'selected' : ''; ?>>7 Days (Recommended)</option>
-                        <option value="10" <?php echo $duration == 10 ? 'selected' : ''; ?>>10 Days</option>
-                        <option value="14" <?php echo $duration == 14 ? 'selected' : ''; ?>>14 Days</option>
-                        <option value="30" <?php echo $duration == 30 ? 'selected' : ''; ?>>30 Days</option>
+                        <option value="3" <?php echo $duration == 3 ? 'selected' : ''; ?>>3 days</option>
+                        <option value="5" <?php echo $duration == 5 ? 'selected' : ''; ?>>5 days</option>
+                        <option value="7" <?php echo $duration == 7 ? 'selected' : ''; ?>>7 days (recommended)</option>
+                        <option value="10" <?php echo $duration == 10 ? 'selected' : ''; ?>>10 days</option>
+                        <option value="14" <?php echo $duration == 14 ? 'selected' : ''; ?>>14 days</option>
+                        <option value="30" <?php echo $duration == 30 ? 'selected' : ''; ?>>30 days</option>
                     </select>
                 </div>
-                <span class="help-text">How long the auction will remain active from publication.</span>
+                <span class="help-text">Counted from when the listing is published.</span>
             </div>
         </div>
     </fieldset>

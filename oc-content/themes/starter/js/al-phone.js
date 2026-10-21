@@ -152,7 +152,19 @@
   }
 
   function init() {
-    Array.prototype.forEach.call(document.querySelectorAll(selector), setup);
+    var inputs = Array.prototype.slice.call(document.querySelectorAll(selector));
+    inputs.forEach(setup);
+
+    // an empty second number (e.g. "Other phone") starts in the same country as the filled one
+    inputs.forEach(function (input) {
+      if (input.value.trim() !== '' || !input.form) { return; }
+      var filled = inputs.filter(function (o) { return o !== input && o.form === input.form && o.value.trim() !== ''; })[0];
+      var from = filled && window.intlTelInput.getInstance(filled);
+      var to = window.intlTelInput.getInstance(input);
+      if (from && to && from.getSelectedCountryData().iso2) {
+        to.setCountry(from.getSelectedCountryData().iso2);
+      }
+    });
   }
 
   if (document.readyState === 'loading') {

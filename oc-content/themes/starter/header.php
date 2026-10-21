@@ -135,7 +135,7 @@
     <div class="cta-circle">
       <i class="fa fa-plus"></i>
     </div>
-    <span><?php _e('Post Ad', 'starter'); ?></span>
+    <span><?php _e('Sell', 'starter'); ?></span>
   </a>
   <?php if(function_exists('im_messages') && function_exists('osc_route_url') && osc_is_web_user_logged_in()) { ?>
     <a href="<?php echo (function_exists('osc_route_name_exists') && osc_route_name_exists('im-threads')) ? osc_route_url('im-threads') : osc_user_dashboard_url(); ?>" class="dock-item">
@@ -151,7 +151,7 @@
   <?php } ?>
   <a href="<?php echo osc_is_web_user_logged_in() ? osc_user_dashboard_url() : osc_user_login_url(); ?>" class="dock-item<?php if($loc == 'user' || $loc == 'login') { ?> active<?php } ?>">
     <i class="fa fa-user-circle-o"></i>
-    <span><?php echo osc_is_web_user_logged_in() ? __('Account', 'starter') : __('Login', 'starter'); ?></span>
+    <span><?php echo osc_is_web_user_logged_in() ? __('Account', 'starter') : __('Sign in', 'starter'); ?></span>
   </a>
 </div>
 
@@ -199,6 +199,10 @@
   } else if ($loc == 'contact') {
     $al_title = __('Help & contact', 'starter');
     $al_sub = __('Questions about buying, selling or your account? Send us a message and we will reply by email.', 'starter');
+  } else if ($loc == 'custom' && function_exists('antique_info_pages') && isset(antique_info_pages()[Params::getParam('route')])) {
+    $al_info = antique_info_pages()[Params::getParam('route')];
+    $al_title = $al_info['title'];
+    $al_sub = $al_info['lead'];
   } else if ($loc == 'page') {
     $al_title = osc_static_page_title();
   } else if ($loc == 'error' || $loc == '404') {

@@ -44,7 +44,14 @@
       <h2><?php _e('Marketplace', 'starter'); ?></h2>
       <a href="<?php echo osc_search_url(array('page' => 'search', 'sAuction' => 1)); ?>"><?php _e('Live auctions', 'starter'); ?></a>
       <a href="<?php echo osc_search_url(array('page' => 'search')); ?>"><?php _e('All listings', 'starter'); ?></a>
-      <?php foreach (array_slice(osc_get_categories(), 0, 4) as $c) { ?>
+      <?php
+        // categories that have listings (same rule as the home page)
+        $al_fcats = 0;
+        foreach (osc_get_categories() as $c) {
+          $al_stats = CategoryStats::newInstance()->findByCategoryId($c['pk_i_id']);
+          if (empty($al_stats['i_num_items']) || $al_fcats >= 6) { continue; }
+          $al_fcats++;
+      ?>
         <a href="<?php echo osc_search_url(array('page' => 'search', 'sCategory' => $c['pk_i_id'])); ?>"><?php echo osc_esc_html($c['s_name']); ?></a>
       <?php } ?>
     </nav>
@@ -64,7 +71,11 @@
 
     <nav class="al-footer-col" aria-label="<?php echo osc_esc_html(__('Help', 'starter')); ?>">
       <h2><?php _e('Help', 'starter'); ?></h2>
+      <a href="<?php echo antique_info_page_url('al-safety'); ?>"><?php _e('How it works & safety', 'starter'); ?></a>
+      <a href="<?php echo antique_info_page_url('al-about'); ?>"><?php _e('About us', 'starter'); ?></a>
       <a href="<?php echo osc_contact_url(); ?>"><?php _e('Contact us', 'starter'); ?></a>
+      <a href="<?php echo antique_info_page_url('al-terms'); ?>"><?php _e('Terms of use', 'starter'); ?></a>
+      <a href="<?php echo antique_info_page_url('al-privacy'); ?>"><?php _e('Privacy & cookies', 'starter'); ?></a>
       <?php foreach ($al_pages as $p) { View::newInstance()->_exportVariableToView('page', $p); ?>
         <a href="<?php echo osc_static_page_url(); ?>"><?php echo osc_esc_html(ucfirst(osc_static_page_title())); ?></a>
       <?php } ?>

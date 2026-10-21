@@ -83,7 +83,7 @@
             <?php starter_show_recaptcha('register'); ?>
 
             <button type="submit" class="al-btn al-btn-brass al-btn-block"><?php _e('Create account', 'starter'); ?></button>
-            <p class="al-fineprint"><?php _e('We will send you an email to confirm your address.', 'starter'); ?></p>
+            <p class="al-fineprint"><?php echo sprintf(__('By creating an account you agree to our <a href="%1$s">Terms of use</a> and <a href="%2$s">Privacy policy</a>. We will send you an email to confirm your address.', 'starter'), antique_info_page_url('al-terms'), antique_info_page_url('al-privacy')); ?></p>
           </form>
 
         <?php } ?>

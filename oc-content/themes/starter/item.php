@@ -233,7 +233,7 @@
                 <?php } else { ?>
                   <button type="button" class="al-btn al-btn-outline al-btn-block al-reveal-phone" data-phone="<?php echo osc_esc_html($mobile); ?>" data-tel="<?php echo osc_esc_html($phone_digits); ?>">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg>
-                    <span><?php echo osc_esc_html(substr($mobile, 0, max(0, strlen($mobile) - 4))); ?>xxxx · <?php _e('Show number', 'starter'); ?></span>
+                    <span><?php _e('Show phone number', 'starter'); ?></span>
                   </button>
                 <?php } ?>
               <?php } ?>
@@ -294,13 +294,12 @@
       <?php echo starter_banner('item_description'); ?>
 
       <?php if ($content_only == 0) { ?>
-        <!-- CONTACT SELLER -->
+        <?php if (!$is_owner) { ?>
+        <!-- CONTACT SELLER (not shown to the seller on their own listing) -->
         <section class="al-panel al-section-block" id="al-contact">
           <h2 class="al-panel-title"><?php _e('Ask the seller a question', 'starter'); ?></h2>
           <?php if (osc_item_is_expired()) { ?>
             <p class="al-muted"><?php _e('This listing has expired, so the seller can no longer be contacted.', 'starter'); ?></p>
-          <?php } else if ($is_owner) { ?>
-            <p class="al-muted"><?php _e('This is your listing. Buyers will use this form to contact you.', 'starter'); ?></p>
           <?php } else if (osc_reg_user_can_contact() && !osc_is_web_user_logged_in()) { ?>
             <p class="al-muted"><?php _e('Please sign in to contact the seller.', 'starter'); ?></p>
             <div class="al-inline-actions">
@@ -315,9 +314,11 @@
               <input type="hidden" name="page" value="item" />
               <input type="hidden" name="id" value="<?php echo osc_item_id(); ?>" />
               <?php osc_prepare_user_info(); ?>
-              <div class="al-form-row al-form-3">
+              <div class="al-form-row al-form-2">
                 <label><span><?php _e('Your name', 'starter'); ?></span><?php ContactForm::your_name(); ?></label>
                 <label><span><?php _e('Email', 'starter'); ?> <em>*</em></span><?php ContactForm::your_email(); ?></label>
+              </div>
+              <div class="al-form-row al-form-2">
                 <label><span><?php _e('Phone (optional)', 'starter'); ?></span><?php ContactForm::your_phone_number(); ?></label>
               </div>
               <label class="al-form-full"><span><?php _e('Message', 'starter'); ?> <em>*</em></span><?php ContactForm::your_message(); ?></label>
@@ -332,6 +333,7 @@
             </form>
           <?php } ?>
         </section>
+        <?php } ?>
 
         <?php if (osc_comments_enabled()) { ?>
           <section class="al-panel al-section-block" id="al-comments">
@@ -364,7 +366,7 @@
                 <input type="hidden" name="action" value="add_comment" />
                 <input type="hidden" name="page" value="item" />
                 <input type="hidden" name="id" value="<?php echo osc_item_id(); ?>" />
-                <h3><?php _e('Ask a question', 'starter'); ?></h3>
+                <h3><?php echo $is_owner ? __('Reply to buyers', 'starter') : __('Ask a question', 'starter'); ?></h3>
                 <?php if (osc_is_web_user_logged_in()) { ?>
                   <input type="hidden" name="authorName" value="<?php echo osc_esc_html(osc_logged_user_name()); ?>" />
                   <input type="hidden" name="authorEmail" value="<?php echo osc_esc_html(osc_logged_user_email()); ?>" />

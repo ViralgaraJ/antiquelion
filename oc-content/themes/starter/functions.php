@@ -6,6 +6,22 @@ define('THEME_COMPATIBLE_WITH_OSCLASS_HOOKS', 820);     // Compatibility with ne
 require_once __DIR__ . '/inc.geo.php';
 require_once __DIR__ . '/inc.currency.php';
 require_once __DIR__ . '/inc.phone.php';
+require_once __DIR__ . '/inc.pages.php';
+
+// "JPG, PNG or GIF" from the allowed upload extensions (Settings > Media)
+function antique_upload_formats() {
+  $ext = array_unique(array_map(function ($e) { $e = strtoupper(trim($e)); return $e == 'JPEG' ? 'JPG' : $e; }, explode(',', (string)osc_allowed_extension())));
+  $ext = array_values(array_filter($ext));
+  if (count($ext) < 2) { return implode('', $ext); }
+  $last = array_pop($ext);
+  return implode(', ', $ext) . ' ' . __('or', 'starter') . ' ' . $last;
+}
+
+// Photo uploads are staged in uploads/temp. Git does not keep empty folders, so a
+// fresh deploy can miss it and every upload then fails silently: create it if needed.
+if (!is_dir(osc_content_path() . 'uploads/temp')) {
+  @mkdir(osc_content_path() . 'uploads/temp', 0755, true);
+}
 
 
 function starter_theme_info() {

@@ -86,25 +86,6 @@
         <fieldset class="photos i-shadow round3" data-step-id="2">
           <h2><?php _e('Pictures', 'starter'); ?></h2>
 
-          <div class="upload-guide-banner">
-            <div class="guide-item">
-              <i class="fa fa-picture-o"></i>
-              <span><strong>Max Photos:</strong> Up to <?php echo (osc_max_images_per_item() > 0 ? osc_max_images_per_item() : 4); ?> images</span>
-            </div>
-            <div class="guide-item">
-              <i class="fa fa-hdd-o"></i>
-              <span><strong>Max File Size:</strong> <?php echo (osc_max_size_kb() >= 1024 ? round(osc_max_size_kb()/1024, 1) . ' MB' : (osc_max_size_kb() > 0 ? osc_max_size_kb() . ' KB' : '5 MB')); ?> per photo</span>
-            </div>
-            <div class="guide-item">
-              <i class="fa fa-arrows-alt"></i>
-              <span><strong>Recommended Size:</strong> 800 x 600 px (or larger)</span>
-            </div>
-            <div class="guide-item">
-              <i class="fa fa-file-image-o"></i>
-              <span><strong>Formats:</strong> JPG, PNG, WEBP</span>
-            </div>
-          </div>
-
           <div class="box photos photoshow drag_drop">
             <div id="photos">
               <?php 
@@ -493,7 +474,7 @@
       
       $('#photos .qq-upload-button > div').remove();
       $('#photos .qq-upload-button').append('<div class="sample-box-wrap"></div>');
-      $('#photos .qq-upload-button .sample-box-wrap').append('<div class="sample-box"><div class="ins"><i class="fa fa-picture-o one fas"></i><i class="fa fa-picture-o two fas"></i><i class="fa fa-plus-circle three fas"></i><span class="top"><?php echo osc_esc_js(__('Click to upload', 'starter')); ?></span><span class="bot"><?php echo osc_esc_js(sprintf(__('You can upload up to %d pictures per listing', 'starter'), osc_max_images_per_item())); ?><?php if(function_exists('ir_get_min_img')) { ?><?php echo sprintf(__('Minimum: %d picture(s)', 'starter'), ir_get_min_img()); ?><?php } ?></span><span class="upload-card-subtext"><i class="fa fa-info-circle"></i> <?php echo osc_esc_js(sprintf(__('Max Size: %s | Recommended: 800 x 600 px or larger', 'starter'), (osc_max_size_kb() >= 1024 ? round(osc_max_size_kb()/1024, 1) . ' MB' : (osc_max_size_kb() > 0 ? osc_max_size_kb() . ' KB' : '5 MB')))); ?></span></div></div>');
+      $('#photos .qq-upload-button .sample-box-wrap').append('<div class="sample-box"><div class="ins"><i class="fa fa-picture-o one fas"></i><i class="fa fa-picture-o two fas"></i><i class="fa fa-plus-circle three fas"></i><span class="top"><?php echo osc_esc_js(__('Add photos', 'starter')); ?></span><span class="bot"><?php echo osc_esc_js(sprintf(__('Click to choose, or drag them here. %3$s, up to %1$d photos, %2$s each. 800 x 600 px or larger looks best.', 'starter'), (osc_max_images_per_item() > 0 ? osc_max_images_per_item() : 4), (osc_max_size_kb() >= 1024 ? round(osc_max_size_kb()/1024, 1) . ' MB' : (osc_max_size_kb() > 0 ? osc_max_size_kb() . ' KB' : '5 MB')), antique_upload_formats())); ?><?php if(function_exists('ir_get_min_img')) { ?><?php echo sprintf(__('Minimum: %d picture(s)', 'starter'), ir_get_min_img()); ?><?php } ?></span></div></div>');
 
       $('#photos .qq-upload-button .sample-box-wrap').on('click', function(){
         $('#photos .qq-upload-button input').click();

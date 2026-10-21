@@ -2255,3 +2255,282 @@ html:not(#al-x) body #location-picker .shower .option.empty-pick:only-child,
 html:not(#al-x) body #location-picker .shower:not(:has(.option:not(.service))) .option.empty-pick:first-child { display: block !important; }
 html:not(#al-x) body #location-picker .shower .option strong, html:not(#al-x) body #location-picker .shower .option b { font-weight: 700; }
 html:not(#al-x) body #location-picker .shower .option .flag, html:not(#al-x) body #location-picker .shower .option i { margin-right: 8px; }
+
+/* ======================================================================
+   Site dropdown (js/al-select.js): listbox in the site palette over a
+   hidden native select. Four :not(#…) beat the global select rule above.
+   ====================================================================== */
+html:not(#al-a):not(#al-b) body:not(#al-c):not(#al-d) select.al-dd-native {
+  position: absolute !important; width: 1px !important; height: 1px !important; min-height: 0 !important; max-width: 1px !important;
+  margin: -1px !important; padding: 0 !important; border: 0 !important; overflow: hidden !important;
+  clip: rect(0 0 0 0) !important; clip-path: inset(50%) !important; opacity: 0 !important; pointer-events: none !important; white-space: nowrap !important;
+}
+.al-dd { position: relative; display: block; width: 100%; min-width: 0; }
+.al-dd[hidden] { display: none !important; }
+
+html:not(#al-x) body:not(#al-x) .al-dd .al-dd-btn {
+  display: flex !important; align-items: center !important; justify-content: space-between !important; gap: 10px;
+  box-sizing: border-box !important; width: 100% !important; height: 48px !important; min-height: 0 !important; margin: 0 !important; padding: 0 14px !important;
+  border: 1px solid var(--al-field-line) !important; border-radius: var(--al-radius) !important; background: var(--al-paper) !important; background-image: none !important;
+  box-shadow: none !important; color: var(--al-ink) !important; text-align: left !important; text-transform: none !important; letter-spacing: 0 !important;
+  font-family: var(--al-font-ui) !important; font-size: 15px !important; font-weight: 500 !important; line-height: 1.2 !important;
+  cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s; float: none !important; transform: none !important;
+}
+html:not(#al-x) body:not(#al-x) .al-dd .al-dd-btn::after {
+  content: ""; flex: 0 0 14px; width: 14px; height: 14px; margin-left: auto;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2314213D' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") center / 14px 14px no-repeat;
+  transition: transform 0.18s;
+}
+html:not(#al-x) body:not(#al-x) .al-dd .al-dd-btn::before { display: none !important; }
+html:not(#al-x) body:not(#al-x) .al-dd.is-open .al-dd-btn::after { transform: rotate(180deg); }
+html:not(#al-x) body:not(#al-x) .al-dd .al-dd-btn:hover { border-color: var(--al-field-line-hover) !important; }
+html:not(#al-x) body:not(#al-x) .al-dd .al-dd-btn:focus-visible,
+html:not(#al-x) body:not(#al-x) .al-dd.is-open .al-dd-btn { border-color: var(--al-brass) !important; box-shadow: 0 0 0 3px rgba(166, 124, 46, 0.18) !important; outline: none !important; }
+html:not(#al-x) body:not(#al-x) .al-dd.is-error .al-dd-btn { border-color: var(--al-danger) !important; }
+html:not(#al-x) body:not(#al-x) .al-dd.is-disabled .al-dd-btn { background: #F3F0E9 !important; color: var(--al-muted) !important; cursor: not-allowed; }
+.al-dd-value { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+html body .content.add_item .al-dd-btn.is-empty .al-dd-value { color: #7A808A; }
+
+.al-dd-panel {
+  position: absolute; top: calc(100% + 6px); left: 0; z-index: 1400;
+  box-sizing: border-box; min-width: 100%; width: max-content; max-width: min(380px, calc(100vw - 24px));
+  padding: 6px; border: 1px solid var(--al-line); border-radius: 8px; background: var(--al-paper);
+  box-shadow: 0 14px 36px rgba(18, 31, 58, 0.16), 0 2px 6px rgba(18, 31, 58, 0.06);
+  animation: al-dd-in 0.12s ease-out;
+}
+.al-dd-panel[hidden] { display: none !important; }
+.al-dd.is-up .al-dd-panel { top: auto; bottom: calc(100% + 6px); }
+.al-dd.is-right .al-dd-panel { left: auto; right: 0; }
+@keyframes al-dd-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+.al-dd.is-up .al-dd-panel { animation-name: al-dd-in-up; }
+@keyframes al-dd-in-up { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+html:not(#al-x) body:not(#al-x) .al-dd .al-dd-search {
+  display: block !important; box-sizing: border-box !important; width: 100% !important; height: 40px !important; min-height: 0 !important;
+  margin: 0 0 6px !important; padding: 0 12px 0 36px !important; text-indent: 0 !important; float: none !important;
+  border: 1px solid var(--al-line) !important; border-radius: 6px !important; box-shadow: none !important;
+  background: #FBF9F4 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") no-repeat 12px center / 15px 15px !important;
+  color: var(--al-ink) !important; font-family: var(--al-font-ui) !important; font-size: 14px !important; font-weight: 500 !important;
+}
+html:not(#al-x) body:not(#al-x) .al-dd .al-dd-search:focus { border-color: var(--al-brass) !important; background-color: var(--al-paper) !important; outline: none !important; }
+
+.al-dd-list { max-height: 300px; margin: 0 !important; padding: 0 !important; overflow-y: auto; overscroll-behavior: contain; list-style: none !important; }
+.al-dd-list::-webkit-scrollbar { width: 8px; }
+.al-dd-list::-webkit-scrollbar-thumb { background: #E2DBCC; border-radius: 8px; }
+html body .al-dd .al-dd-opt {
+  display: flex !important; align-items: center; gap: 10px; float: none !important; width: auto !important; margin: 0 !important;
+  padding: 9px 12px 9px calc(12px + var(--al-dd-depth, 0) * 14px) !important; border: 0 !important; border-radius: 6px;
+  color: var(--al-ink) !important; font-family: var(--al-font-ui) !important; font-size: 14px !important; font-weight: 500 !important; line-height: 1.35 !important;
+  cursor: pointer; user-select: none; background: transparent; list-style: none !important;
+}
+html body .al-dd .al-dd-opt::before { display: none !important; }
+.al-dd-text { flex: 1 1 auto; min-width: 0; }
+html body .al-dd .al-dd-opt.is-active { background: var(--al-ivory) !important; }
+html body .al-dd .al-dd-opt[aria-selected="true"] { color: var(--al-ink) !important; font-weight: 700 !important; }
+html body .al-dd .al-dd-opt[aria-selected="true"]::after {
+  content: ""; flex: 0 0 16px; width: 16px; height: 16px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23A67C2E' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+html body .al-dd .al-dd-opt[aria-disabled="true"] { color: #A3A8B0 !important; cursor: default; }
+html body .al-dd .al-dd-opt[hidden], html body .al-dd .al-dd-group[hidden] { display: none !important; }
+.al-dd-group { padding: 10px 12px 4px; color: var(--al-muted); font-size: 11px; font-weight: 800; letter-spacing: 0.8px; text-transform: uppercase; }
+.al-dd.is-nomatch .al-dd-list::after { content: "No matches"; display: block; padding: 12px; color: var(--al-muted); font-size: 14px; }
+
+/* variant: category picker inside the header search bar */
+#al-header .al-search-cat .al-dd { height: 100%; width: auto; }
+html:not(#al-x) body:not(#al-x) #al-header .al-dd.is-header .al-dd-btn {
+  height: 100% !important; max-width: 200px; min-width: 150px; padding: 0 14px 0 16px !important;
+  border: 0 !important; border-radius: 0 !important; background: transparent !important; box-shadow: none !important; font-size: 14px !important; font-weight: 600 !important;
+}
+html:not(#al-x) body:not(#al-x) #al-header .al-dd.is-header .al-dd-btn:focus-visible { box-shadow: inset 0 0 0 2px var(--al-brass) !important; }
+html:not(#al-x) body:not(#al-x) #al-header .al-dd.is-header.is-open .al-dd-btn { box-shadow: none !important; background: #F4EFE4 !important; }
+#al-header .al-dd.is-header .al-dd-panel { min-width: 240px; top: calc(100% + 8px); left: -1px; }
+#al-header form.al-search, #al-header .al-search-cat { overflow: visible !important; }
+
+/* variant: currency joined to the price amount */
+.price-amount-currency .al-dd.is-joined { height: 100%; }
+html:not(#al-x) body:not(#al-x) .price-amount-currency .al-dd.is-joined .al-dd-btn {
+  height: 100% !important; padding: 0 12px 0 14px !important; border: 0 !important; border-radius: 0 !important;
+  background: #FBF9F4 !important; box-shadow: none !important; font-weight: 700 !important;
+}
+html:not(#al-x) body:not(#al-x) .price-amount-currency .al-dd.is-joined.is-open .al-dd-btn,
+html:not(#al-x) body:not(#al-x) .price-amount-currency .al-dd.is-joined .al-dd-btn:focus-visible { box-shadow: inset 0 0 0 2px var(--al-brass) !important; }
+.price-amount-currency .al-dd.is-joined .al-dd-panel { left: auto; right: -1px; min-width: 140px; }
+
+/* variant: compact (results sort) */
+.al-sort .al-dd.is-compact { width: auto; }
+html:not(#al-x) body:not(#al-x) .al-sort .al-dd.is-compact .al-dd-btn { height: 42px !important; min-width: 168px; font-size: 14px !important; font-weight: 700 !important; }
+.al-sort .al-dd.is-compact .al-dd-panel { left: auto; right: 0; min-width: 220px; }
+
+@media (max-width: 767px) {
+  .al-dd-panel { max-width: calc(100vw - 24px); }
+  html body .al-dd .al-dd-opt { padding-top: 11px !important; padding-bottom: 11px !important; font-size: 15px !important; }
+  .al-dd-list { max-height: 50vh; }
+}
+@media (prefers-reduced-motion: reduce) { .al-dd-panel { animation: none; } .al-dd .al-dd-btn::after { transition: none; } }
+/* joined price + currency: let the currency list overflow the field; keep the rounded ends */
+html body:is(#body-item-post, #body-item-edit) .content.add_item .price-wrap .price-amount-currency.price-amount-currency { overflow: visible !important; }
+html body:is(#body-item-post, #body-item-edit) .content.add_item .price-wrap .price-amount-currency.price-amount-currency input#price { border-radius: var(--al-radius) 0 0 var(--al-radius) !important; }
+html:not(#al-x) body:not(#al-x) .price-amount-currency .al-dd.is-joined .al-dd-btn { border-radius: 0 var(--al-radius) var(--al-radius) 0 !important; }
+
+/* phones: avatar-only account button so logo, account and Sell share one row */
+@media (max-width: 600px) {
+  html body #al-header .al-account-btn { min-height: 40px !important; padding: 3px !important; gap: 0 !important; border-radius: 999px !important; }
+  html body #al-header .al-account-btn > svg { display: none !important; }
+  html body #al-header .al-account-btn img { width: 34px; height: 34px; }
+  html body #al-header .al-actions { gap: 10px !important; }
+  html body #al-header .al-account-menu { right: 0; left: auto; }
+}
+@media (max-width: 360px) {
+  #al-header .al-logo .brand-wordmark, #al-header .al-logo .brand-wordmark span { font-size: 22px !important; }
+  #al-header .al-sell { padding: 0 12px !important; }
+}
+
+/* ---------- Sell / edit: one photo drop zone ---------- */
+html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item .box.photos.drag_drop {
+  margin: 0 !important; padding: 0 !important; border: 0 !important; background: transparent !important; box-shadow: none !important;
+}
+html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item #photos .qq-uploader,
+html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item #photos .qq-upload-drop-area { border: 0 !important; background: transparent !important; box-shadow: none !important; }
+html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item #photos .qq-upload-button {
+  display: block !important; float: none !important; width: 100% !important; height: auto !important; margin: 0 !important; padding: 0 !important;
+  border: 1.5px dashed #CDBF9F !important; border-radius: 8px !important; background: #FBF9F4 !important; box-shadow: none !important; cursor: pointer; transition: border-color 0.15s, background 0.15s;
+}
+html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item #photos .qq-upload-button:hover,
+html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item #photos .qq-upload-button.qq-upload-button-hover,
+html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item #photos .qq-upload-drop-area-active ~ .qq-upload-button { border-color: var(--al-brass) !important; background: #F6F0E3 !important; }
+html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item #photos :is(.sample-box-wrap, .sample-box, .sample-box .ins) {
+  float: none !important; width: auto !important; height: auto !important; min-height: 0 !important; margin: 0 !important; padding: 0 !important;
+  border: 0 !important; border-radius: 0 !important; background: transparent !important; box-shadow: none !important; position: static !important;
+}
+html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item #photos .sample-box .ins { display: flex !important; flex-direction: column; align-items: center; gap: 6px; padding: 34px 20px !important; text-align: center; }
+html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item #photos .sample-box .ins i.one,
+html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item #photos .sample-box .ins i.two { display: none !important; }
+html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item #photos .sample-box .ins i.three { position: static !important; display: block !important; margin: 0 0 6px !important; color: var(--al-brass) !important; font-size: 38px !important; line-height: 1 !important; }
+html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item #photos .sample-box .ins .top { position: static !important; display: block !important; color: var(--al-ink) !important; font-size: 17px !important; font-weight: 700 !important; }
+html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item #photos .sample-box .ins .bot { position: static !important; display: block !important; max-width: 440px; color: var(--al-muted) !important; font-size: 13px !important; font-weight: 500 !important; line-height: 1.5 !important; }
+html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item .box.photos.drag_drop { min-height: 0 !important; height: auto !important; }
+html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item #photos .qq-upload-list:empty { display: none !important; }
+html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item #photos .qq-upload-list { margin: 14px 0 0 !important; padding: 0 !important; }
+html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item #photos > div,
+html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item #photos .uppy-uploader,
+html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item #photos .qq-uploader { height: auto !important; min-height: 0 !important; padding: 0 !important; margin: 0 !important; }
+
+/* ======================================================================
+   Form fields and buttons: one look in every .al-form. Three :not(#…)
+   outrank page-specific legacy ID rules (#contact, #contact_form, …).
+   ====================================================================== */
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-form :is(input[type="text"], input[type="email"], input[type="password"], input[type="url"], input[type="number"], input[type="search"], input:not([type])):not(.iti__tel-input):not(.al-dd-search):not(.iti__search-input),
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-form textarea {
+  box-sizing: border-box !important; display: block !important; width: 100% !important; height: 48px !important; min-height: 48px !important;
+  margin: 0 !important; padding: 0 14px !important; text-indent: 0 !important; float: none !important;
+  border: 1px solid var(--al-field-line) !important; border-radius: var(--al-radius) !important;
+  background: var(--al-paper) !important; background-image: none !important; box-shadow: none !important;
+  color: var(--al-ink) !important; font-family: var(--al-font-ui) !important; font-size: 15px !important; font-weight: 500 !important; line-height: 1.4 !important;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-form textarea { height: 140px !important; min-height: 110px !important; padding: 12px 14px !important; line-height: 1.55 !important; resize: vertical; }
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-form :is(input, textarea):not([type="checkbox"]):not([type="radio"]):not(.iti__tel-input):hover { border-color: var(--al-field-line-hover) !important; }
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-form :is(input, textarea):not([type="checkbox"]):not([type="radio"]):focus { border-color: var(--al-brass) !important; box-shadow: 0 0 0 3px rgba(166, 124, 46, 0.2) !important; outline: none !important; }
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-form :is(input, textarea).error { border-color: var(--al-danger) !important; }
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-form :is(input, textarea)::placeholder { color: #9AA0AA !important; font-weight: 400 !important; opacity: 1; }
+
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-form button.al-btn {
+  display: inline-flex !important; align-items: center !important; justify-content: center !important; gap: 8px;
+  width: auto !important; min-width: 150px; height: 48px !important; min-height: 0 !important; margin: 6px 0 0 !important; padding: 0 26px !important; float: none !important;
+  border: 1px solid transparent !important; border-radius: var(--al-radius) !important; background-image: none !important; box-shadow: none !important;
+  font-family: var(--al-font-ui) !important; font-size: 15px !important; font-weight: 700 !important; letter-spacing: 0 !important; text-transform: none !important; transform: none !important;
+  cursor: pointer; transition: background-color 0.15s, border-color 0.15s;
+}
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-form button.al-btn.al-btn-block { display: flex !important; width: 100% !important; }
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-form button.al-btn.al-btn-brass { background-color: var(--al-brass) !important; color: #FFFFFF !important; }
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-form button.al-btn.al-btn-brass:hover { background-color: #8F6A25 !important; }
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-form button.al-btn.al-btn-ink { background-color: var(--al-ink) !important; color: #FFFFFF !important; }
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-form button.al-btn.al-btn-ink:hover { background-color: #22304F !important; }
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-form button.al-btn.al-btn-outline { background-color: var(--al-paper) !important; border-color: var(--al-ink) !important; color: var(--al-ink) !important; }
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-form button.al-btn.al-btn-outline:hover { background-color: var(--al-ivory) !important; }
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-form button.al-btn:focus-visible { outline: 3px solid rgba(166, 124, 46, 0.45) !important; outline-offset: 2px; }
+@media (max-width: 767px) {
+  html:not(#al-a):not(#al-b) body:not(#al-c) .al-form button.al-btn { width: 100% !important; display: flex !important; }
+}
+
+/* ---------- Sell / edit: auction card matches the other cards ---------- */
+html:not(#al-x) body:is(#body-item-post, #body-item-edit) .antique-bids-post-card .header-section { margin: 0 0 18px !important; padding: 0 0 10px !important; border-bottom: 1px solid var(--al-line-soft) !important; background: transparent !important; }
+html:not(#al-x) body:is(#body-item-post, #body-item-edit) .antique-bids-post-card .header-section h3 { margin: 0 !important; padding: 0 !important; color: var(--al-ink) !important; font-family: var(--al-font-display) !important; font-size: 26px !important; font-weight: 600 !important; line-height: 1.2 !important; text-transform: none !important; letter-spacing: 0 !important; }
+html:not(#al-x) body:is(#body-item-post, #body-item-edit) .antique-bids-post-card :is(label, .toggle-label) { color: var(--al-ink) !important; font-family: var(--al-font-ui) !important; font-size: 14px !important; font-weight: 700 !important; text-transform: none !important; letter-spacing: 0 !important; }
+html:not(#al-x) body:is(#body-item-post, #body-item-edit) .antique-bids-post-card .toggle-label { font-size: 15px !important; cursor: pointer; }
+html:not(#al-x) body:is(#body-item-post, #body-item-edit) .antique-bids-post-card .help-text { display: block; margin-top: 6px !important; color: var(--al-muted) !important; font-size: 13px !important; line-height: 1.45 !important; }
+html:not(#al-x) body:is(#body-item-post, #body-item-edit) .antique-bids-post-card .form-row { margin: 0 0 18px !important; }
+html:not(#al-x) body:is(#body-item-post, #body-item-edit) .antique-bids-post-card .form-row:last-child { margin-bottom: 0 !important; }
+html:not(#al-x) body:is(#body-item-post, #body-item-edit) .antique-bids-post-card .slider-toggle { background-color: #D8D1C2 !important; }
+html:not(#al-x) body:is(#body-item-post, #body-item-edit) .antique-bids-post-card input:checked + .slider-toggle { background-color: var(--al-brass) !important; }
+
+.al-owner-grid .al-btn-danger { grid-column: 1 / -1; }
+/* account settings: location search field like the other fields */
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-form #location-picker { position: relative !important; display: block !important; width: 100% !important; max-width: none !important; float: none !important; margin: 0 0 16px !important; padding: 0 !important; border: 0 !important; background: transparent !important; box-shadow: none !important; }
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-form #location-picker > span { display: block !important; margin: 0 0 6px !important; color: var(--al-ink) !important; font-size: 14px !important; font-weight: 700 !important; }
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-form #location-picker .loader { position: absolute !important; right: 12px; top: 40px; }
+
+/* one page background everywhere (legacy set slate #F8FAFC on some pages only) */
+html:not(#al-a), html:not(#al-a) body:not(#al-b) { background-color: var(--al-ivory) !important; }
+/* checkboxes and radios in the site colour */
+html body input[type="checkbox"], html body input[type="radio"] { accent-color: var(--al-brass); }
+
+/* ---------- Information pages (about, safety, terms, privacy) ---------- */
+.al-info { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 28px; align-items: start; padding-top: 32px; padding-bottom: 64px; }
+.al-info-nav { position: sticky; top: 20px; display: flex; flex-direction: column; padding: 10px !important; }
+.al-info-nav a { padding: 10px 12px; border-radius: 6px; color: var(--al-ink) !important; font-size: 14px; font-weight: 600; text-decoration: none !important; }
+.al-info-nav a:hover { background: var(--al-ivory); }
+.al-info-nav a.is-active { background: var(--al-ivory); color: var(--al-brass-text) !important; box-shadow: inset 3px 0 0 var(--al-brass); }
+.al-info-body { max-width: 820px; padding: 32px 40px !important; color: #2B3445; font-size: 16px; line-height: 1.7; }
+.al-info-body h2 { margin: 30px 0 10px !important; color: var(--al-ink) !important; font-family: var(--al-font-display) !important; font-size: 26px !important; font-weight: 600 !important; line-height: 1.25 !important; }
+.al-info-body h2:first-child { margin-top: 0 !important; }
+.al-info-body p { margin: 0 0 14px; }
+.al-info-body ul, .al-info-body ol { margin: 0 0 16px; padding-left: 22px; }
+.al-info-body li { margin: 0 0 8px; padding-left: 4px; }
+.al-info-body ul li { list-style: disc; } .al-info-body ol li { list-style: decimal; }
+.al-info-body li::marker { color: var(--al-brass); }
+.al-info-body a:not(.al-btn) { color: var(--al-brass-text) !important; font-weight: 600; text-decoration: underline !important; text-underline-offset: 2px; }
+.al-info-body strong { color: var(--al-ink); }
+.al-info-actions { display: flex; flex-wrap: wrap; gap: 12px; margin: 18px 0 8px !important; }
+.al-info-updated { margin: 28px 0 0 !important; padding-top: 16px; border-top: 1px solid var(--al-line-soft); color: var(--al-muted); font-size: 13px; }
+.al-fineprint a { color: var(--al-brass-text) !important; font-weight: 600; text-decoration: underline !important; }
+@media (max-width: 900px) {
+  .al-info { grid-template-columns: 1fr; gap: 16px; padding-top: 18px; }
+  .al-info-nav { position: static; flex-direction: row; flex-wrap: nowrap; overflow-x: auto; gap: 4px; padding: 6px !important; }
+  .al-info-nav a { white-space: nowrap; }
+  .al-info-nav a.is-active { box-shadow: inset 0 -2px 0 var(--al-brass); }
+  .al-info-body { padding: 22px 18px !important; font-size: 15px; }
+  .al-info-body h2 { font-size: 22px !important; }
+}
+.al-info-body, .al-info-nav { margin: 0 !important; }
+html body#body-custom .container-outer, html body#body-custom .container-outer > .container, html body#body-custom .container { max-width: none !important; width: auto !important; margin: 0 !important; padding: 0 !important; background: transparent !important; box-shadow: none !important; border: 0 !important; }
+
+/* ---------- Photo upload dialog (Uppy) in the site palette ---------- */
+html body .uppy-Root { font-family: var(--al-font-ui) !important; }
+html body .uppy-Root .uppy-Dashboard-browse,
+html body .uppy-Root .uppy-DashboardContent-back,
+html body .uppy-Root .uppy-DashboardContent-addMore,
+html body .uppy-Root .uppy-Dashboard-Item-action--edit,
+html body .uppy-Root .uppy-c-btn-link { color: var(--al-brass-text) !important; }
+html body .uppy-Root .uppy-Dashboard-browse:hover { border-bottom-color: var(--al-brass) !important; }
+html body .uppy-Root .uppy-c-btn-primary,
+html body .uppy-Root .uppy-StatusBar-actionBtn--upload,
+html body .uppy-Root .uppy-StatusBar-actionBtn--done,
+html body .uppy-Root .uppy-ImageCropper-controls .uppy-c-btn-primary { background-color: var(--al-brass) !important; color: #FFFFFF !important; }
+html body .uppy-Root .uppy-c-btn-primary:hover,
+html body .uppy-Root .uppy-StatusBar-actionBtn--upload:hover { background-color: #8F6A25 !important; }
+html body .uppy-Root .uppy-StatusBar-progress { background-color: var(--al-brass) !important; }
+html body .uppy-Root .uppy-StatusBar.is-complete .uppy-StatusBar-progress { background-color: #157F3C !important; }
+html body .uppy-Root .uppy-Dashboard-inner { border-color: var(--al-line) !important; background-color: #FBF9F4 !important; border-radius: 10px !important; }
+html body .uppy-Root .uppy-Dashboard-AddFiles { border-color: #CDBF9F !important; }
+html body .uppy-Root .uppy-Dashboard-AddFiles-title { color: var(--al-ink) !important; }
+html body .uppy-Root .uppy-DashboardTab-btn:hover, html body .uppy-Root .uppy-DashboardTab-btn:focus { background-color: var(--al-ivory) !important; }
+html body .uppy-Root .uppy-DashboardTab-btn:focus-visible, html body .uppy-Root button:focus-visible,
+html body .uppy-Root .uppy-u-reset:focus-visible { box-shadow: 0 0 0 3px rgba(166, 124, 46, 0.35) !important; outline: none !important; }
+html body .uppy-Root .uppy-DashboardTab-btn[aria-selected="true"], html body .uppy-Root .uppy-DashboardTab-btn:focus { box-shadow: 0 0 0 2px rgba(166, 124, 46, 0.45) !important; }
+html body .uppy-Root .uppy-Dashboard-dropFilesHereHint { border-color: var(--al-brass) !important; color: var(--al-brass-text) !important; }
+html body .uppy-Root .uppy-Dashboard-overlay { background-color: rgba(20, 33, 61, 0.55) !important; }
+html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item #photos .qq-upload-list li { background: var(--al-paper) !important; border: 1px solid var(--al-line) !important; border-radius: 8px !important; box-shadow: none !important; }
+html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item #photos .qq-upload-list li img { border-radius: 6px !important; }
+.al-item-details > .al-section-block ~ .al-section-block { margin-top: 24px !important; }

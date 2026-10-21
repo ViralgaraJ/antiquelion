@@ -51,7 +51,7 @@
     var img = e.target;
     if (img.tagName === 'IMG' && !img.getAttribute('data-fallback') && /oc-content\/uploads\//.test(img.currentSrc || img.src)) {
       img.setAttribute('data-fallback', '1');
-      if (img.parentNode && img.parentNode.classList && img.parentNode.classList.contains('al-card-media')) {
+      if (img.parentNode && img.parentNode.classList && (img.parentNode.classList.contains('al-card-media') || img.parentNode.classList.contains('al-listing-thumb') || img.parentNode.classList.contains('al-share-thumb'))) {
         var ph = document.createElement('span');
         ph.className = 'al-card-noimg';
         ph.innerHTML = '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/></svg><?php echo osc_esc_js(__('No photo', 'starter')); ?>';
@@ -106,6 +106,10 @@ echo '<style>body, html, button, input, select, textarea, h4, h5, h6, .category-
 osc_enqueue_style('custom-home', osc_current_web_theme_url('css/custom-home.css') . '?v=' . filemtime(__DIR__ . '/css/custom-home.css'));
 osc_enqueue_style('antique', osc_current_web_theme_url('css/antique.css') . '?v=' . filemtime(__DIR__ . '/css/antique.css'));
 osc_enqueue_style('al-design', osc_current_web_theme_url('css/al-design.css') . '?v=' . filemtime(__DIR__ . '/css/al-design.css'));
+
+// Site dropdowns (styled listbox over every native select)
+echo '<script>window.alSelect = ' . json_encode(array('search' => __('Search', 'starter'))) . ';</script>' . PHP_EOL;
+echo '<script defer src="' . osc_current_web_theme_js_url('al-select.js') . '?v=' . filemtime(__DIR__ . '/js/al-select.js') . '"></script>' . PHP_EOL;
 
 // International phone inputs on the forms that collect a phone number
 $al_phone_page = in_array(osc_get_osclass_location(), array('register', 'item'))
