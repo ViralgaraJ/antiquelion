@@ -18,7 +18,7 @@
 <p><?php _e('We do not sell your personal information.', 'starter'); ?></p>
 
 <h2><?php _e('What other people can see', 'starter'); ?></h2>
-<p><?php _e('Your public profile shows your name, account type, the month you joined, your location and your active listings. Your phone number is shown to visitors who choose to reveal it on your listings. Bid histories show bidders\' names. Your email address is not shown unless you choose to show it on a listing.', 'starter'); ?></p>
+<p><?php _e('Your public profile shows your name, account type, the month you joined, your location and your active listings. Your phone number is shown to visitors who choose to reveal it on your listings. Bid histories show bidders\' names in shortened form (for example S***u); the seller of an auction you win sees your name and email address so you can complete the sale. Your email address is not shown unless you choose to show it on a listing.', 'starter'); ?></p>
 
 <h2><?php _e('Services we use', 'starter'); ?></h2>
 <ul>

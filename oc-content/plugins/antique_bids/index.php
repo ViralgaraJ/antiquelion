@@ -3,7 +3,7 @@
 Plugin Name: Antique Bids
 Plugin URI: http://localhost/antique_site
 Description: Live bidding and auction system for antiques.
-Version: 1.0.0
+Version: 1.1.0
 Author: DeepMind Antigravity Pair Program
 Short Name: antique_bids
 */
@@ -165,64 +165,51 @@ function antique_bids_sidebar_widget() {
     $userId = osc_logged_user_id();
     $isOwner = (osc_is_web_user_logged_in() && osc_item_user_id() == $userId);
     $soldState = antique_bids_sold_state($itemId);
+    $model = ModelBids::newInstance();
 
-    // Fetch auction details
-    $auction = ModelBids::newInstance()->getAuction($itemId);
+    $auction = $model->getAuction($itemId);
     if (!$auction || $auction['b_active'] == 0) {
         return; // Bidding not active for this item
     }
 
-    $endTime = $auction['dt_end_date'];
-    $isExpired = (strtotime($endTime) < time());
-
-    // Instant expired auction check at runtime to avoid cron delays
-    if ($isExpired && $auction['b_processed'] == 0) {
+    // declare the result straight away instead of waiting for the next cron run
+    if (strtotime($auction['dt_end_date']) < time() && $auction['b_processed'] == 0) {
         antique_bids_process_expired_auctions();
-        $auction = ModelBids::newInstance()->getAuction($itemId); // Re-fetch
+        $auction = $model->getAuction($itemId);
     }
+    $isExpired = (strtotime($auction['dt_end_date']) < time());
 
     $currency = osc_item_currency() ? osc_item_currency() : 'USD';
+    $state = antique_bids_state($itemId);
+    $reserve = (float)$auction['d_reserve_price'];
+    $bidsHistory = $model->getBidHistory($itemId, 5);
 
-    // Fetch highest active bid
-    $highestBidRow = ModelBids::newInstance()->getHighestBid($itemId);
-    $currentHighest = $highestBidRow ? $highestBidRow['d_amount'] : $auction['d_starting_price'];
-    $minNextBid = $currentHighest + $auction['d_min_increment'];
-
-    // Public bid history (active + winning bids; cancelled winners are hidden)
-    $bidsHistory = ModelBids::newInstance()->getBidHistory($itemId, 5);
-
-    // Fetch winning bid if expired
     $wonBid = null;
     if ($isExpired) {
-        $db = ModelBids::newInstance()->dao;
         $prefix = DB_TABLE_PREFIX;
-        $sql_won = "SELECT b.*, u.s_name as user_name, u.s_email as user_email 
-                    FROM `{$prefix}t_item_bids` b 
-                    JOIN `{$prefix}t_user` u ON b.fk_i_user_id = u.pk_i_id 
-                    WHERE b.fk_i_item_id = " . (int)$itemId . " AND b.s_status = 'won' 
-                    LIMIT 1";
-        $won_res = $db->query($sql_won);
+        $won_res = $model->dao->query("SELECT b.*, u.s_name as user_name, u.s_email as user_email
+            FROM `{$prefix}t_item_bids` b JOIN `{$prefix}t_user` u ON b.fk_i_user_id = u.pk_i_id
+            WHERE b.fk_i_item_id = " . (int)$itemId . " AND b.s_status = 'won' LIMIT 1");
         if ($won_res && $won_res->numRows() > 0) {
             $wonBid = $won_res->row();
         }
     }
-    
     $isWinner = ($wonBid && osc_is_web_user_logged_in() && $wonBid['fk_i_user_id'] == $userId);
+    $reserveFailed = ($isExpired && !$wonBid && $state['hasBids'] && $reserve > 0 && $state['amount'] < $reserve);
 
     if ($isExpired && $wonBid) {
-        $statLabel = 'Winning Bid';
+        $statLabel = 'Winning bid';
         $statAmount = $wonBid['d_amount'];
-    } elseif ($highestBidRow) {
-        $statLabel = 'Current bid';
-        $statAmount = $currentHighest;
+    } elseif ($state['hasBids']) {
+        $statLabel = $isExpired ? 'Highest bid' : 'Current bid';
+        $statAmount = $state['amount'];
     } else {
         $statLabel = 'Starting bid';
         $statAmount = $auction['d_starting_price'];
     }
-    // ISO 8601 with offset so the countdown is correct in every visitor timezone
-    $endTimeIso = date('c', strtotime($endTime));
+    $canBid = (!$isExpired && !$soldState && osc_is_web_user_logged_in() && !$isOwner);
     ?>
-    <div class="antique-bidding-card">
+    <div class="antique-bidding-card" id="al-auction" data-item="<?php echo (int)$itemId; ?>">
         <div class="bid-header">
             <h3>Auction</h3>
             <?php if ($isExpired): ?>
@@ -231,7 +218,7 @@ function antique_bids_sidebar_widget() {
                 <span class="live-indicator"><i class="fa fa-circle"></i> Live</span>
             <?php endif; ?>
         </div>
-        
+
         <div class="bid-stats">
             <div class="stat-col">
                 <span class="label" id="live-bid-label"><?php echo $statLabel; ?></span>
@@ -239,80 +226,89 @@ function antique_bids_sidebar_widget() {
             </div>
             <div class="stat-col">
                 <span class="label">Time left</span>
-                <span class="value <?php echo $isExpired ? 'text-danger' : ''; ?>" id="countdown-timer" data-endtime="<?php echo $endTimeIso; ?>">
-                    <?php echo $isExpired ? 'Ended' : 'Calculating...'; ?>
+                <span class="value <?php echo $isExpired ? 'text-danger' : ''; ?>" id="countdown-timer" data-endtime="<?php echo osc_esc_html($state['end']); ?>">
+                    <?php echo $isExpired ? 'Ended' : '&nbsp;'; ?>
                 </span>
             </div>
         </div>
+
+        <div class="al-bid-meta">
+            <span id="al-bid-count"><?php echo $state['bids'] == 1 ? '1 bid' : $state['bids'] . ' bids'; ?></span>
+            <?php if ($reserve > 0): ?>
+                <span class="al-bid-reserve <?php echo $state['reserve'] == 'met' ? 'is-met' : ''; ?>" id="al-bid-reserve"><?php echo $state['reserve'] == 'met' ? 'Reserve met' : 'Reserve not met'; ?></span>
+            <?php endif; ?>
+        </div>
+
+        <?php if (!$isExpired && osc_is_web_user_logged_in() && !$isOwner): ?>
+            <div class="al-bid-status <?php echo $state['isLeader'] ? 'is-leading' : ($state['outbid'] ? 'is-outbid' : ''); ?>" id="al-bid-status"<?php echo ($state['isLeader'] || $state['outbid']) ? '' : ' hidden'; ?>>
+                <?php if ($state['isLeader']): ?>
+                    You are the highest bidder. Your maximum: <strong><?php echo osc_esc_html(antique_bids_money($state['myMax'], $currency)); ?></strong>
+                <?php elseif ($state['outbid']): ?>
+                    You have been outbid. Your maximum was <strong><?php echo osc_esc_html(antique_bids_money($state['myMax'], $currency)); ?></strong>
+                <?php endif; ?>
+            </div>
+        <?php endif; ?>
 
         <?php if ($isExpired): ?>
             <?php if ($isOwner): ?>
                 <?php if ($wonBid): ?>
                     <div class="seller-console-card">
                         <h4>Auction result</h4>
-                        <p class="console-desc">Bidding closed. The winning bid details are:</p>
+                        <p class="console-desc">Bidding has closed. Contact the winner to arrange payment and delivery.</p>
                         <div class="console-winner-details">
                             <div class="winner-row"><strong>Name:</strong> <span><?php echo osc_esc_html($wonBid['user_name']); ?></span></div>
                             <div class="winner-row"><strong>Email:</strong> <span><?php echo osc_esc_html($wonBid['user_email']); ?></span></div>
                             <div class="winner-row"><strong>Amount:</strong> <span class="gold-accent font-700"><?php echo osc_esc_html(antique_bids_money($wonBid['d_amount'], $currency)); ?></span></div>
-                            <div class="winner-row"><strong>Status:</strong> <span class="status-won font-700">Winner Declared</span></div>
                         </div>
                         <button type="button" id="cancel-winner-btn" class="btn btn-secondary cancel-winner-btn" data-itemid="<?php echo $itemId; ?>">
-                            <i class="fa fa-times-circle"></i> Cancel Winner & Offer to 2nd Bidder
+                            Cancel winner and offer to the next bidder
                         </button>
                         <div id="seller-console-feedback"></div>
                     </div>
+                <?php elseif ($reserveFailed): ?>
+                    <div class="bid-expired-notice">The auction ended at <strong><?php echo osc_esc_html(antique_bids_money($state['amount'], $currency)); ?></strong>, below your reserve price, so there is no winner. You can run it again from Edit listing.</div>
                 <?php else: ?>
-                    <div class="bid-expired-notice">
-                        <i class="fa fa-gavel"></i> Bidding has closed with no bids placed.
-                    </div>
+                    <div class="bid-expired-notice">The auction ended with no bids. Try a lower starting bid and run it again from Edit listing.</div>
                 <?php endif; ?>
             <?php elseif ($isWinner): ?>
                 <div class="bid-winner-notice">
-                    <h4><i class="fa fa-trophy"></i> You won this auction!</h4>
-                    <p class="winner-desc">Congratulations! Your bid of <strong><?php echo osc_esc_html(antique_bids_money($wonBid['d_amount'], $currency)); ?></strong> was the winning bid.</p>
-                    <p class="winner-desc">Please contact the seller <strong><?php echo osc_esc_html(osc_item_contact_name()); ?></strong> to complete the transaction.</p>
-                    <a href="#contact" class="btn btn-primary contact-seller-win-btn">Contact Seller Now</a>
+                    <h4><i class="fa fa-trophy"></i> You won this auction</h4>
+                    <p class="winner-desc">Your bid of <strong><?php echo osc_esc_html(antique_bids_money($wonBid['d_amount'], $currency)); ?></strong> won. Please contact <strong><?php echo osc_esc_html(osc_item_contact_name()); ?></strong> within 24 hours to agree payment and delivery.</p>
+                    <a href="#contact" class="btn btn-primary contact-seller-win-btn">Contact the seller</a>
                 </div>
+            <?php elseif ($wonBid): ?>
+                <div class="bid-expired-notice">Bidding has closed. The winning bid was <strong><?php echo osc_esc_html(antique_bids_money($wonBid['d_amount'], $currency)); ?></strong>.</div>
+            <?php elseif ($reserveFailed): ?>
+                <div class="bid-expired-notice">Bidding has closed. The reserve price was not met, so the item was not sold.</div>
             <?php else: ?>
-                <?php if ($wonBid): ?>
-                    <div class="bid-expired-notice">
-                        <i class="fa fa-gavel"></i> Bidding has closed. The winning bid was <strong><?php echo osc_esc_html(antique_bids_money($wonBid['d_amount'], $currency)); ?></strong>.
-                    </div>
-                <?php else: ?>
-                    <div class="bid-expired-notice">
-                        <i class="fa fa-gavel"></i> Bidding has closed for this antique.
-                    </div>
-                <?php endif; ?>
+                <div class="bid-expired-notice">Bidding has closed for this item.</div>
             <?php endif; ?>
         <?php elseif ($soldState): ?>
-            <div class="bid-expired-notice">
-                <i class="fa fa-gavel"></i> <?php echo $soldState == 1 ? 'This item has been sold. Bidding is closed.' : 'This item is reserved. Bidding is paused.'; ?>
-            </div>
+            <div class="bid-expired-notice"><?php echo $soldState == 1 ? 'This item has been sold. Bidding is closed.' : 'This item is reserved. Bidding is paused.'; ?></div>
         <?php elseif (!osc_is_web_user_logged_in()): ?>
             <div class="bid-action-form guest">
-                <a href="<?php echo osc_user_login_url(); ?>" class="btn btn-secondary login-to-bid">
-                    Sign in to bid
-                </a>
+                <a href="<?php echo osc_user_login_url(); ?>" class="btn btn-secondary login-to-bid">Sign in to bid</a>
             </div>
         <?php elseif ($isOwner): ?>
             <div class="bid-action-form owner">
-                <span class="owner-notice">
-                    This is your listing, so you cannot bid on it.
-                </span>
+                <span class="owner-notice">This is your listing, so you cannot bid on it.</span>
             </div>
         <?php else: ?>
-            <div class="bid-action-form">
-                <div class="input-wrap">
-                    <span class="currency-label"><?php echo osc_esc_html($currency); ?></span>
-                    <input type="number" id="user-bid-amount" placeholder="Min. <?php echo osc_esc_html(number_format($minNextBid)); ?>" min="<?php echo $minNextBid; ?>" step="<?php echo $auction['d_min_increment']; ?>">
+            <form class="bid-action-form" id="al-bid-form" novalidate>
+                <label class="al-bid-input-label" for="user-bid-amount">Your maximum bid</label>
+                <div class="al-bid-row">
+                    <div class="input-wrap">
+                        <span class="currency-label"><?php echo osc_esc_html($currency); ?></span>
+                        <input type="number" id="user-bid-amount" inputmode="decimal" min="<?php echo (float)$state['nextMin']; ?>" step="any" placeholder="<?php echo osc_esc_html(number_format($state['nextMin'])); ?> or more" autocomplete="off">
+                    </div>
+                    <button type="submit" id="place-bid-btn" class="btn btn-primary">Place bid</button>
                 </div>
-                <button type="button" id="place-bid-btn" class="btn btn-primary">Place bid</button>
-            </div>
-            <div id="bid-feedback-msg"></div>
+                <button type="button" class="al-bid-quick" id="al-bid-quick"<?php echo $state['isLeader'] ? ' hidden' : ''; ?>>Bid <span><?php echo osc_esc_html(antique_bids_money($state['nextMin'], $currency)); ?></span></button>
+            </form>
+            <div id="bid-feedback-msg" role="status" aria-live="polite"></div>
+            <p class="al-bid-help">Enter the most you are willing to pay. We bid for you automatically, only as much as needed to keep you in the lead, and other bidders never see your maximum. A bid in the last 2 minutes extends the auction by 2 minutes.</p>
         <?php endif; ?>
 
-        <!-- Live Bid History Log -->
         <div class="bid-history">
             <h4>Bid history</h4>
             <ul id="bid-history-list">
@@ -321,261 +317,174 @@ function antique_bids_sidebar_widget() {
                 <?php else: ?>
                     <?php foreach ($bidsHistory as $bid): ?>
                         <li>
-                            <span class="bidder-name"><i class="fa <?php echo $bid['s_status'] == 'won' ? 'fa-trophy' : 'fa-user-circle'; ?>"></i> <?php echo osc_esc_html($bid['user_name']); ?></span>
+                            <span class="bidder-name"><i class="fa <?php echo $bid['s_status'] == 'won' ? 'fa-trophy' : 'fa-user-circle'; ?>"></i> <?php echo osc_esc_html(antique_bids_mask_name($bid['user_name'], $bid['fk_i_user_id'])); ?></span>
                             <span class="bid-amt"><?php echo osc_esc_html(antique_bids_money($bid['d_amount'], $currency)); ?></span>
                         </li>
                     <?php endforeach; ?>
                 <?php endif; ?>
             </ul>
         </div>
-        
+
         <input type="hidden" id="bid-item-id" value="<?php echo $itemId; ?>">
         <input type="hidden" id="csrf-token" value="<?php echo osc_csrfguard_generate_token(); ?>">
     </div>
 
-    <!-- Countdown and Real-time JS Toggles (Vanilla JS to bypass jQuery footer enqueuing restrictions) -->
     <script type="text/javascript">
     document.addEventListener('DOMContentLoaded', function() {
-        var bidCurrency = <?php echo json_encode($currency); ?>;
-        function fmtMoney(v) {
+        var card = document.getElementById('al-auction');
+        if (!card) { return; }
+        var itemId = card.getAttribute('data-item');
+        var currency = <?php echo json_encode($currency); ?>;
+        var expired = <?php echo $isExpired ? 'true' : 'false'; ?>;
+        var canBid = <?php echo $canBid ? 'true' : 'false'; ?>;
+        var nextMin = <?php echo json_encode((float)$state['nextMin']); ?>;
+        var lastAmount = <?php echo json_encode((float)$statAmount); ?>;
+        var lastBids = <?php echo (int)$state['bids']; ?>;
+        var stateUrl = <?php echo json_encode(osc_base_url(true) . '?page=ajax&action=runhook&hook=get_highest_bid_val&itemId=' . (int)$itemId); ?>;
+        var historyUrl = <?php echo json_encode(osc_base_url(true) . '?page=ajax&action=runhook&hook=get_bids_history&itemId=' . (int)$itemId); ?>;
+        var bidUrl = <?php echo json_encode(osc_ajax_hook_url('place_bid')); ?>;
+        var $ = function (id) { return document.getElementById(id); };
+
+        function money(v) {
             var n = parseFloat(v), whole = Math.abs(n - Math.round(n)) < 0.005;
-            return bidCurrency + ' ' + n.toLocaleString('en-US', {minimumFractionDigits: whole ? 0 : 2, maximumFractionDigits: whole ? 0 : 2});
+            return currency + ' ' + n.toLocaleString('en-US', {minimumFractionDigits: whole ? 0 : 2, maximumFractionDigits: whole ? 0 : 2});
+        }
+        function esc(t) {
+            return String(t).replace(/[&<>"']/g, function (m) { return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'}[m]; });
+        }
+        function feedback(ok, text) {
+            var el = $('bid-feedback-msg');
+            if (!el) { return; }
+            el.innerHTML = '<span class="' + (ok ? 'text-success success-alert' : 'text-danger error-alert') + '">' + esc(text) + '</span>';
+            el.style.display = 'block';
         }
 
-        // 1. Live Countdown Timer
-        var countdownEl = document.getElementById('countdown-timer');
-        if (countdownEl) {
-            var endTimeStr = countdownEl.getAttribute('data-endtime');
-            if (endTimeStr && endTimeStr !== '' && countdownEl.textContent.trim() !== 'Ended') {
-                var endTime = new Date(endTimeStr).getTime();
-
-                var timerInterval = setInterval(function() {
-                    var now = new Date().getTime();
-                    var distance = endTime - now;
-
-                    if (distance < 0) {
-                        clearInterval(timerInterval);
-                        countdownEl.innerHTML = 'Ended';
-                        countdownEl.classList.add('text-danger');
-                        var actionForm = document.querySelector('.bid-action-form');
-                        if (actionForm) {
-                            actionForm.innerHTML = '<div class="bid-expired-notice"><i class="fa fa-gavel"></i> Bidding has closed for this antique.</div>';
-                        }
-                    } else {
-                        var days = Math.floor(distance / (1000 * 60 * 60 * 24));
-                        var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                        var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-                        var seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-                        var timerText = "";
-                        if (days > 0) timerText += days + "d ";
-                        timerText += hours + "h " + minutes + "m " + seconds + "s";
-                        countdownEl.innerHTML = timerText;
-                    }
-                }, 1000);
+        // countdown; the end moves when a late bid extends the auction
+        var timer = $('countdown-timer');
+        var endTime = new Date(timer.getAttribute('data-endtime')).getTime();
+        function tick() {
+            if (expired) { return; }
+            var d = endTime - Date.now();
+            if (d <= 0) {
+                expired = true;
+                timer.textContent = 'Ended';
+                timer.classList.add('text-danger');
+                var form = $('al-bid-form');
+                if (form) { form.outerHTML = '<div class="bid-expired-notice">Bidding has closed. Reload the page to see the result.</div>'; }
+                return;
             }
+            var days = Math.floor(d / 86400000), h = Math.floor(d % 86400000 / 3600000), m = Math.floor(d % 3600000 / 60000), s = Math.floor(d % 60000 / 1000);
+            timer.textContent = (days > 0 ? days + 'd ' : '') + h + 'h ' + m + 'm ' + s + 's';
+            timer.classList.toggle('is-ending', d < 3600000);
         }
+        tick();
+        setInterval(tick, 1000);
 
-        // 2. Submit Bid AJAX Action
-        var placeBidBtn = document.getElementById('place-bid-btn');
-        if (placeBidBtn) {
-            placeBidBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                
-                var bidAmountInput = document.getElementById('user-bid-amount');
-                var bidAmount = parseFloat(bidAmountInput.value);
-                var itemId = document.getElementById('bid-item-id').value;
-                var csrfToken = document.getElementById('csrf-token').value;
-                var feedback = document.getElementById('bid-feedback-msg');
-
-                if (isNaN(bidAmount) || bidAmount <= 0) {
-                    feedback.innerHTML = '<span class="text-danger error-alert"><i class="fa fa-exclamation-triangle"></i> Please enter a valid bid.</span>';
-                    feedback.style.display = 'block';
-                    return;
-                }
-
-                placeBidBtn.disabled = true;
-                placeBidBtn.innerText = 'Placing...';
-                feedback.style.display = 'none';
-
-                // Vanilla AJAX call
-                var xhr = new XMLHttpRequest();
-                xhr.open('POST', '<?php echo osc_ajax_hook_url("place_bid"); ?>', true);
-                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
-                xhr.onreadystatechange = function() {
-                    if (xhr.readyState === 4) {
-                        placeBidBtn.disabled = false;
-                        placeBidBtn.innerText = 'Place bid';
-                        if (xhr.status === 200) {
-                            try {
-                                var response = JSON.parse(xhr.responseText);
-                                if (response.success) {
-                                    feedback.innerHTML = '<span class="text-success success-alert"><i class="fa fa-check-circle"></i> ' + response.message + '</span>';
-                                    feedback.style.display = 'block';
-                                    document.getElementById('live-highest-bid').textContent = fmtMoney(response.newHighest);
-                                    document.getElementById('live-bid-label').textContent = 'Current bid';
-                                    
-                                    var increment = <?php echo (float)$auction['d_min_increment']; ?>;
-                                    var nextMin = parseFloat(response.newHighest) + increment;
-                                    bidAmountInput.value = '';
-                                    bidAmountInput.setAttribute('placeholder', 'Min. ' + nextMin.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}));
-                                    bidAmountInput.setAttribute('min', nextMin);
-                                    
-                                    refreshBidHistory(itemId);
-                                } else {
-                                    feedback.innerHTML = '<span class="text-danger error-alert"><i class="fa fa-exclamation-triangle"></i> ' + response.error + '</span>';
-                                    feedback.style.display = 'block';
-                                }
-                            } catch (err) {
-                                feedback.innerHTML = '<span class="text-danger error-alert"><i class="fa fa-exclamation-triangle"></i> Invalid response from server.</span>';
-                                feedback.style.display = 'block';
-                            }
-                        } else {
-                            feedback.innerHTML = '<span class="text-danger error-alert"><i class="fa fa-exclamation-triangle"></i> Communication error. Please retry.</span>';
-                            feedback.style.display = 'block';
-                        }
-                    }
-                };
-                
-                var params = 'itemId=' + encodeURIComponent(itemId) + 
-                             '&bidAmount=' + encodeURIComponent(bidAmount) + 
-                             '&octoken=' + encodeURIComponent(csrfToken);
-                xhr.send(params);
-            });
-        }
-
-        // 3. Helper to refresh history logs after placeBid
-        function refreshBidHistory(itemId) {
+        function renderHistory() {
             var xhr = new XMLHttpRequest();
-            xhr.open('GET', '<?php echo osc_base_url(true); ?>?page=ajax&action=runhook&hook=get_bids_history&itemId=' + itemId, true);
-            xhr.onreadystatechange = function() {
-                if (xhr.readyState === 4 && xhr.status === 200) {
-                    try {
-                        var data = JSON.parse(xhr.responseText);
-                        if (data && data.length > 0) {
-                            var html = '';
-                            for (var i = 0; i < data.length; i++) {
-                                var bid = data[i];
-                                html += '<li><span class="bidder-name"><i class="fa fa-user-circle"></i> ' + escapeHtml(bid.user_name) + '</span>';
-                                html += '<span class="bid-amt">' + escapeHtml(fmtMoney(bid.d_amount)) + '</span></li>';
-                            }
-                            var historyList = document.getElementById('bid-history-list');
-                            if (historyList) {
-                                historyList.innerHTML = html;
-                            }
-                        }
-                    } catch (e) {}
-                }
+            xhr.open('GET', historyUrl, true);
+            xhr.onload = function () {
+                try {
+                    var data = JSON.parse(xhr.responseText), html = '';
+                    if (!data || !data.length) { return; }
+                    for (var i = 0; i < data.length; i++) {
+                        html += '<li><span class="bidder-name"><i class="fa ' + (data[i].won ? 'fa-trophy' : 'fa-user-circle') + '"></i> ' + esc(data[i].user_name) + '</span><span class="bid-amt">' + esc(money(data[i].d_amount)) + '</span></li>';
+                    }
+                    $('bid-history-list').innerHTML = html;
+                } catch (e) {}
             };
             xhr.send();
         }
 
-        function escapeHtml(text) {
-            var map = {
-                '&': '&amp;',
-                '<': '&lt;',
-                '>': '&gt;',
-                '"': '&quot;',
-                "'": '&#039;'
-            };
-            return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+        function applyState(st) {
+            if (!st || !st.success) { return; }
+            var newEnd = new Date(st.end).getTime();
+            if (newEnd && newEnd !== endTime) { endTime = newEnd; tick(); }
+            if (st.hasBids) { $('live-bid-label').textContent = 'Current bid'; }
+            $('live-highest-bid').textContent = money(st.amount);
+            $('al-bid-count').textContent = st.bids == 1 ? '1 bid' : st.bids + ' bids';
+            var r = $('al-bid-reserve');
+            if (r) { r.textContent = st.reserve === 'met' ? 'Reserve met' : 'Reserve not met'; r.classList.toggle('is-met', st.reserve === 'met'); }
+            var status = $('al-bid-status');
+            if (status) {
+                status.classList.toggle('is-leading', !!st.isLeader);
+                status.classList.toggle('is-outbid', !!st.outbid);
+                status.hidden = !(st.isLeader || st.outbid);
+                if (st.isLeader) { status.innerHTML = 'You are the highest bidder. Your maximum: <strong>' + esc(money(st.myMax)) + '</strong>'; }
+                else if (st.outbid) { status.innerHTML = 'You have been outbid. Your maximum was <strong>' + esc(money(st.myMax)) + '</strong>'; }
+            }
+            nextMin = parseFloat(st.nextMin);
+            var input = $('user-bid-amount');
+            if (input) { input.setAttribute('min', nextMin); input.setAttribute('placeholder', nextMin.toLocaleString('en-US') + ' or more'); }
+            var quick = $('al-bid-quick');
+            if (quick) { quick.querySelector('span').textContent = money(nextMin); quick.hidden = !!st.isLeader; }
+            if (st.bids !== lastBids || parseFloat(st.amount) !== lastAmount) { renderHistory(); }
+            lastBids = st.bids; lastAmount = parseFloat(st.amount);
         }
 
-        // 4. Bids update pooling (every 8 seconds to fetch other bidders' bids in real time)
-        setInterval(function() {
-            var itemIdEl = document.getElementById('bid-item-id');
-            if (!itemIdEl) return;
-            var itemId = itemIdEl.value;
-            if (itemId) {
-                var xhr = new XMLHttpRequest();
-                xhr.open('GET', '<?php echo osc_base_url(true); ?>?page=ajax&action=runhook&hook=get_highest_bid_val&itemId=' + itemId, true);
-                xhr.onreadystatechange = function() {
-                    if (xhr.readyState === 4 && xhr.status === 200) {
-                        try {
-                            var data = JSON.parse(xhr.responseText);
-                            if (data && data.success) {
-                                var liveBidEl = document.getElementById('live-highest-bid');
-                                var currentHighest = parseFloat(liveBidEl.textContent.replace(/[^0-9.]/g, ''));
-                                var apiHighest = parseFloat(data.amount);
-                                
-                                if (apiHighest > currentHighest) {
-                                    liveBidEl.textContent = fmtMoney(apiHighest);
-                                    document.getElementById('live-bid-label').textContent = 'Current bid';
-                                    var increment = <?php echo (float)$auction['d_min_increment']; ?>;
-                                    var nextMin = apiHighest + increment;
-                                    var bidInput = document.getElementById('user-bid-amount');
-                                    if (bidInput) {
-                                        bidInput.setAttribute('placeholder', 'Min. ' + nextMin.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}));
-                                        bidInput.setAttribute('min', nextMin);
-                                    }
-                                    refreshBidHistory(itemId);
-                                }
-                            }
-                        } catch (e) {}
-                    }
-                };
-                xhr.send();
-            }
+        // other people's bids appear without reloading
+        setInterval(function () {
+            if (expired || document.hidden) { return; }
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', stateUrl, true);
+            xhr.onload = function () { try { applyState(JSON.parse(xhr.responseText)); } catch (e) {} };
+            xhr.send();
         }, 8000);
-        // 5. Seller console cancellation handler
-        var cancelWinnerBtn = document.getElementById('cancel-winner-btn');
-        if (cancelWinnerBtn) {
-            cancelWinnerBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                if (!confirm("Are you sure you want to cancel the winning bidder? This will decline their bid and offer the item to the second-highest bidder. This action cannot be undone.")) {
-                    return;
-                }
-                
-                var itemId = cancelWinnerBtn.getAttribute('data-itemid');
-                var csrfToken = document.getElementById('csrf-token').value;
-                var feedback = document.getElementById('seller-console-feedback');
-                
-                cancelWinnerBtn.disabled = true;
-                cancelWinnerBtn.innerText = 'Processing...';
-                if (feedback) feedback.style.display = 'none';
 
+        if (canBid) {
+            var form = $('al-bid-form'), input = $('user-bid-amount'), btn = $('place-bid-btn');
+            $('al-bid-quick').addEventListener('click', function () { input.value = nextMin; input.focus(); });
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                var amount = parseFloat(input.value);
+                if (isNaN(amount) || amount <= 0) { feedback(false, 'Please enter your maximum bid.'); return; }
+                if (amount < nextMin) { feedback(false, 'Your bid must be at least ' + money(nextMin) + '.'); return; }
+                if (!window.confirm('Confirm your maximum bid of ' + money(amount) + '?\n\nIf you win, you are committing to buy this item.')) { return; }
+
+                btn.disabled = true;
+                btn.textContent = 'Placing...';
                 var xhr = new XMLHttpRequest();
-                xhr.open('POST', '<?php echo osc_ajax_hook_url("cancel_winner_offer_second"); ?>', true);
+                xhr.open('POST', bidUrl, true);
                 xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
-                xhr.onreadystatechange = function() {
-                    if (xhr.readyState === 4) {
-                        cancelWinnerBtn.disabled = false;
-                        cancelWinnerBtn.innerHTML = '<i class="fa fa-times-circle"></i> Cancel Winner & Offer to 2nd Bidder';
-                        if (xhr.status === 200) {
-                            try {
-                                var response = JSON.parse(xhr.responseText);
-                                if (response.success) {
-                                    if (feedback) {
-                                        feedback.innerHTML = '<span class="text-success success-alert"><i class="fa fa-check-circle"></i> ' + response.message + '</span>';
-                                        feedback.style.display = 'block';
-                                    }
-                                    setTimeout(function() {
-                                        window.location.reload();
-                                    }, 2000);
-                                } else {
-                                    if (feedback) {
-                                        feedback.innerHTML = '<span class="text-danger error-alert"><i class="fa fa-exclamation-triangle"></i> ' + response.error + '</span>';
-                                        feedback.style.display = 'block';
-                                    }
-                                }
-                            } catch (err) {
-                                if (feedback) {
-                                    feedback.innerHTML = '<span class="text-danger error-alert"><i class="fa fa-exclamation-triangle"></i> Invalid response from server.</span>';
-                                    feedback.style.display = 'block';
-                                }
-                            }
+                xhr.onload = function () {
+                    btn.disabled = false;
+                    btn.textContent = 'Place bid';
+                    try {
+                        var res = JSON.parse(xhr.responseText);
+                        if (res.success) {
+                            feedback(res.leader, res.message);
+                            input.value = '';
+                            applyState(res);
+                            renderHistory();
                         } else {
-                            if (feedback) {
-                                feedback.innerHTML = '<span class="text-danger error-alert"><i class="fa fa-exclamation-triangle"></i> Communication error. Please retry.</span>';
-                                feedback.style.display = 'block';
-                            }
+                            feedback(false, res.error);
                         }
-                    }
+                    } catch (err) { feedback(false, 'Something went wrong. Please reload the page and try again.'); }
                 };
-                
-                var params = 'itemId=' + encodeURIComponent(itemId) + 
-                             '&octoken=' + encodeURIComponent(csrfToken);
-                xhr.send(params);
+                xhr.onerror = function () { btn.disabled = false; btn.textContent = 'Place bid'; feedback(false, 'Connection problem. Please try again.'); };
+                xhr.send('itemId=' + encodeURIComponent(itemId) + '&bidAmount=' + encodeURIComponent(amount) + '&octoken=' + encodeURIComponent($('csrf-token').value));
+            });
+        }
+
+        var cancelBtn = $('cancel-winner-btn');
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', function () {
+                if (!window.confirm('Cancel the winning bidder and offer the item to the next highest bidder? This cannot be undone.')) { return; }
+                var out = $('seller-console-feedback');
+                cancelBtn.disabled = true;
+                var xhr = new XMLHttpRequest();
+                xhr.open('POST', <?php echo json_encode(osc_ajax_hook_url('cancel_winner_offer_second')); ?>, true);
+                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
+                xhr.onload = function () {
+                    cancelBtn.disabled = false;
+                    try {
+                        var res = JSON.parse(xhr.responseText);
+                        out.innerHTML = '<span class="' + (res.success ? 'text-success success-alert' : 'text-danger error-alert') + '">' + esc(res.success ? res.message : res.error) + '</span>';
+                        out.style.display = 'block';
+                        if (res.success) { setTimeout(function () { window.location.reload(); }, 1800); }
+                    } catch (e) {}
+                };
+                xhr.send('itemId=' + encodeURIComponent(itemId) + '&octoken=' + encodeURIComponent($('csrf-token').value));
             });
         }
     });
@@ -635,16 +544,78 @@ function antique_bids_ajax_place_bid() {
     // 5. Model execution
     $res = ModelBids::newInstance()->placeBid($itemId, $userId, $bidAmount, $ipAddress, $item['fk_c_currency_code']);
 
-    if ($res === true) {
-        echo json_encode(array(
+    if (is_array($res)) {
+        $currency = $item['fk_c_currency_code'];
+        $isLeader = ($res['leader'] == $userId);
+        if ($isLeader) {
+            $message = 'You are the highest bidder. We will bid for you up to ' . antique_bids_money($bidAmount, $currency) . ' if someone bids against you.';
+            if (!$res['reserve_met']) {
+                $message .= ' The reserve price has not been met yet.';
+            }
+        } else {
+            $message = 'You have been outbid: another bidder set a higher maximum. Try a higher amount.';
+        }
+        if ($res['extended']) {
+            $message .= ' The auction has been extended by 2 minutes.';
+        }
+        if ($res['outbid'] && $res['outbid'] != $userId) {
+            antique_bids_send_outbid_email($itemId, $res['outbid'], $res['price']);
+        }
+        echo json_encode(array_merge(antique_bids_state($itemId), array(
             'success' => true,
-            'message' => 'Your bid has been placed!',
-            'newHighest' => $bidAmount
-        ));
+            'leader'  => $isLeader,
+            'message' => $message
+        )));
     } else {
         echo json_encode(array('success' => false, 'error' => $res));
     }
     exit;
+}
+
+/**
+ * "S***u": bidder names are shown masked to everyone else, as on major auction sites.
+ */
+function antique_bids_mask_name($name, $userId) {
+    if (osc_is_web_user_logged_in() && (int)$userId == (int)osc_logged_user_id()) {
+        return 'You';
+    }
+    $name = trim((string)$name);
+    if ($name === '') {
+        return 'Bidder';
+    }
+    $first = function_exists('mb_substr') ? mb_substr($name, 0, 1) : substr($name, 0, 1);
+    $last = function_exists('mb_substr') ? mb_substr($name, -1) : substr($name, -1);
+    return $first . '***' . $last;
+}
+
+/**
+ * Live state of an auction for the widget and its polling: current bid, bid count,
+ * end time (moves when a late bid extends it), reserve status and the viewer's position.
+ */
+function antique_bids_state($itemId) {
+    $model = ModelBids::newInstance();
+    $auction = $model->getAuction($itemId);
+    if (!$auction) {
+        return array('success' => false);
+    }
+    $highest = $model->getHighestBid($itemId);
+    $amount = $highest ? (float)$highest['d_amount'] : (float)$auction['d_starting_price'];
+    $reserve = (float)$auction['d_reserve_price'];
+    $uid = osc_is_web_user_logged_in() ? (int)osc_logged_user_id() : 0;
+    $myMax = $uid ? $model->getProxyMax($itemId, $uid) : 0;
+
+    return array(
+        'success'    => true,
+        'amount'     => $amount,
+        'hasBids'    => (bool)$highest,
+        'nextMin'    => $highest ? $amount + max(1, (float)$auction['d_min_increment']) : (float)$auction['d_starting_price'],
+        'bids'       => $model->countBids($itemId),
+        'end'        => date('c', strtotime($auction['dt_end_date'])),
+        'reserve'    => $reserve > 0 ? ($highest && $amount >= $reserve ? 'met' : 'not_met') : 'none',
+        'isLeader'   => $uid && $highest && (int)$highest['fk_i_user_id'] == $uid,
+        'myMax'      => $myMax,
+        'outbid'     => $uid && $myMax > 0 && !($highest && (int)$highest['fk_i_user_id'] == $uid)
+    );
 }
 
 // Hook to pull bid history list
@@ -657,8 +628,9 @@ function antique_bids_ajax_history() {
     // Public endpoint: only expose what the widget displays (no IPs / user IDs)
     foreach (ModelBids::newInstance()->getBidHistory($itemId, 5) as $bid) {
         $history[] = array(
-            'user_name' => $bid['user_name'],
-            'd_amount'  => $bid['d_amount']
+            'user_name' => antique_bids_mask_name($bid['user_name'], $bid['fk_i_user_id']),
+            'd_amount'  => $bid['d_amount'],
+            'won'       => $bid['s_status'] == 'won'
         );
     }
     echo json_encode($history);
@@ -670,19 +642,7 @@ osc_add_hook('ajax_get_highest_bid_val', 'antique_bids_ajax_highest');
 function antique_bids_ajax_highest() {
     ob_clean();
     header('Content-Type: application/json');
-    $itemId = (int)Params::getParam('itemId');
-    $highest = ModelBids::newInstance()->getHighestBid($itemId);
-    if ($highest) {
-        echo json_encode(array('success' => true, 'amount' => $highest['d_amount']));
-    } else {
-        // Fallback to start price
-        $auction = ModelBids::newInstance()->getAuction($itemId);
-        if ($auction) {
-            echo json_encode(array('success' => true, 'amount' => $auction['d_starting_price']));
-        } else {
-            echo json_encode(array('success' => false));
-        }
-    }
+    echo json_encode(antique_bids_state((int)Params::getParam('itemId')));
     exit;
 }
 
@@ -706,8 +666,10 @@ function antique_bids_item_edit($catID = null, $itemID = null) {
  */
 function antique_bids_render_form($auction = null) {
     $enabled = ($auction && $auction['b_active'] == 1);
-    $startingPrice = $auction ? $auction['d_starting_price'] : '';
-    $minIncrement = $auction ? $auction['d_min_increment'] : 100;
+    $startingPrice = $auction ? (float)$auction['d_starting_price'] : '';
+    $minIncrement = $auction ? (float)$auction['d_min_increment'] : 100;
+    $reservePrice = ($auction && (float)$auction['d_reserve_price'] > 0) ? (float)$auction['d_reserve_price'] : '';
+    $locked = ($auction && ModelBids::newInstance()->hasBids($auction['fk_i_item_id']));
     
     $duration = 7;
     if ($auction) {
@@ -731,18 +693,29 @@ function antique_bids_render_form($auction = null) {
         </div>
         
         <div id="bids-details-panel" class="bids-slide-panel" style="<?php echo $enabled ? 'display: flex;' : 'display: none;'; ?>">
+            <?php if ($locked) { ?>
+                <p class="bids-locked-note">Bidding has started, so the auction terms can no longer be changed.</p>
+            <?php } ?>
             <div class="form-row">
                 <label for="bids_starting_price">Starting bid</label>
                 <div class="input-wrap-post">
-                    <input type="number" name="bids_starting_price" id="bids_starting_price" value="<?php echo osc_esc_html($startingPrice); ?>" placeholder="Same as your price if left empty">
+                    <input type="number" name="bids_starting_price" id="bids_starting_price"<?php echo $locked ? ' disabled' : ''; ?> value="<?php echo osc_esc_html($startingPrice); ?>" placeholder="Same as your price if left empty">
                 </div>
                 <span class="help-text">In the same currency as your listing price. Bidding starts here.</span>
             </div>
             
             <div class="form-row">
+                <label for="bids_reserve_price">Reserve price <span class="optional">(optional)</span></label>
+                <div class="input-wrap-post">
+                    <input type="number" name="bids_reserve_price" id="bids_reserve_price"<?php echo $locked ? ' disabled' : ''; ?> value="<?php echo osc_esc_html($reservePrice); ?>" min="0" placeholder="No reserve">
+                </div>
+                <span class="help-text">The lowest price you will accept. If bidding ends below it, the item is not sold. Bidders only see whether it has been met, never the amount.</span>
+            </div>
+
+            <div class="form-row">
                 <label for="bids_min_increment">Minimum bid increase</label>
                 <div class="input-wrap-post">
-                    <input type="number" name="bids_min_increment" id="bids_min_increment" value="<?php echo osc_esc_html($minIncrement); ?>" min="1">
+                    <input type="number" name="bids_min_increment" id="bids_min_increment"<?php echo $locked ? ' disabled' : ''; ?> value="<?php echo osc_esc_html($minIncrement); ?>" min="1">
                 </div>
                 <span class="help-text">Each new bid must beat the current bid by at least this amount.</span>
             </div>
@@ -750,7 +723,7 @@ function antique_bids_render_form($auction = null) {
             <div class="form-row">
                 <label for="bids_duration">Auction length</label>
                 <div class="input-wrap-post select-wrap">
-                    <select name="bids_duration" id="bids_duration">
+                    <select name="bids_duration" id="bids_duration"<?php echo $locked ? ' disabled' : ''; ?>>
                         <option value="3" <?php echo $duration == 3 ? 'selected' : ''; ?>>3 days</option>
                         <option value="5" <?php echo $duration == 5 ? 'selected' : ''; ?>>5 days</option>
                         <option value="7" <?php echo $duration == 7 ? 'selected' : ''; ?>>7 days (recommended)</option>
@@ -759,7 +732,7 @@ function antique_bids_render_form($auction = null) {
                         <option value="30" <?php echo $duration == 30 ? 'selected' : ''; ?>>30 days</option>
                     </select>
                 </div>
-                <span class="help-text">Counted from when the listing is published.</span>
+                <span class="help-text"><?php echo $locked ? 'Ends ' . osc_esc_html(date('j M Y, H:i', strtotime($auction['dt_end_date']))) . ' (server time).' : 'Counted from when the listing is published.'; ?></span>
             </div>
         </div>
     </fieldset>
@@ -812,7 +785,7 @@ function antique_bids_posted_item($item) {
             $duration = 7;
         }
         
-        ModelBids::newInstance()->saveAuction($itemId, $startingPrice, $minIncrement, $duration, true);
+        ModelBids::newInstance()->saveAuction($itemId, $startingPrice, $minIncrement, $duration, true, (float)Params::getParam('bids_reserve_price'));
     }
 }
 
@@ -842,12 +815,12 @@ function antique_bids_edited_item($item) {
             $duration = 7;
         }
         
-        ModelBids::newInstance()->saveAuction($itemId, $startingPrice, $minIncrement, $duration, true);
+        ModelBids::newInstance()->saveAuction($itemId, $startingPrice, $minIncrement, $duration, true, (float)Params::getParam('bids_reserve_price'));
     } else {
         // Disable listing auction active state
         $auction = ModelBids::newInstance()->getAuction($itemId);
         if ($auction) {
-            ModelBids::newInstance()->saveAuction($itemId, $auction['d_starting_price'], $auction['d_min_increment'], 7, false);
+            ModelBids::newInstance()->saveAuction($itemId, $auction['d_starting_price'], $auction['d_min_increment'], 7, false, $auction['d_reserve_price']);
         }
     }
 }
@@ -863,14 +836,16 @@ function antique_bids_delete_item($itemID) {
  * Lazy Cron to automatically declare winners when auction timer finishes
  */
 function antique_bids_lazy_cron() {
+    ModelBids::newInstance()->ensureSchema();
+
     $last_cron = osc_get_preference('antique_bids_last_cron', 'antique_bids');
-    $force_run = (Params::getParam('run_cron') == '1');
     if ($last_cron == '') {
         osc_set_preference('antique_bids_last_cron', time(), 'antique_bids', 'INTEGER');
         $last_cron = time();
     }
-    
-    if ($force_run || (time() - $last_cron > 300)) {
+
+    // every minute: winners are declared and emailed close to the real end time
+    if (time() - $last_cron > 60) {
         osc_set_preference('antique_bids_last_cron', time(), 'antique_bids', 'INTEGER');
         antique_bids_process_expired_auctions();
     }
@@ -880,30 +855,86 @@ function antique_bids_lazy_cron() {
  * Process expired, unprocessed auctions and declare winners
  */
 function antique_bids_process_expired_auctions() {
-    $expired = ModelBids::newInstance()->getExpiredUnprocessedAuctions();
+    $model = ModelBids::newInstance();
+    $expired = $model->getExpiredUnprocessedAuctions();
     if (empty($expired)) {
         return;
     }
-    
+
     foreach ($expired as $auction) {
         $itemId = $auction['fk_i_item_id'];
-        
-        // Find highest active bid
-        $highest = ModelBids::newInstance()->getHighestBid($itemId);
-        if ($highest) {
-            // Update bid status to won
-            ModelBids::newInstance()->setBidStatus($highest['pk_i_id'], 'won');
-            
-            // Send email to winner & seller
+        // claim the auction first so two requests never email twice
+        if (!$model->markAuctionProcessed($itemId)) {
+            continue;
+        }
+
+        $highest = $model->getHighestBid($itemId);
+        $reserve = (float)$auction['d_reserve_price'];
+        if ($highest && ($reserve <= 0 || (float)$highest['d_amount'] >= $reserve)) {
+            $model->setBidStatus($highest['pk_i_id'], 'won');
             antique_bids_send_winner_emails($itemId, $highest);
+            antique_bids_send_lost_emails($itemId, (int)$highest['fk_i_user_id']);
+        } elseif ($highest) {
+            antique_bids_send_reserve_not_met_emails($itemId, $highest, $reserve);
         } else {
-            // No bids were placed. Notify seller that auction ended with no bids.
             antique_bids_send_no_bids_email($itemId);
         }
-        
-        // Mark auction as processed
-        ModelBids::newInstance()->markAuctionProcessed($itemId);
     }
+}
+
+/**
+ * Sends one branded HTML email. $paragraphs are HTML strings (escape user data first).
+ */
+function antique_bids_mail($to, $toName, $subject, $heading, $paragraphs, $ctaUrl = '', $ctaLabel = '') {
+    if (trim((string)$to) === '') {
+        return false;
+    }
+    $site = osc_esc_html(osc_page_title());
+    $body = '<div style="background:#F7F4EE;padding:28px 12px;font-family:Arial,Helvetica,sans-serif;color:#14213D;">'
+          . '<div style="max-width:560px;margin:0 auto;background:#FFFFFF;border:1px solid #E6DFD1;border-radius:6px;overflow:hidden;">'
+          . '<div style="padding:18px 28px;border-bottom:3px solid #A67C2E;font-family:Georgia,serif;font-size:22px;color:#14213D;">' . $site . '</div>'
+          . '<div style="padding:26px 28px;font-size:15px;line-height:1.6;">'
+          . '<h1 style="margin:0 0 16px;font-family:Georgia,serif;font-size:24px;font-weight:normal;color:#14213D;">' . osc_esc_html($heading) . '</h1>';
+    $body .= '<p style="margin:0 0 14px;">' . sprintf('Hello %s,', osc_esc_html($toName)) . '</p>';
+    foreach ($paragraphs as $para) {
+        $body .= '<p style="margin:0 0 14px;">' . $para . '</p>';
+    }
+    if ($ctaUrl !== '') {
+        $body .= '<p style="margin:22px 0 6px;"><a href="' . osc_esc_html($ctaUrl) . '" style="display:inline-block;padding:12px 24px;background:#A67C2E;color:#FFFFFF;text-decoration:none;border-radius:4px;font-weight:bold;">' . osc_esc_html($ctaLabel) . '</a></p>';
+    }
+    $body .= '</div><div style="padding:16px 28px;background:#FBF9F4;border-top:1px solid #EFE9DD;font-size:12px;color:#6B7280;">'
+           . sprintf('You are receiving this email because of your activity on %s.', '<a href="' . osc_base_url() . '" style="color:#8A6420;">' . $site . '</a>')
+           . '</div></div></div>';
+
+    return @osc_sendMail(array(
+        'from'     => _osc_from_email_aux(),
+        'to'       => $to,
+        'to_name'  => $toName,
+        'subject'  => $subject,
+        'body'     => $body,
+        'alt_body' => trim(preg_replace("/\n{3,}/", "\n\n", html_entity_decode(strip_tags(str_replace(array('</p>', '</h1>', '</div>', '<br/>', '<br>'), "\n", $body)), ENT_QUOTES, 'UTF-8')))
+    ));
+}
+
+/**
+ * "You have been outbid" email to the bidder who just lost the lead.
+ */
+function antique_bids_send_outbid_email($itemId, $userId, $price) {
+    $item = Item::newInstance()->findByPrimaryKey($itemId);
+    $user = User::newInstance()->findByPrimaryKey($userId);
+    if (!$item || !$user) return;
+
+    $title = osc_esc_html($item['s_title']);
+    antique_bids_mail(
+        $user['s_email'], $user['s_name'],
+        'You have been outbid on ' . $item['s_title'],
+        'You have been outbid',
+        array(
+            'Another bidder has placed a higher maximum bid on <strong>' . $title . '</strong>.',
+            'Current bid: <strong>' . osc_esc_html(antique_bids_money($price, $item['fk_c_currency_code'])) . '</strong>. The auction is still running, so you can bid again.'
+        ),
+        osc_item_url_from_item($item), 'Bid again'
+    );
 }
 
 /**
@@ -912,56 +943,96 @@ function antique_bids_process_expired_auctions() {
 function antique_bids_send_winner_emails($itemId, $highest) {
     $item = Item::newInstance()->findByPrimaryKey($itemId);
     if (!$item) return;
-    
-    $winnerUser = User::newInstance()->findByPrimaryKey($highest['fk_i_user_id']);
-    if (!$winnerUser) return;
-    
-    $winnerEmail = $winnerUser['s_email'];
-    $winnerName = $winnerUser['s_name'];
-    $bidAmountStr = antique_bids_money($highest['d_amount'], $item['fk_c_currency_code']);
-    
+
+    $winner = User::newInstance()->findByPrimaryKey($highest['fk_i_user_id']);
+    if (!$winner) return;
+
+    $title = osc_esc_html($item['s_title']);
+    $amount = osc_esc_html(antique_bids_money($highest['d_amount'], $item['fk_c_currency_code']));
     $itemUrl = osc_item_url_from_item($item);
-    
-    // 1. Email to Winner
-    $winnerSubject = "Congratulations! You won the auction for " . $item['s_title'];
-    $winnerBody = "Hello " . osc_esc_html($winnerName) . ",<br/><br/>";
-    $winnerBody .= "Congratulations! You won the live bidding auction for the antique <strong>" . osc_esc_html($item['s_title']) . "</strong>.<br/>";
-    $winnerBody .= "Your winning bid amount: <strong>{$bidAmountStr}</strong>.<br/><br/>";
-    $winnerBody .= "Please complete your payment and shipping coordination with the seller within 24 hours.<br/>";
-    $winnerBody .= "You can contact the seller directly by visiting the listing page here: <a href='{$itemUrl}'>{$itemUrl}</a>.<br/><br/>";
-    $winnerBody .= "Thank you for bidding!<br/>AntiqueLanka Team";
-    
-    $winnerParams = array(
-        'from' => _osc_from_email_aux(),
-        'to' => $winnerEmail,
-        'to_name' => $winnerName,
-        'subject' => $winnerSubject,
-        'body' => $winnerBody,
-        'alt_body' => strip_tags($winnerBody)
+
+    antique_bids_mail(
+        $winner['s_email'], $winner['s_name'],
+        'You won the auction for ' . $item['s_title'],
+        'Congratulations, you won!',
+        array(
+            'Your bid of <strong>' . $amount . '</strong> won the auction for <strong>' . $title . '</strong>.',
+            'Please contact the seller, <strong>' . osc_esc_html($item['s_contact_name']) . '</strong>, within 24 hours to agree payment and delivery. Read our safety guide before you pay.'
+        ),
+        $itemUrl, 'Contact the seller'
     );
-    @osc_sendMail($winnerParams);
-    
-    // 2. Email to Seller
-    $sellerEmail = $item['s_contact_email'];
-    $sellerName = $item['s_contact_name'];
-    
-    $sellerSubject = "Auction Ended: Your item " . $item['s_title'] . " has been sold!";
-    $sellerBody = "Hello " . osc_esc_html($sellerName) . ",<br/><br/>";
-    $sellerBody .= "The live bidding auction for your antique listing <strong>" . osc_esc_html($item['s_title']) . "</strong> has ended.<br/>";
-    $sellerBody .= "Winning Bid Amount: <strong>{$bidAmountStr}</strong>.<br/>";
-    $sellerBody .= "Winner Name: <strong>" . osc_esc_html($winnerName) . "</strong> (Email: " . osc_esc_html($winnerEmail) . ").<br/><br/>";
-    $sellerBody .= "Please contact the winner to finalize the transaction. If the winner fails to pay within 24 hours, you can cancel their bid and offer the item to the 2nd highest bidder directly from your listing details page.<br/><br/>";
-    $sellerBody .= "Thank you,<br/>AntiqueLanka Team";
-    
-    $sellerParams = array(
-        'from' => _osc_from_email_aux(),
-        'to' => $sellerEmail,
-        'to_name' => $sellerName,
-        'subject' => $sellerSubject,
-        'body' => $sellerBody,
-        'alt_body' => strip_tags($sellerBody)
+
+    antique_bids_mail(
+        $item['s_contact_email'], $item['s_contact_name'],
+        'Your auction has ended: ' . $item['s_title'],
+        'Your item has a winning bidder',
+        array(
+            'The auction for <strong>' . $title . '</strong> has ended with a winning bid of <strong>' . $amount . '</strong>.',
+            'Winner: <strong>' . osc_esc_html($winner['s_name']) . '</strong> (' . osc_esc_html($winner['s_email']) . ').',
+            'Please contact the winner to arrange payment and delivery. If they do not respond within 24 hours, you can cancel their bid and offer the item to the next highest bidder from your listing page.'
+        ),
+        $itemUrl, 'View your listing'
     );
-    @osc_sendMail($sellerParams);
+}
+
+/**
+ * "The auction has ended" email to every bidder who did not win.
+ */
+function antique_bids_send_lost_emails($itemId, $winnerId) {
+    $item = Item::newInstance()->findByPrimaryKey($itemId);
+    if (!$item) return;
+
+    foreach (ModelBids::newInstance()->getBidderIds($itemId) as $uid) {
+        if ($uid == $winnerId || $uid == (int)$item['fk_i_user_id']) continue;
+        $user = User::newInstance()->findByPrimaryKey($uid);
+        if (!$user) continue;
+        antique_bids_mail(
+            $user['s_email'], $user['s_name'],
+            'Auction ended: ' . $item['s_title'],
+            'This auction has ended',
+            array(
+                'The auction for <strong>' . osc_esc_html($item['s_title']) . '</strong> has ended and another bidder won.',
+                'Thank you for bidding. New antiques are listed every day.'
+            ),
+            osc_search_url(array('page' => 'search', 'sAuction' => 1)), 'See live auctions'
+        );
+    }
+}
+
+/**
+ * The auction ended below the reserve: no sale. Tells the seller and the highest bidder.
+ */
+function antique_bids_send_reserve_not_met_emails($itemId, $highest, $reserve) {
+    $item = Item::newInstance()->findByPrimaryKey($itemId);
+    if (!$item) return;
+
+    $title = osc_esc_html($item['s_title']);
+    $amount = osc_esc_html(antique_bids_money($highest['d_amount'], $item['fk_c_currency_code']));
+
+    antique_bids_mail(
+        $item['s_contact_email'], $item['s_contact_name'],
+        'Auction ended below your reserve: ' . $item['s_title'],
+        'Your reserve price was not met',
+        array(
+            'The auction for <strong>' . $title . '</strong> has ended. The highest bid was <strong>' . $amount . '</strong>, below your reserve of <strong>' . osc_esc_html(antique_bids_money($reserve, $item['fk_c_currency_code'])) . '</strong>, so there is no winner.',
+            'You can contact the highest bidder through the listing if you would like to accept their offer, or run the auction again from Edit listing.'
+        ),
+        osc_item_edit_url('', $itemId), 'Edit listing'
+    );
+
+    $bidder = User::newInstance()->findByPrimaryKey($highest['fk_i_user_id']);
+    if ($bidder) {
+        antique_bids_mail(
+            $bidder['s_email'], $bidder['s_name'],
+            'Auction ended: ' . $item['s_title'],
+            'The reserve price was not met',
+            array(
+                'The auction for <strong>' . $title . '</strong> has ended. Your bid of <strong>' . $amount . '</strong> was the highest, but it did not reach the seller\'s reserve price, so the item was not sold.',
+                'The seller may still contact you, or you can ask them a question from the listing.'
+            ),
+            osc_item_url_from_item($item), 'View listing'
+        );
+    }
 }
 
 /**
@@ -970,26 +1041,17 @@ function antique_bids_send_winner_emails($itemId, $highest) {
 function antique_bids_send_no_bids_email($itemId) {
     $item = Item::newInstance()->findByPrimaryKey($itemId);
     if (!$item) return;
-    
-    $sellerEmail = $item['s_contact_email'];
-    $sellerName = $item['s_contact_name'];
-    
-    $sellerSubject = "Auction Ended: No bids placed for " . $item['s_title'];
-    $sellerBody = "Hello " . osc_esc_html($sellerName) . ",<br/><br/>";
-    $sellerBody .= "The live bidding auction for your antique listing <strong>" . osc_esc_html($item['s_title']) . "</strong> has ended.<br/>";
-    $sellerBody .= "Unfortunately, no bids were placed on this item during the auction duration.<br/>";
-    $sellerBody .= "You can re-list or adjust the starting price by editing your item details here: <a href='" . osc_item_edit_url('', $itemId) . "'>Edit Listing</a>.<br/><br/>";
-    $sellerBody .= "Thank you,<br/>AntiqueLanka Team";
-    
-    $sellerParams = array(
-        'from' => _osc_from_email_aux(),
-        'to' => $sellerEmail,
-        'to_name' => $sellerName,
-        'subject' => $sellerSubject,
-        'body' => $sellerBody,
-        'alt_body' => strip_tags($sellerBody)
+
+    antique_bids_mail(
+        $item['s_contact_email'], $item['s_contact_name'],
+        'Auction ended with no bids: ' . $item['s_title'],
+        'Your auction ended with no bids',
+        array(
+            'The auction for <strong>' . osc_esc_html($item['s_title']) . '</strong> has ended without any bids.',
+            'Try a lower starting bid or a longer auction. You can run it again from Edit listing.'
+        ),
+        osc_item_edit_url('', $itemId), 'Edit listing'
     );
-    @osc_sendMail($sellerParams);
 }
 
 /**
@@ -1006,7 +1068,7 @@ function antique_bids_ajax_cancel_winner_offer_second() {
 
     $token = Params::getParam('octoken');
     if (!osc_csrfguard_validate_token($token)) {
-        echo json_encode(array('success' => false, 'error' => 'CSRF security token expired. Please reload page.'));
+        echo json_encode(array('success' => false, 'error' => 'Your session expired. Please reload the page.'));
         exit;
     }
 
@@ -1024,44 +1086,42 @@ function antique_bids_ajax_cancel_winner_offer_second() {
         exit;
     }
 
-    $db = ModelBids::newInstance()->dao;
+    $model = ModelBids::newInstance();
+    $db = $model->dao;
     $prefix = DB_TABLE_PREFIX;
-    $sql_won = "SELECT * FROM `{$prefix}t_item_bids` 
-                WHERE fk_i_item_id = " . (int)$itemId . " AND s_status = 'won' 
-                LIMIT 1";
-    
-    $won_res = $db->query($sql_won);
+    $won_res = $db->query("SELECT * FROM `{$prefix}t_item_bids` WHERE fk_i_item_id = " . (int)$itemId . " AND s_status = 'won' LIMIT 1");
     if (!$won_res || $won_res->numRows() == 0) {
         echo json_encode(array('success' => false, 'error' => 'No active winning bid found to cancel.'));
         exit;
     }
     $currentWinnerBid = $won_res->row();
 
-    // Mark winner's bid status as 'withdrawn'
-    ModelBids::newInstance()->setBidStatus($currentWinnerBid['pk_i_id'], 'withdrawn');
+    // withdraw all of the cancelled winner's bids (with proxy bidding they can hold several)
+    $db->query("UPDATE `{$prefix}t_item_bids` SET s_status = 'withdrawn' WHERE fk_i_item_id = " . (int)$itemId . " AND fk_i_user_id = " . (int)$currentWinnerBid['fk_i_user_id'] . " AND s_status IN ('active', 'won')");
 
-    // Find next highest active bid
-    $next_bids = ModelBids::newInstance()->getBids($itemId, 1);
+    // the next highest bid from someone else
+    $next_bids = $model->getBids($itemId, 1);
     $newWinnerBid = !empty($next_bids) ? $next_bids[0] : null;
+    $auction = $model->getAuction($itemId);
+    if ($newWinnerBid && $auction && (float)$auction['d_reserve_price'] > 0 && (float)$newWinnerBid['d_amount'] < (float)$auction['d_reserve_price']) {
+        $newWinnerBid = null;   // below the reserve: not a sale
+    }
 
     if ($newWinnerBid) {
-        ModelBids::newInstance()->setBidStatus($newWinnerBid['pk_i_id'], 'won');
+        $model->setBidStatus($newWinnerBid['pk_i_id'], 'won');
         antique_bids_send_second_chance_emails($itemId, $currentWinnerBid, $newWinnerBid);
 
         echo json_encode(array(
             'success' => true,
-            'message' => 'Cancelled winner. Bid offered to next highest bidder: ' . osc_esc_html($newWinnerBid['user_name']) . '.',
-            'hasNewWinner' => true,
-            'newWinnerName' => $newWinnerBid['user_name'],
-            'newWinnerEmail' => User::newInstance()->findByPrimaryKey($newWinnerBid['fk_i_user_id'])['s_email'],
-            'newWinnerAmount' => number_format($newWinnerBid['d_amount'], 2)
+            'message' => 'Winner cancelled. The item has been offered to the next highest bidder, ' . osc_esc_html($newWinnerBid['user_name']) . '.',
+            'hasNewWinner' => true
         ));
     } else {
         antique_bids_send_cancellation_no_bidders_emails($itemId, $currentWinnerBid);
-        
+
         echo json_encode(array(
             'success' => true,
-            'message' => 'Cancelled winner. No other bids exist on this item.',
+            'message' => 'Winner cancelled. There are no other eligible bids on this item.',
             'hasNewWinner' => false
         ));
     }
@@ -1075,62 +1135,44 @@ function antique_bids_send_second_chance_emails($itemId, $oldBid, $newBid) {
     $item = Item::newInstance()->findByPrimaryKey($itemId);
     if (!$item) return;
 
+    $cur = $item['fk_c_currency_code'];
+    $title = osc_esc_html($item['s_title']);
+    $itemUrl = osc_item_url_from_item($item);
+
     $oldWinner = User::newInstance()->findByPrimaryKey($oldBid['fk_i_user_id']);
     if ($oldWinner) {
-        $oldSubject = "Auction Update: Your winning bid for " . $item['s_title'] . " has been cancelled";
-        $oldBody = "Hello " . osc_esc_html($oldWinner['s_name']) . ",<br/><br/>";
-        $oldBody .= "Your winning bid of <strong>" . antique_bids_money($oldBid['d_amount'], $item['fk_c_currency_code']) . "</strong> for the antique <strong>" . osc_esc_html($item['s_title']) . "</strong> has been cancelled by the seller.<br/>";
-        $oldBody .= "This action was taken due to a payment timeout (non-payment within the 24-hour limit).<br/><br/>";
-        $oldBody .= "Thank you,<br/>AntiqueLanka Team";
-        
-        $oldParams = array(
-            'from' => _osc_from_email_aux(),
-            'to' => $oldWinner['s_email'],
-            'to_name' => $oldWinner['s_name'],
-            'subject' => $oldSubject,
-            'body' => $oldBody,
-            'alt_body' => strip_tags($oldBody)
+        antique_bids_mail(
+            $oldWinner['s_email'], $oldWinner['s_name'],
+            'Your winning bid for ' . $item['s_title'] . ' was cancelled',
+            'Your winning bid was cancelled',
+            array('The seller cancelled your winning bid of <strong>' . osc_esc_html(antique_bids_money($oldBid['d_amount'], $cur)) . '</strong> for <strong>' . $title . '</strong> because the sale was not completed within 24 hours.')
         );
-        @osc_sendMail($oldParams);
     }
 
     $newWinner = User::newInstance()->findByPrimaryKey($newBid['fk_i_user_id']);
     if ($newWinner) {
-        $newSubject = "Second Chance Offer: You won the auction for " . $item['s_title'] . "!";
-        $newBody = "Hello " . osc_esc_html($newWinner['s_name']) . ",<br/><br/>";
-        $newBody .= "Good news! The previous highest bidder did not finalize payment, and the seller of <strong>" . osc_esc_html($item['s_title']) . "</strong> has offered the item to you as the next highest bidder.<br/>";
-        $newBody .= "Your bid amount: <strong>" . antique_bids_money($newBid['d_amount'], $item['fk_c_currency_code']) . "</strong>.<br/><br/>";
-        $newBody .= "Please complete payment and coordinate shipping with the seller within 24 hours.<br/>";
-        $newBody .= "You can contact the seller directly by visiting the listing page here: <a href='" . osc_item_url_from_item($item) . "'>" . osc_item_url_from_item($item) . "</a>.<br/><br/>";
-        $newBody .= "Thank you,<br/>AntiqueLanka Team";
-
-        $newParams = array(
-            'from' => _osc_from_email_aux(),
-            'to' => $newWinner['s_email'],
-            'to_name' => $newWinner['s_name'],
-            'subject' => $newSubject,
-            'body' => $newBody,
-            'alt_body' => strip_tags($newBody)
+        antique_bids_mail(
+            $newWinner['s_email'], $newWinner['s_name'],
+            'Second chance offer: ' . $item['s_title'],
+            'The item is now offered to you',
+            array(
+                'The winning bidder for <strong>' . $title . '</strong> did not complete the sale, so the seller is offering it to you as the next highest bidder.',
+                'Your bid: <strong>' . osc_esc_html(antique_bids_money($newBid['d_amount'], $cur)) . '</strong>. Please contact the seller within 24 hours to agree payment and delivery.'
+            ),
+            $itemUrl, 'Contact the seller'
         );
-        @osc_sendMail($newParams);
     }
 
-    $sellerSubject = "Seller Update: Winner cancelled, offered to next bidder";
-    $sellerBody = "Hello " . osc_esc_html($item['s_contact_name']) . ",<br/><br/>";
-    $sellerBody .= "You have successfully cancelled the winning bid of <strong>" . antique_bids_money($oldBid['d_amount'], $item['fk_c_currency_code']) . "</strong> due to non-payment.<br/>";
-    $sellerBody .= "The item <strong>" . osc_esc_html($item['s_title']) . "</strong> has been offered to the 2nd highest bidder: <strong>" . osc_esc_html($newBid['user_name']) . "</strong> (Email: " . osc_esc_html($newWinner['s_email']) . ") at their bid price of <strong>" . antique_bids_money($newBid['d_amount'], $item['fk_c_currency_code']) . "</strong>.<br/><br/>";
-    $sellerBody .= "Please wait for the new winner to coordinate payment.<br/><br/>";
-    $sellerBody .= "Thank you,<br/>AntiqueLanka Team";
-
-    $sellerParams = array(
-        'from' => _osc_from_email_aux(),
-        'to' => $item['s_contact_email'],
-        'to_name' => $item['s_contact_name'],
-        'subject' => $sellerSubject,
-        'body' => $sellerBody,
-        'alt_body' => strip_tags($sellerBody)
+    antique_bids_mail(
+        $item['s_contact_email'], $item['s_contact_name'],
+        'Offered to the next bidder: ' . $item['s_title'],
+        'Offered to the next highest bidder',
+        array(
+            'You cancelled the winning bid of <strong>' . osc_esc_html(antique_bids_money($oldBid['d_amount'], $cur)) . '</strong> on <strong>' . $title . '</strong>.',
+            'The item is now offered to <strong>' . osc_esc_html($newBid['user_name']) . '</strong>' . ($newWinner ? ' (' . osc_esc_html($newWinner['s_email']) . ')' : '') . ' at their bid of <strong>' . osc_esc_html(antique_bids_money($newBid['d_amount'], $cur)) . '</strong>.'
+        ),
+        $itemUrl, 'View your listing'
     );
-    @osc_sendMail($sellerParams);
 }
 
 /**
@@ -1140,39 +1182,27 @@ function antique_bids_send_cancellation_no_bidders_emails($itemId, $oldBid) {
     $item = Item::newInstance()->findByPrimaryKey($itemId);
     if (!$item) return;
 
+    $cur = $item['fk_c_currency_code'];
+    $title = osc_esc_html($item['s_title']);
+
     $oldWinner = User::newInstance()->findByPrimaryKey($oldBid['fk_i_user_id']);
     if ($oldWinner) {
-        $oldSubject = "Auction Update: Your winning bid for " . $item['s_title'] . " has been cancelled";
-        $oldBody = "Hello " . osc_esc_html($oldWinner['s_name']) . ",<br/><br/>";
-        $oldBody .= "Your winning bid of <strong>" . antique_bids_money($oldBid['d_amount'], $item['fk_c_currency_code']) . "</strong> for the antique <strong>" . osc_esc_html($item['s_title']) . "</strong> has been cancelled by the seller due to non-payment.<br/><br/>";
-        $oldBody .= "Thank you,<br/>AntiqueLanka Team";
-        
-        $oldParams = array(
-            'from' => _osc_from_email_aux(),
-            'to' => $oldWinner['s_email'],
-            'to_name' => $oldWinner['s_name'],
-            'subject' => $oldSubject,
-            'body' => $oldBody,
-            'alt_body' => strip_tags($oldBody)
+        antique_bids_mail(
+            $oldWinner['s_email'], $oldWinner['s_name'],
+            'Your winning bid for ' . $item['s_title'] . ' was cancelled',
+            'Your winning bid was cancelled',
+            array('The seller cancelled your winning bid of <strong>' . osc_esc_html(antique_bids_money($oldBid['d_amount'], $cur)) . '</strong> for <strong>' . $title . '</strong> because the sale was not completed.')
         );
-        @osc_sendMail($oldParams);
     }
 
-    $sellerSubject = "Seller Update: Winner cancelled, no other bidders";
-    $sellerBody = "Hello " . osc_esc_html($item['s_contact_name']) . ",<br/><br/>";
-    $sellerBody .= "You have successfully cancelled the winning bid of <strong>" . antique_bids_money($oldBid['d_amount'], $item['fk_c_currency_code']) . "</strong> due to non-payment.<br/>";
-    $sellerBody .= "There are no other active bids on the listing <strong>" . osc_esc_html($item['s_title']) . "</strong>.<br/>";
-    $sellerBody .= "You may re-list the auction or adjust its starting price here: <a href='" . osc_item_edit_url('', $itemId) . "'>Edit Listing</a>.<br/><br/>";
-    $sellerBody .= "Thank you,<br/>AntiqueLanka Team";
-
-    $sellerParams = array(
-        'from' => _osc_from_email_aux(),
-        'to' => $item['s_contact_email'],
-        'to_name' => $item['s_contact_name'],
-        'subject' => $sellerSubject,
-        'body' => $sellerBody,
-        'alt_body' => strip_tags($sellerBody)
+    antique_bids_mail(
+        $item['s_contact_email'], $item['s_contact_name'],
+        'Winner cancelled: ' . $item['s_title'],
+        'Winner cancelled',
+        array(
+            'You cancelled the winning bid of <strong>' . osc_esc_html(antique_bids_money($oldBid['d_amount'], $cur)) . '</strong> on <strong>' . $title . '</strong>.',
+            'There are no other eligible bids. You can run the auction again from Edit listing.'
+        ),
+        osc_item_edit_url('', $itemId), 'Edit listing'
     );
-    @osc_sendMail($sellerParams);
 }
-?>

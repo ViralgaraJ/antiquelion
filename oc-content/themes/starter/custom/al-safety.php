@@ -4,7 +4,7 @@
 <ol>
   <li><strong><?php _e('Find an item.', 'starter'); ?></strong> <?php _e('Search or browse by category. Fixed-price listings show the asking price; auctions show the current bid and the time left.', 'starter'); ?></li>
   <li><strong><?php _e('Ask before you buy.', 'starter'); ?></strong> <?php _e('Use "Message seller" or the questions section to ask about condition, provenance, measurements and shipping.', 'starter'); ?></li>
-  <li><strong><?php _e('Bid or agree a price.', 'starter'); ?></strong> <?php _e('To bid, sign in and enter at least the minimum bid shown. When an auction ends, the highest bidder and the seller are notified by email and arrange the sale.', 'starter'); ?></li>
+  <li><strong><?php _e('Bid or agree a price.', 'starter'); ?></strong> <?php _e('To bid, sign in and enter the most you are willing to pay; the site bids for you only as much as needed to keep you in the lead, and emails you if someone outbids you. When an auction ends, the winner and the seller are notified by email and arrange the sale.', 'starter'); ?></li>
   <li><strong><?php _e('Pay and collect.', 'starter'); ?></strong> <?php _e('Buyer and seller agree payment, delivery or collection directly. AntiqueLion does not take payments or hold money.', 'starter'); ?></li>
 </ol>
 

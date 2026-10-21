@@ -32,6 +32,9 @@
 <ul>
   <li><?php _e('A bid is an offer to buy the item at that amount if you are the highest bidder when the auction ends. Only bid if you intend to buy.', 'starter'); ?></li>
   <li><?php _e('When the auction ends, the highest bidder and the seller are expected to complete the sale in good faith. Sellers must not bid on their own items or arrange for others to raise the price.', 'starter'); ?></li>
+  <li><?php _e('You can enter a maximum bid. The site then bids for you automatically, only as much as needed to keep you in the lead, up to your maximum. Your maximum is never shown to other users.', 'starter'); ?></li>
+  <li><?php _e('A seller may set a reserve price. If bidding ends below it, there is no sale and nobody is obliged to buy or sell.', 'starter'); ?></li>
+  <li><?php _e('A bid placed in the last 2 minutes extends the auction by 2 minutes, so every bidder has a fair chance to respond.', 'starter'); ?></li>
   <li><?php _e('Auction times are shown in your local time. Bids received after the end time are not accepted.', 'starter'); ?></li>
   <li><?php _e('We may cancel bids or auctions that we believe are fraudulent or break these terms.', 'starter'); ?></li>
 </ul>

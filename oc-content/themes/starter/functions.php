@@ -1496,6 +1496,8 @@ osc_add_hook('search_conditions', 'antique_filter_item_price');
 // no listings yet is a valid page (linked from the menu and footer): answer 200.
 function antique_empty_category_status() {
   if (osc_count_items() > 0 || trim((string)Params::getParam('sPattern')) != '') { return; }
+  // "Live auctions" is a main menu page: having none running right now is not a missing page
+  if (Params::getParam('sAuction') == '1' && !headers_sent()) { header('HTTP/1.1 200 OK', true, 200); return; }
   $param = Params::getParam('sCategory');
   if (is_array($param) || $param == '') { return; }
   $cat = is_numeric($param) ? osc_get_category_row((int)$param) : osc_get_category_row_by_slug(basename(trim($param, '/')));

@@ -203,8 +203,13 @@
     <?php if (osc_count_items() == 0) { ?>
       <div class="al-empty-state">
         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5M8 11h6"/></svg>
-        <h2><?php _e('No listings match your search', 'starter'); ?></h2>
-        <p><?php _e('Try fewer filters or a different keyword. You can also save this search and we will email you when a match is listed.', 'starter'); ?></p>
+        <?php if (Params::getParam('sAuction') == '1' && trim((string)Params::getParam('sPattern')) == '' && Params::getParam('sCategory') == '') { ?>
+          <h2><?php _e('No auctions are running right now', 'starter'); ?></h2>
+          <p><?php _e('New auctions start every week. Browse fixed-price listings in the meantime, or sell your own antique by auction.', 'starter'); ?></p>
+        <?php } else { ?>
+          <h2><?php _e('No listings match your search', 'starter'); ?></h2>
+          <p><?php _e('Try fewer filters or a different keyword. You can also save this search and we will email you when a match is listed.', 'starter'); ?></p>
+        <?php } ?>
         <a class="al-btn al-btn-ink" href="<?php echo osc_search_url(array('page' => 'search')); ?>"><?php _e('Browse all listings', 'starter'); ?></a>
       </div>
     <?php } else { ?>

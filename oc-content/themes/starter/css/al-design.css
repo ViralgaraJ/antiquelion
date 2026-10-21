@@ -2602,3 +2602,45 @@ html body .al-card-media img:not(.is-placeholder) { position: relative; z-index:
 .al-gallery-thumb img,
 .al-listing-thumb img,
 .al-share-thumb img { object-fit: contain !important; background: var(--al-line-soft); }
+
+/* ======================================================================
+   Auction card: maximum (proxy) bids, reserve status, leading / outbid
+   ====================================================================== */
+#al-auction .al-bid-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin: 4px 0 14px; color: var(--al-muted); font-size: 13px; font-weight: 600; }
+#al-auction .al-bid-reserve { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; background: #FBF1E6; color: #9A5B13; font-size: 12px; font-weight: 700; }
+#al-auction .al-bid-reserve::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+#al-auction .al-bid-reserve.is-met { background: #E8F5EC; color: #157F3C; }
+#al-auction .al-bid-status { margin: 0 0 14px; padding: 10px 12px; border-radius: var(--al-radius); border: 1px solid var(--al-line); background: var(--al-ivory); color: var(--al-ink); font-size: 13px; line-height: 1.45; }
+#al-auction .al-bid-status[hidden] { display: none; }
+#al-auction .al-bid-status.is-leading { border-color: #BFE3CB; background: #EEF8F1; color: #11603A; }
+#al-auction .al-bid-status.is-outbid { border-color: #F2C9C4; background: #FDF1EF; color: #A23B2C; }
+#al-auction #countdown-timer.is-ending { color: var(--al-danger) !important; }
+
+.al-item-aside #al-auction #al-bid-form { display: flex !important; flex-direction: column !important; gap: 8px !important; }
+#al-auction .al-bid-input-label { margin: 0; color: var(--al-ink); font-size: 13px; font-weight: 700; }
+#al-auction .al-bid-row { display: flex; gap: 10px; }
+#al-auction .al-bid-row .input-wrap { flex: 1 1 auto !important; min-width: 0; }
+#al-auction .al-bid-row input[type="number"] { height: 46px !important; padding-left: 50px !important; border: 1px solid var(--al-field-line) !important; border-radius: var(--al-radius) !important; box-shadow: none !important; color: var(--al-ink) !important; font-size: 16px !important; -moz-appearance: textfield; }
+#al-auction .al-bid-row input[type="number"]::-webkit-outer-spin-button,
+#al-auction .al-bid-row input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+#al-auction .al-bid-row input[type="number"]:focus { border-color: var(--al-brass) !important; box-shadow: 0 0 0 3px rgba(166, 124, 46, 0.2) !important; }
+#al-auction .al-bid-row .currency-label { color: var(--al-muted) !important; }
+.al-item-aside #al-auction .al-bid-row #place-bid-btn { flex: 0 0 auto; height: 46px !important; padding: 0 22px !important; text-transform: none !important; letter-spacing: 0 !important; font-size: 15px !important; }
+#al-auction .al-bid-quick { align-self: flex-start; margin: 0 !important; padding: 6px 12px !important; border: 1px dashed var(--al-brass) !important; border-radius: 999px !important; background: transparent !important; color: var(--al-brass-text) !important; font: 700 13px/1.2 var(--al-font-ui) !important; cursor: pointer; box-shadow: none !important; }
+#al-auction .al-bid-quick:hover { background: #F6F0E3 !important; }
+#al-auction .al-bid-help { margin: 12px 0 0; color: var(--al-muted); font-size: 12px; line-height: 1.55; }
+#al-auction #bid-feedback-msg { margin-top: 10px; }
+#al-auction #bid-feedback-msg .success-alert,
+#al-auction #bid-feedback-msg .error-alert { display: block; padding: 10px 12px; border-radius: var(--al-radius); font-size: 13px; line-height: 1.45; text-align: left; }
+#al-auction #bid-feedback-msg .success-alert { background: #EEF8F1; color: #11603A !important; }
+#al-auction #bid-feedback-msg .error-alert { background: #FDF1EF; color: #A23B2C !important; }
+@media (max-width: 420px) {
+  #al-auction .al-bid-row { flex-direction: column; }
+  .al-item-aside #al-auction .al-bid-row #place-bid-btn { width: 100% !important; }
+}
+
+/* sell form */
+.antique-bids-post-card .optional { color: var(--al-muted); font-weight: 500; }
+.antique-bids-post-card .bids-locked-note { width: 100%; margin: 0 0 8px; padding: 10px 12px; border-radius: var(--al-radius); background: var(--al-ivory); color: var(--al-ink); font-size: 13px; }
+#al-auction .al-bid-quick[hidden] { display: none !important; }
+html:not(#al-a):not(#al-b) body:not(#al-c) .antique-bids-post-card input:disabled { background: #F4F1EA !important; color: var(--al-muted) !important; cursor: not-allowed; }
