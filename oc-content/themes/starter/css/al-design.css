@@ -2534,3 +2534,6 @@ html body .uppy-Root .uppy-Dashboard-overlay { background-color: rgba(20, 33, 61
 html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item #photos .qq-upload-list li { background: var(--al-paper) !important; border: 1px solid var(--al-line) !important; border-radius: 8px !important; box-shadow: none !important; }
 html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item #photos .qq-upload-list li img { border-radius: 6px !important; }
 .al-item-details > .al-section-block ~ .al-section-block { margin-top: 24px !important; }
+
+/* phone text always starts after the flag + dial code (width set by js/al-phone.js) */
+html:not(#al-a):not(#al-b) body:not(#al-c) .iti input.iti__tel-input { padding-left: var(--al-iti-pad, 100px) !important; }

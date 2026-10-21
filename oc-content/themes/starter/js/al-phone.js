@@ -58,17 +58,24 @@
       i18n: { searchPlaceholder: msg.search || 'Search country' }
     });
 
-    // legacy theme CSS forces padding-left with !important; match the flag + dial code width
+    // Text must start after the flag + dial code. The library rewrites the inline
+    // padding whenever the country changes (dropping any !important), so the width
+    // goes into a CSS variable that a stylesheet rule applies (see al-design.css),
+    // and it is re-measured whenever the flag area changes size (+94 vs +1 268, fonts).
+    var flagBox = input.parentNode.querySelector('.iti__country-container');
     function fitPadding() {
-      var flag = input.parentNode.querySelector('.iti__country-container');
-      if (flag && flag.offsetWidth) {
-        input.style.setProperty('padding-left', (flag.offsetWidth + 10) + 'px', 'important');
+      if (flagBox && flagBox.offsetWidth) {
+        input.style.setProperty('--al-iti-pad', (flagBox.offsetWidth + 10) + 'px');
       }
     }
     fitPadding();
-    setTimeout(fitPadding, 300);
-    input.addEventListener('countrychange', fitPadding);
-    window.addEventListener('resize', fitPadding);
+    if (flagBox && window.ResizeObserver) {
+      new ResizeObserver(fitPadding).observe(flagBox);
+    } else {
+      setTimeout(fitPadding, 300);
+      window.addEventListener('resize', fitPadding);
+    }
+    input.addEventListener('countrychange', function () { fitPadding(); setTimeout(fitPadding, 0); });
 
     var error = document.createElement('div');
     error.className = 'al-phone-error';
