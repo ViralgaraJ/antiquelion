@@ -413,14 +413,14 @@
     $('.add_item input[name^="title"]').attr('placeholder', '<?php echo osc_esc_js(__('Short title for listing...', 'starter')); ?>');
     $('.add_item textarea[name^="description"]').attr('placeholder', '<?php echo osc_esc_js(__('Detail description of listing...', 'starter')); ?>');
     $('.add_item #contactName').attr('placeholder', '<?php echo osc_esc_js(__('Your name', 'starter')); ?>');
-    $('.add_item #cityArea').attr('placeholder', '<?php echo osc_esc_js(__('City area', 'starter')); ?>');
-    $('.add_item #zip').attr('placeholder', '<?php echo osc_esc_js(__('Zip code', 'starter')); ?>');
+    $('.add_item #cityArea').attr('placeholder', '<?php echo osc_esc_js(__('e.g. Kensington', 'starter')); ?>');
+    $('.add_item #zip').attr('placeholder', '<?php echo osc_esc_js(__('Postcode or ZIP', 'starter')); ?>');
     $('.add_item #contactEmail').attr('placeholder', '<?php echo osc_esc_js(__('Email address', 'starter')); ?>');
     $('.add_item #address').attr('placeholder', '<?php echo osc_esc_js(__('Address', 'starter')); ?>');
     $('textarea[id^="s_info"]').attr('placeholder', '<?php echo osc_esc_js(__('Information about you or your company...', 'starter')); ?>');
-    $('.modify_profile #cityArea').attr('placeholder', '<?php echo osc_esc_js(__('City area', 'starter')); ?>');
+    $('.modify_profile #cityArea').attr('placeholder', '<?php echo osc_esc_js(__('e.g. Kensington', 'starter')); ?>');
     $('.modify_profile #address').attr('placeholder', '<?php echo osc_esc_js(__('Address', 'starter')); ?>');
-    $('.modify_profile #zip').attr('placeholder', '<?php echo osc_esc_js(__('Zip code', 'starter')); ?>');
+    $('.modify_profile #zip').attr('placeholder', '<?php echo osc_esc_js(__('Postcode or ZIP', 'starter')); ?>');
     $('.modify_profile #s_website').attr('placeholder', '<?php echo osc_esc_js(__('Website URL', 'starter')); ?>');
     $('.modify_profile #new_email').attr('placeholder', '<?php echo osc_esc_js(__('New contact email', 'starter')); ?>');
     $('.modify_profile #password').attr('placeholder', '<?php echo osc_esc_js(__('Your current password', 'starter')); ?>');

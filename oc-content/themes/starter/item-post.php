@@ -41,7 +41,7 @@
           <?php if($category_type == 1 || $category_type == '') { ?>
 
             <div class="row category flat">
-              <label for="catId"><span><?php _e('Select Category', 'starter'); ?></span><span class="req">*</span></label>
+              <label for="catId"><span><?php _e('Category', 'starter'); ?></span><span class="req">*</span></label>
               <input id="catId" type="hidden" name="catId" value="<?php echo (starter_get_session('sCategory') <> '' ? starter_get_session('sCategory') : Params::getParam('sCategory')); ?>">
 
               <div id="flat-cat">
@@ -132,12 +132,12 @@
             <div class="price-wrap">
               <div class="inside">
                 <div class="price-type-row">
-                  <label class="price-label"><?php _e('Price Type', 'starter'); ?></label>
+                  <label class="price-label"><?php _e('Price type', 'starter'); ?></label>
                   <?php echo starter_simple_price_type(true); ?>
                 </div>
 
                 <div class="enter price-value-row">
-                  <label class="price-label"><?php _e('Price Amount', 'starter'); ?></label>
+                  <label class="price-label"><?php _e('Price', 'starter'); ?></label>
                   <div class="price-amount-currency">
                     <?php ItemForm::price_input_text(); ?>
                     <?php echo starter_simple_currency(true); ?>
@@ -214,12 +214,12 @@
             </div>
 
             <div class="row">
-              <label for="address"><?php _e('City Area', 'starter'); ?></label>
+              <label for="address"><?php _e('Area or neighbourhood', 'starter'); ?></label>
               <div class="input-box"><?php ItemForm::city_area_text($prepare); ?><i class="fa fa-map-pin"></i></div>
             </div>
 
             <div class="row">
-              <label for="address"><?php _e('ZIP', 'starter'); ?></label>
+              <label for="address"><?php _e('Postcode', 'starter'); ?></label>
               <div class="input-box"><?php ItemForm::zip_text($prepare); ?><i class="fa fa-map-signs"></i></div>
             </div>
 
@@ -239,17 +239,17 @@
           <!-- SELLER INFORMATION -->
           <div class="seller<?php if(osc_is_web_user_logged_in() ) { ?> logged<?php } ?>">
             <div class="row">
-              <label for="contactName"><?php _e('Your Name', 'starter'); ?><?php if(strpos($required_fields, 'name') !== false) { ?><span class="req">*</span><?php } ?></label>
+              <label for="contactName"><?php _e('Your name', 'starter'); ?><?php if(strpos($required_fields, 'name') !== false) { ?><span class="req">*</span><?php } ?></label>
               <div class="input-box"><?php ItemForm::contact_name_text($prepare); ?><i class="fa fa-user"></i></div>
             </div>
           
             <div class="row">
-              <label for="phone"><?php _e('Mobile Phone', 'starter'); ?><?php if(strpos($required_fields, 'phone') !== false) { ?><span class="req">*</span><?php } ?></label>
+              <label for="phone"><?php _e('Mobile phone', 'starter'); ?><?php if(strpos($required_fields, 'phone') !== false) { ?><span class="req">*</span><?php } ?></label>
               <div class="input-box"><input type="tel" id="sPhone" name="sPhone" value="<?php echo osc_esc_html($prepare['s_phone']); ?>" /><i class="fa fa-phone"></i></div>
             </div>
 
             <div class="row user-email">
-              <label for="contactEmail"><span><?php _e('E-mail', 'starter'); ?></span><span class="req">*</span></label>
+              <label for="contactEmail"><span><?php _e('Email', 'starter'); ?></span><span class="req">*</span></label>
               <div class="input-box"><?php ItemForm::contact_email_text($prepare); ?><i class="fa fa-at"></i></div>
 
               <div class="mail-show">
@@ -735,8 +735,8 @@
 
           <?php if(strpos($required_fields, 'name') !== false) { ?>
           contactName: {
-            required: '<?php echo osc_esc_js(__('Your Name: this field is required.', 'starter')); ?>',
-            minlength: '<?php echo osc_esc_js(__('Your Name: enter at least 3 characters.')); ?>'
+            required: '<?php echo osc_esc_js(__('Your name: this field is required.', 'starter')); ?>',
+            minlength: '<?php echo osc_esc_js(__('Your name: enter at least 3 characters.')); ?>'
           },
           <?php } ?>
 

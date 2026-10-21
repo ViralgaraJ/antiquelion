@@ -2798,3 +2798,42 @@ html body .al-mode-switch { align-items: stretch; }
 html body .al-mode-switch a,
 html body #al-header .al-account-menu .al-mode-switch a { display: flex !important; align-items: center; justify-content: center; min-height: 36px; margin: 0 !important; padding: 6px 10px !important; white-space: nowrap; font-family: var(--al-font-ui) !important; font-size: 13px !important; font-weight: 700 !important; line-height: 1.2 !important; letter-spacing: 0 !important; border: 0 !important; }
 html body #al-header .al-account-menu .al-mode-switch { margin: 12px 14px 6px !important; }
+
+/* ======================================================================
+   Phones: sell / edit form fills the screen, one even gutter
+   ====================================================================== */
+@media (max-width: 767px) {
+  html:not(#al-x) body:is(#body-item-post, #body-item-edit) .container-outer { padding-left: 0 !important; padding-right: 0 !important; }
+  html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item { padding: 12px 16px 24px !important; }
+  html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item fieldset.i-shadow,
+  html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item > form > .left-col > fieldset,
+  html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item .antique-bids-post-card { margin: 0 0 12px !important; padding: 18px 16px !important; border-radius: 10px !important; }
+  html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item fieldset.i-shadow h2,
+  html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item fieldset.i-shadow > .inside > h2 { font-size: 24px !important; }
+  /* the item details sit inside the Price card: a flat section, not a card in a card */
+  html:not(#al-a):not(#al-b) body:not(#al-c) .al-details-form { margin: 20px 0 4px !important; padding: 18px 0 0 !important; border: 0 !important; border-top: 1px solid var(--al-line-soft) !important; border-radius: 0 !important; background: transparent !important; }
+  html:not(#al-a):not(#al-b) body:not(#al-c) .al-details-form textarea { height: 112px !important; }
+  /* Publish: full width, close to the last card */
+  html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item form button[type="submit"].btn-primary { display: block !important; width: 100% !important; max-width: none !important; height: 52px !important; margin: 4px 0 0 !important; float: none !important; }
+  html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item form button[type="submit"].btn-primary { position: relative; }
+}
+
+/* Phones: the bottom dock covers the page end; pad the footer (dark) instead of the body (cream) */
+@media screen and (max-width: 767px) {
+  html body:not(.fw-supporting):not(.content_only):not(#al-x) { padding-bottom: 0 !important; }
+  html body #al-footer { padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px)) !important; }
+}
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-details-form textarea#al_provenance { height: 104px !important; min-height: 80px !important; padding: 12px 14px !important; line-height: 1.5 !important; }
+@media (max-width: 767px) {
+  /* every card in both columns of the sell form: same 16 px inside the card */
+  html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item form > div > fieldset { margin: 0 0 12px !important; padding: 18px 16px !important; border-radius: 10px !important; }
+}
+html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item label { text-transform: none !important; }
+/* Publish block: no empty spacer above the button when there is no captcha */
+html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item .buttons-block { margin-top: 8px !important; }
+html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item .buttons-block .box:not(:has(.row > *)) { display: none !important; }
+/* "Sell by auction" sits inside the Details card: a section, not a card in a card */
+html:not(#al-a):not(#al-b) body:not(#al-c) fieldset.hook-block .antique-bids-post-card,
+html:not(#al-a):not(#al-b) body:not(#al-c) .plugin-hook-data .antique-bids-post-card { margin: 0 !important; padding: 0 !important; border: 0 !important; border-radius: 0 !important; background: transparent !important; box-shadow: none !important; }
+html:not(#al-a):not(#al-b) body:not(#al-c) .plugin-hook-data .antique-bids-post-card .header-section h3 { border: 0 !important; padding-bottom: 0 !important; font-size: 20px !important; }
+@media (max-width: 767px) { html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item :is(.left-col, .right-col) { gap: 0 !important; } }
