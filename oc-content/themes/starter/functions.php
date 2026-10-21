@@ -46,6 +46,18 @@ function antique_image_sizes() {
 }
 osc_add_hook('init', 'antique_image_sizes');
 
+// Antiques need close-ups of marks, joints and damage: allow up to 12 photos per
+// listing (once; a higher limit set in oc-admin is kept).
+function antique_photo_limit() {
+  if (osc_get_preference('al_photo_limit', 'starter_theme') == '1') { return; }
+  if ((int)osc_get_preference('numImages@items') < 12) {
+    osc_set_preference('numImages@items', 12, 'osclass', 'INTEGER');
+  }
+  osc_set_preference('al_photo_limit', '1', 'starter_theme');
+  osc_reset_preferences();
+}
+osc_add_hook('init', 'antique_photo_limit');
+
 
 function starter_theme_info() {
   return array(
