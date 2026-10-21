@@ -8,8 +8,10 @@ require_once __DIR__ . '/inc.currency.php';
 require_once __DIR__ . '/inc.phone.php';
 require_once __DIR__ . '/inc.pages.php';
 require_once __DIR__ . '/inc.watchlist.php';
+require_once __DIR__ . '/inc.countries.php';
 require_once __DIR__ . '/inc.details.php';
 require_once __DIR__ . '/inc.report.php';
+require_once __DIR__ . '/inc.seller.php';
 
 // "JPG, PNG or GIF" from the allowed upload extensions (Settings > Media)
 function antique_upload_formats() {
@@ -578,20 +580,32 @@ function antique_account_nav($compact = false) {
     'expired' => Item::newInstance()->countItemTypesByUserID($uid, 'expired')
   );
 
-  $groups = array(
-    __('Selling', 'starter') => array(
-      array(__('All listings', 'starter'), osc_user_list_items_url(), $loc == 'user' && in_array($sec, array('items', 'dashboard')) && $type == '', array_sum($counts)),
-      array(__('Active', 'starter'), osc_user_list_items_url() . $sep . 'itemType=active', $type == 'active', $counts['active']),
-      array(__('Awaiting approval', 'starter'), osc_user_list_items_url() . $sep . 'itemType=pending_validate', $type == 'pending_validate', $counts['pending_validate']),
-      array(__('Expired', 'starter'), osc_user_list_items_url() . $sep . 'itemType=expired', $type == 'expired', $counts['expired']),
-      array(__('Sell an item', 'starter'), osc_item_post_url(), false, null)
-    ),
-    __('Account', 'starter') => array(
-      array(__('Watchlist', 'starter'), antique_watchlist_url(), Params::getParam('route') == 'al-watchlist', count(antique_watch_ids())),
-      array(__('Saved searches', 'starter'), osc_user_alerts_url(), $loc == 'user' && $sec == 'alerts', null),
-      array(__('Account settings', 'starter'), osc_user_profile_url(), $loc == 'user' && $sec == 'profile', null),
-      array(__('Public profile', 'starter'), osc_user_public_profile_url($uid), $loc == 'user' && $sec == 'pub_profile', null)
-    )
+  $seller = antique_is_seller($uid);
+  $mode = antique_account_mode();
+  $route = Params::getParam('route');
+
+  if ($mode == 'selling') {
+    $groups = array(
+      __('Selling', 'starter') => array(
+        array(__('All listings', 'starter'), osc_user_list_items_url(), $loc == 'user' && in_array($sec, array('items', 'dashboard')) && $type == '', array_sum($counts)),
+        array(__('Active', 'starter'), osc_user_list_items_url() . $sep . 'itemType=active', $type == 'active', $counts['active']),
+        array(__('Awaiting approval', 'starter'), osc_user_list_items_url() . $sep . 'itemType=pending_validate', $type == 'pending_validate', $counts['pending_validate']),
+        array(__('Expired', 'starter'), osc_user_list_items_url() . $sep . 'itemType=expired', $type == 'expired', $counts['expired']),
+        array(__('Sell an item', 'starter'), osc_item_post_url(), false, null),
+        array(__('My shop page', 'starter'), osc_user_public_profile_url($uid), $loc == 'user' && $sec == 'pub_profile', null)
+      )
+    );
+  } else {
+    $groups = array(
+      __('Buying', 'starter') => array(
+        array(__('My bids', 'starter'), antique_buying_url(), $route == 'al-buying', null),
+        array(__('Watchlist', 'starter'), antique_watchlist_url(), $route == 'al-watchlist', count(antique_watch_ids())),
+        array(__('Saved searches', 'starter'), osc_user_alerts_url(), $loc == 'user' && $sec == 'alerts', null)
+      )
+    );
+  }
+  $groups[__('Account', 'starter')] = array(
+    array(__('Account settings', 'starter'), osc_user_profile_url(), $loc == 'user' && $sec == 'profile', null)
   );
 
   $html = '<nav class="al-acc-nav' . ($compact ? ' is-compact' : '') . '" aria-label="' . osc_esc_html(__('My account', 'starter')) . '">';
@@ -599,6 +613,12 @@ function antique_account_nav($compact = false) {
     $html .= '<div class="al-acc-user"><img src="' . starter_profile_picture($uid, 'small', true) . '" alt="" width="44" height="44" />';
     $html .= '<div><strong>' . osc_esc_html(osc_logged_user_name()) . '</strong><span>' . osc_esc_html(osc_logged_user_email()) . '</span></div></div>';
   }
+  $html .= '<div class="al-mode-switch" role="group" aria-label="' . osc_esc_html(__('Account mode', 'starter')) . '">';
+  $html .= '<a href="' . osc_esc_html(antique_mode_url('buying')) . '"' . ($mode == 'buying' ? ' class="is-active" aria-current="true"' : '') . '>' . osc_esc_html(__('Buying', 'starter')) . '</a>';
+  $html .= $seller
+    ? '<a href="' . osc_esc_html(antique_mode_url('selling')) . '"' . ($mode == 'selling' ? ' class="is-active" aria-current="true"' : '') . '>' . osc_esc_html(__('Selling', 'starter')) . '</a>'
+    : '<a href="' . osc_esc_html(antique_seller_setup_url()) . '" class="is-cta"' . ($route == 'al-sell' ? ' aria-current="page"' : '') . '>' . osc_esc_html(__('Start selling', 'starter')) . '</a>';
+  $html .= '</div>';
   foreach ($groups as $title => $links) {
     $html .= '<div class="al-acc-group"><div class="al-acc-title">' . osc_esc_html($title) . '</div><ul>';
     foreach ($links as $l) {

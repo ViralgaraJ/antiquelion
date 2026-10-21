@@ -38,7 +38,7 @@
   $phone_digits = $al_phone['e164'] !== '' ? $al_phone['e164'] : preg_replace('/[^0-9+]/', '', $mobile);
   $mobile = $al_phone['display'];
 
-  $seller_name = osc_item_contact_name();
+  $seller_name = osc_item_user_id() ? antique_seller_display_name(osc_item_user_id(), osc_item_contact_name()) : osc_item_contact_name();
   if ($seller_name == '' || $seller_name == __('Anonymous', 'starter')) {
     $seller_name = !empty($item_user['s_name']) ? $item_user['s_name'] : __('Private seller', 'starter');
   }

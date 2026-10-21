@@ -64,7 +64,7 @@
 
         <?php } else { ?>
           <h1><?php _e('Create your account', 'starter'); ?></h1>
-          <p class="al-auth-lead"><?php _e('Free to join. Bid on auctions, save searches and sell to collectors worldwide.', 'starter'); ?></p>
+          <p class="al-auth-lead"><?php _e('Free to join. Bid on auctions, watch items and save searches. You can start selling whenever you are ready.', 'starter'); ?></p>
 
           <form name="register" id="register" action="<?php echo osc_base_url(true); ?>" method="post" class="al-form">
             <input type="hidden" name="page" value="register" />
@@ -73,7 +73,6 @@
 
             <label class="al-form-full"><span><?php _e('Full name', 'starter'); ?> <em>*</em></span><?php UserForm::name_text(); ?></label>
             <label class="al-form-full"><span><?php _e('Email', 'starter'); ?> <em>*</em></span><?php UserForm::email_text(); ?></label>
-            <label class="al-form-full"><span><?php _e('Mobile phone', 'starter'); ?></span><span class="input-box"><?php UserForm::mobile_text(osc_user()); ?></span></label>
             <div class="al-form-row al-form-2">
               <label><span><?php _e('Password', 'starter'); ?> <em>*</em></span><?php UserForm::password_text(); ?></label>
               <label><span><?php _e('Confirm password', 'starter'); ?> <em>*</em></span><?php UserForm::check_password_text(); ?></label>

@@ -98,15 +98,7 @@ function antique_item_details($itemId) {
 }
 
 function antique_details_countries() {
-  static $list = null;
-  if ($list === null) {
-    $list = array();
-    foreach ((array)Country::newInstance()->listAll() as $c) {
-      $list[strtoupper($c['pk_c_code'])] = $c['s_name'];
-    }
-    asort($list);
-  }
-  return $list;
+  return antique_country_names();
 }
 
 function antique_details_select($name, $options, $value, $placeholder) {

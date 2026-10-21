@@ -126,7 +126,8 @@ echo '<script defer src="' . osc_current_web_theme_js_url('al-watch.js') . '?v='
 
 // International phone inputs on the forms that collect a phone number
 $al_phone_page = in_array(osc_get_osclass_location(), array('register', 'item'))
-  || (osc_get_osclass_location() == 'user' && in_array(osc_get_osclass_section(), array('profile', 'pub_profile')));
+  || (osc_get_osclass_location() == 'user' && in_array(osc_get_osclass_section(), array('profile', 'pub_profile')))
+  || Params::getParam('route') == 'al-sell';
 if ($al_phone_page) {
   $al_geo = antique_visitor_country();
   $al_phone_fallback = array();

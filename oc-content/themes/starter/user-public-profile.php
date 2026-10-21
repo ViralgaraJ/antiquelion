@@ -30,7 +30,7 @@
         <div class="al-seller-head">
           <img class="al-seller-avatar" src="<?php echo starter_profile_picture(osc_user_id(), 'medium'); ?>" alt="" width="56" height="56" />
           <div>
-            <span class="al-seller-name"><?php echo osc_esc_html(osc_user_name()); ?></span>
+            <span class="al-seller-name"><?php echo osc_esc_html(antique_seller_display_name(osc_user_id(), osc_user_name())); ?></span>
             <div class="al-seller-sub">
               <?php
                 $sub = array(osc_user_field('b_company') == 1 ? __('Dealer', 'starter') : __('Private seller', 'starter'));
@@ -82,7 +82,7 @@
 
     <main class="al-profile-main">
       <div class="al-section-head">
-        <h2><?php echo sprintf(__('Listings from %s', 'starter'), osc_esc_html(osc_user_name())); ?></h2>
+        <h2><?php echo sprintf(__('Listings from %s', 'starter'), osc_esc_html(antique_seller_display_name(osc_user_id(), osc_user_name()))); ?></h2>
       </div>
       <?php echo starter_banner('public', 1); ?>
       <?php osc_run_hook('user_public_profile_items_top'); ?>
@@ -101,7 +101,7 @@
 
       <?php if ($can_contact) { ?>
         <section class="al-panel al-section-block" id="al-contact">
-          <h2 class="al-panel-title"><?php echo sprintf(__('Message %s', 'starter'), osc_esc_html(osc_user_name())); ?></h2>
+          <h2 class="al-panel-title"><?php echo sprintf(__('Message %s', 'starter'), osc_esc_html(antique_seller_display_name(osc_user_id(), osc_user_name()))); ?></h2>
           <form action="<?php echo osc_base_url(true); ?>" method="post" name="contact_form" id="contact_form_public" class="al-form">
             <input type="hidden" name="page" value="user" />
             <input type="hidden" name="action" value="contact_post" />

@@ -2720,3 +2720,60 @@ html body:is(#body-item-post, #body-item-edit) .al-dims-row > label > span { dis
 .al-report li a { display: block; padding: 8px 10px; border-radius: var(--al-radius); color: var(--al-ink) !important; text-decoration: none !important; }
 .al-report li a:hover { background: #FDF1EF; color: #A23B2C !important; }
 html:not(#al-a):not(#al-b) body:not(#al-c) .al-details-form fieldset.al-dims { margin: 0 !important; padding: 0 !important; border: 0 !important; background: none !important; box-shadow: none !important; }
+
+/* ======================================================================
+   Buying / Selling accounts
+   ====================================================================== */
+.al-mode-switch { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin: 12px 14px 4px; padding: 4px; border-radius: 999px; background: var(--al-ivory); border: 1px solid var(--al-line); }
+.al-mode-switch a { display: block; padding: 8px 10px; border-radius: 999px; color: var(--al-muted) !important; font-size: 13px; font-weight: 700; text-align: center; text-decoration: none !important; }
+.al-mode-switch a:hover { color: var(--al-ink) !important; }
+.al-mode-switch a.is-active { background: var(--al-ink); color: #FFFFFF !important; box-shadow: 0 1px 4px rgba(20, 33, 61, 0.2); }
+.al-mode-switch a.is-cta { color: var(--al-brass-text) !important; }
+.al-mode-switch a.is-cta:hover { background: #F6F0E3; }
+#al-header .al-acc-nav.is-compact .al-mode-switch { margin: 10px 14px 6px; }
+
+/* start selling */
+.al-sell-intro { margin-bottom: 18px; padding: 20px 22px; }
+.al-sell-intro p { margin: 14px 0 0; color: var(--al-muted); font-size: 14px; line-height: 1.6; }
+.al-sell-steps { display: flex; flex-wrap: wrap; gap: 8px 22px; margin: 0; padding: 0; list-style: none; }
+.al-sell-steps li { display: flex; align-items: center; gap: 8px; color: var(--al-muted); font-size: 13px; font-weight: 700; }
+.al-sell-steps span { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--al-line); background: var(--al-paper); font-size: 12px; }
+.al-sell-steps .is-done span { background: #157F3C; border-color: #157F3C; color: #FFFFFF; }
+.al-sell-steps .is-current { color: var(--al-ink); }
+.al-sell-steps .is-current span { background: var(--al-ink); border-color: var(--al-ink); color: #FFFFFF; }
+.al-sell-form { display: flex; flex-direction: column; gap: 18px; padding: 24px 22px; }
+.al-sell-form fieldset { margin: 0; padding: 0; border: 0; }
+.al-sell-form legend { margin-bottom: 10px; color: var(--al-ink); font-size: 14px; font-weight: 700; }
+.al-sell-type { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.al-sell-type legend { grid-column: 1 / -1; }
+.al-choice { position: relative; display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px; border: 1px solid var(--al-line); border-radius: var(--al-radius); background: var(--al-paper); cursor: pointer; }
+.al-choice:has(input:checked) { border-color: var(--al-brass); background: #FBF6EC; box-shadow: 0 0 0 1px var(--al-brass); }
+.al-choice input { margin: 3px 0 0; accent-color: var(--al-brass); }
+.al-choice span { display: flex; flex-direction: column; gap: 3px; }
+.al-choice strong { color: var(--al-ink); font-size: 15px; }
+.al-choice em { color: var(--al-muted); font-size: 13px; font-style: normal; line-height: 1.45; }
+.al-sell-form .al-hint { display: block; margin-top: 6px; color: var(--al-muted); font-size: 12px; }
+.al-sell-form [hidden] { display: none !important; }
+.al-sell-terms span { font-size: 13px; line-height: 1.5; }
+.al-sell-form > .al-btn { align-self: flex-start; }
+@media (max-width: 640px) { .al-sell-type { grid-template-columns: 1fr; } .al-sell-form > .al-btn { align-self: stretch; } }
+
+/* buying */
+.al-buy-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 26px; }
+.al-stat { display: flex; flex-direction: column; gap: 2px; padding: 16px 18px; text-decoration: none !important; }
+.al-stat strong { color: var(--al-ink); font-family: var(--al-font-display); font-size: 32px; font-weight: 600; line-height: 1; }
+.al-stat span { color: var(--al-muted); font-size: 13px; font-weight: 600; }
+.al-stat.is-alert strong { color: #A23B2C; }
+a.al-stat:hover { border-color: var(--al-brass); }
+.al-account-sub { margin: 0 0 12px !important; font-family: var(--al-font-display) !important; font-size: 24px !important; font-weight: 600 !important; color: var(--al-ink) !important; }
+.al-bid-badge { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 800; }
+.al-bid-badge.is-good { background: #E8F5EC; color: #157F3C; }
+.al-bid-badge.is-bad { background: #FDF1EF; color: #A23B2C; }
+.al-bid-badge.is-muted { background: var(--al-line-soft); color: var(--al-muted); }
+.al-bid-line { margin: 0; color: var(--al-muted); font-size: 14px; }
+.al-bid-line strong { color: var(--al-ink); }
+@media (max-width: 700px) { .al-buy-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-sell-form fieldset.al-sell-type { margin: 0 !important; padding: 0 !important; border: 0 !important; border-radius: 0 !important; background: none !important; box-shadow: none !important; }
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-sell-form fieldset.al-sell-type legend { float: left; width: 100%; margin: 0 0 10px !important; padding: 0 !important; }
+html body .al-buy-stats > .al-stat { margin: 0 !important; }
+.al-stat strong { font-family: var(--al-font-ui) !important; font-size: 28px; font-weight: 800; letter-spacing: -0.5px; }
