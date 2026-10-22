@@ -223,6 +223,7 @@
               <div class="al-seller-label"><?php _e('Sold by', 'starter'); ?></div>
               <?php if (osc_item_user_id() <> 0) { ?>
                 <a class="al-seller-name" href="<?php echo osc_user_public_profile_url(osc_item_user_id()); ?>"><?php echo osc_esc_html($seller_name); ?></a>
+                <?php echo antique_seller_badge(osc_item_user_id()); ?>
               <?php } else { ?>
                 <span class="al-seller-name"><?php echo osc_esc_html($seller_name); ?></span>
               <?php } ?>

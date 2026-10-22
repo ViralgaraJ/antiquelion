@@ -5,6 +5,8 @@
   <li><strong><?php _e('Account details:', 'starter'); ?></strong> <?php _e('your name, email address, password (stored encrypted), phone numbers, account type and, if you add them, location, website and a short description.', 'starter'); ?></li>
   <li><strong><?php _e('Listings:', 'starter'); ?></strong> <?php _e('titles, descriptions, photos, prices, item location and the contact details you choose to show.', 'starter'); ?></li>
   <li><strong><?php _e('Activity:', 'starter'); ?></strong> <?php _e('bids (with the time and IP address of each bid), questions and comments, saved searches and messages sent through our contact forms.', 'starter'); ?></li>
+  <li><strong><?php _e('Messages, offers and reviews:', 'starter'); ?></strong> <?php _e('messages and offers you send to other members on the site, and reviews you write or receive. Our team may read a conversation when someone reports it.', 'starter'); ?></li>
+  <li><strong><?php _e('Seller verification:', 'starter'); ?></strong> <?php _e('if you ask to be verified, your legal or business name, address, optional website and an identity or business document. The document is stored privately, seen only by our team, and deleted once we have decided on your request.', 'starter'); ?></li>
   <li><strong><?php _e('Technical data:', 'starter'); ?></strong> <?php _e('your IP address and browser information, used to keep the site secure and to guess your country for currency and phone settings.', 'starter'); ?></li>
 </ul>
 

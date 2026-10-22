@@ -43,6 +43,9 @@
 <ul>
   <li><?php _e('Payment, delivery, returns and refunds are agreed between buyer and seller. Local consumer laws may give buyers additional rights against sellers.', 'starter'); ?></li>
   <li><?php _e('Use contact details you receive only for the sale in question. No spam, harassment or abusive messages.', 'starter'); ?></li>
+  <li><?php _e('Offers: an offer stays open for 48 hours. If the other person accepts it, you have agreed to buy or sell at that price, and the listing is reserved for the buyer. Make offers only if you intend to complete the sale.', 'starter'); ?></li>
+  <li><?php _e('Reviews must describe your own real experience of the seller. Do not post reviews in exchange for payment or a discount, about yourself, or to harm a competitor. We may hide reviews that break these rules or contain personal details.', 'starter'); ?></li>
+  <li><?php _e('The verified badge means we checked the seller\'s name, address and document at the time. It is not a guarantee of any item or sale.', 'starter'); ?></li>
   <li><?php echo sprintf(__('Read our <a href="%s">safety guide</a> before you pay or ship.', 'starter'), antique_info_page_url('al-safety')); ?></li>
 </ul>
 

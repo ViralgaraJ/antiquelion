@@ -31,6 +31,7 @@
           <img class="al-seller-avatar" src="<?php echo starter_profile_picture(osc_user_id(), 'medium'); ?>" alt="" width="56" height="56" />
           <div>
             <span class="al-seller-name"><?php echo osc_esc_html(antique_seller_display_name(osc_user_id(), osc_user_name())); ?></span>
+            <?php echo antique_seller_badge(osc_user_id()); ?>
             <div class="al-seller-sub">
               <?php
                 $sub = array(osc_user_field('b_company') == 1 ? __('Dealer', 'starter') : __('Private seller', 'starter'));

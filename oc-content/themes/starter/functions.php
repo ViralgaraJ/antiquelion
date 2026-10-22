@@ -17,6 +17,7 @@ require_once __DIR__ . '/inc.mail.php';
 require_once __DIR__ . '/inc.messages.php';
 require_once __DIR__ . '/inc.offers.php';
 require_once __DIR__ . '/inc.reviews.php';
+require_once __DIR__ . '/inc.verify.php';
 
 // "JPG, PNG or GIF" from the allowed upload extensions (Settings > Media)
 function antique_upload_formats() {
@@ -597,7 +598,8 @@ function antique_account_nav($compact = false) {
         array(__('Awaiting approval', 'starter'), osc_user_list_items_url() . $sep . 'itemType=pending_validate', $type == 'pending_validate', $counts['pending_validate']),
         array(__('Expired', 'starter'), osc_user_list_items_url() . $sep . 'itemType=expired', $type == 'expired', $counts['expired']),
         array(__('Sell an item', 'starter'), osc_item_post_url(), false, null),
-        array(__('My shop page', 'starter'), osc_user_public_profile_url($uid), $loc == 'user' && $sec == 'pub_profile', null)
+        array(__('My shop page', 'starter'), osc_user_public_profile_url($uid), $loc == 'user' && $sec == 'pub_profile', null),
+        array(antique_seller_verified($uid) ? __('Verified', 'starter') : __('Get verified', 'starter'), antique_verify_url(), $route == 'al-verify', null)
       )
     );
   } else {
@@ -1769,6 +1771,7 @@ AdminMenu::newInstance()->add_menu(__('Theme Setting', 'starter'), osc_admin_ren
 AdminMenu::newInstance()->add_submenu_divider( 'starter_menu', __('Theme Settings', 'starter'), 'starter_submenu');
 AdminMenu::newInstance()->add_submenu( 'starter_menu', __('Header logo', 'starter'), osc_admin_render_theme_url('oc-content/themes/' . osc_current_web_theme() . '/admin/header.php'), 'header_starter', 'administrator');
 AdminMenu::newInstance()->add_submenu( 'starter_menu', __('Theme settings', 'starter'), osc_admin_render_theme_url('oc-content/themes/' . osc_current_web_theme() . '/admin/settings.php'), 'settings_starter');
+AdminMenu::newInstance()->add_submenu( 'starter_menu', __('Marketplace', 'starter'), antique_marketplace_admin_url(), 'marketplace_starter', 'administrator');
 
 
 if( !function_exists('logo_header') ) {

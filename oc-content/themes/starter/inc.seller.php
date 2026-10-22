@@ -85,7 +85,7 @@ function antique_account_mode() {
   $loc = osc_get_osclass_location();
   $sec = osc_get_osclass_section();
   $route = Params::getParam('route');
-  if (($loc == 'user' && in_array($sec, array('items', 'dashboard'))) || ($loc == 'item' && in_array($sec, array('item_add', 'item_edit')))) { return 'selling'; }
+  if (($loc == 'user' && in_array($sec, array('items', 'dashboard'))) || ($loc == 'item' && in_array($sec, array('item_add', 'item_edit'))) || in_array($route, array('al-verify', 'al-shop'))) { return 'selling'; }
   if (in_array($route, array('al-buying', 'al-watchlist')) || ($loc == 'user' && $sec == 'alerts')) { return 'buying'; }
   return (isset($_COOKIE['al_mode']) && $_COOKIE['al_mode'] == 'buying') ? 'buying' : 'selling';
 }
