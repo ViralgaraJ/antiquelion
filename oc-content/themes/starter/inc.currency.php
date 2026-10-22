@@ -3,10 +3,10 @@ if (!defined('ABS_PATH')) { exit('ABS_PATH is not loaded. Direct access is not a
 /*
  * AntiqueLion currency display.
  *
- * Prices are always shown in the currency the seller listed them in, as
- * "CODE 12,500" (codes avoid the $/AUD/CAD ambiguity for worldwide buyers).
- * When the visitor picked a different display currency in the header, an
- * approximate converted price is appended: "LKR 650,000 ≈ USD 2,150".
+ * Listing prices are shown only in the visitor's display currency (header
+ * selector), as "CODE 12,500" (codes avoid the $/AUD/CAD ambiguity for
+ * worldwide buyers). The seller's own price is kept in the tooltip. Bids and
+ * offers stay in the listing currency, since that is what gets paid.
  *
  * Rates come from open.er-api.com (free, no key, updated daily) and are cached
  * in t_preference; the replaced multicurrency plugin relied on a Yahoo API
@@ -156,23 +156,23 @@ function antique_price_html($price, $code) {
 
   $amount = $price / 1000000;
   $code = $code ? $code : ANTIQUE_DEFAULT_CURRENCY;
-  $html = osc_esc_html(antique_money($amount, $code));
+  $original = antique_money($amount, $code);
 
   $visitor = antique_visitor_currency();
-  if ($visitor !== $code) {
-    $converted = antique_convert($amount, $code, $visitor);
-    if ($converted !== null) {
-      // round the estimate so it does not look like a quoted price
-      if ($converted >= 100) {
-        $converted = round($converted, -1);
-      } elseif ($converted >= 10) {
-        $converted = round($converted);
-      } else {
-        $converted = round($converted, 2);
-      }
-      $html .= ' <span class="price-converted" title="' . osc_esc_html(__('Approximate conversion, daily exchange rate', 'starter')) . '">&asymp; ' . osc_esc_html(antique_money($converted, $visitor)) . '</span>';
-    }
+  $converted = $visitor !== $code ? antique_convert($amount, $code, $visitor) : null;
+  if ($converted === null) {
+    // same currency, or no exchange rate yet: the seller's price is all we can show
+    return osc_esc_html($original);
   }
 
-  return $html;
+  // round the estimate so it does not look like a quoted price
+  if ($converted >= 100) {
+    $converted = round($converted, -1);
+  } elseif ($converted >= 10) {
+    $converted = round($converted);
+  } else {
+    $converted = round($converted, 2);
+  }
+  $title = sprintf(__('Seller\'s price: %s (converted at the daily exchange rate)', 'starter'), $original);
+  return '<span class="price-local" title="' . osc_esc_html($title) . '">' . osc_esc_html(antique_money($converted, $visitor)) . '</span>';
 }
