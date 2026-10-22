@@ -3220,7 +3220,7 @@ html:not(#al-a):not(#al-b) body:not(#al-c) .al-shop-title h1 { margin: 0; paddin
 .al-shop-type { padding: 3px 10px; border-radius: 999px; background: var(--al-ivory); color: var(--al-muted); font-size: 12px; font-weight: 700; }
 .al-shop-tagline { margin: 0; color: #2B3445; font-size: 15px; line-height: 1.5; }
 .al-shop-title .al-rating-line { margin-top: 0; }
-.al-shop-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 360px; align-self: end; }
+.al-shop-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 360px; align-self: start; padding-top: 66px; } /* .al-shop-id overlaps the banner by 52px; start just below it */
 .al-shop-actions > .al-btn,
 .al-shop-actions .al-phone-revealed > .al-btn:only-child { grid-column: 1 / -1; }
 .al-shop-actions .al-phone-revealed { display: contents; }
@@ -3257,7 +3257,7 @@ html:not(#al-a):not(#al-b) body:not(#al-c) .al-shop-policies h3 { margin: 0 0 4p
   .al-shop-avatar { width: 84px; height: 84px; }
   .al-shop-title { padding-top: 44px; }
   html:not(#al-a):not(#al-b) body:not(#al-c) .al-shop-title h1 { font-size: 28px; }
-  .al-shop-actions { grid-column: 1 / -1; width: 100%; }
+  .al-shop-actions { grid-column: 1 / -1; width: 100%; padding-top: 0; }
   .al-shop-stats li { flex: 1 1 33%; padding: 12px 14px; }
   .al-shop-stats li:nth-child(3n) { border-right: 0; }
   .al-shop-stats strong { font-size: 22px; }
