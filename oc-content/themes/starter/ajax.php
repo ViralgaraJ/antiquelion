@@ -10,24 +10,25 @@ require_once ABS_PATH . 'oc-content/themes/starter/functions.php';
 
 // GET LOCATIONS FOR LOCATION PICKER VIA AJAX
 if(isset($_GET['ajaxLoc']) && $_GET['ajaxLoc'] == '1' && isset($_GET['term']) && $_GET['term'] <> '') {
-  $term = osc_esc_html(Params::getParam('term'));
+  // escaped for SQL (quotes, and % / _ so they match literally)
+  $term = City::newInstance()->dao->escapeStr(mb_substr(trim((string)Params::getParam('term')), 0, 60), true);
   $max = 12;
 
   if(osc_get_current_user_locations_native() == 1) {
     $sql = '
-      (SELECT "country" as type, coalesce(s_name_native, s_name) as name, null as name_top, null as city_id, null as region_id, pk_c_code as country_code  FROM ' . DB_TABLE_PREFIX . 't_country WHERE s_name like "' . $term . '%" OR s_name_native like "' . $term . '%")
+      (SELECT "country" as type, coalesce(s_name_native, s_name) as name, null as name_top, null as city_id, null as region_id, pk_c_code as country_code  FROM ' . DB_TABLE_PREFIX . 't_country WHERE s_name like \'' . $term . '%\' OR s_name_native like \'' . $term . '%\')
       UNION ALL
-      (SELECT "region" as type, coalesce(r.s_name_native, r.s_name) as name, coalesce(c.s_name_native, c.s_name) as name_top, null as city_id, r.pk_i_id  as region_id, r.fk_c_country_code as country_code  FROM ' . DB_TABLE_PREFIX . 't_region r, ' . DB_TABLE_PREFIX . 't_country c WHERE r.fk_c_country_code = c.pk_c_code AND (r.s_name like "' . $term . '%" OR r.s_name_native like "' . $term . '%"))
+      (SELECT "region" as type, coalesce(r.s_name_native, r.s_name) as name, coalesce(c.s_name_native, c.s_name) as name_top, null as city_id, r.pk_i_id  as region_id, r.fk_c_country_code as country_code  FROM ' . DB_TABLE_PREFIX . 't_region r, ' . DB_TABLE_PREFIX . 't_country c WHERE r.fk_c_country_code = c.pk_c_code AND (r.s_name like \'' . $term . '%\' OR r.s_name_native like \'' . $term . '%\'))
       UNION ALL
-      (SELECT "city" as type, coalesce(c.s_name_native, c.s_name) as name, concat(coalesce(r.s_name_native, r.s_name), concat(", ", upper(c.fk_c_country_code))) as name_top, c.pk_i_id as city_id, c.fk_i_region_id as region_id, c.fk_c_country_code as country_code  FROM ' . DB_TABLE_PREFIX . 't_city c, ' . DB_TABLE_PREFIX . 't_region r WHERE (c.s_name like "' . $term . '%" OR c.s_name_native like "' . $term . '%") AND c.fk_i_region_id = r.pk_i_id limit ' . $max . ')
+      (SELECT "city" as type, coalesce(c.s_name_native, c.s_name) as name, concat(coalesce(r.s_name_native, r.s_name), concat(", ", upper(c.fk_c_country_code))) as name_top, c.pk_i_id as city_id, c.fk_i_region_id as region_id, c.fk_c_country_code as country_code  FROM ' . DB_TABLE_PREFIX . 't_city c, ' . DB_TABLE_PREFIX . 't_region r WHERE (c.s_name like \'' . $term . '%\' OR c.s_name_native like \'' . $term . '%\') AND c.fk_i_region_id = r.pk_i_id limit ' . $max . ')
     ';  
   } else {
     $sql = '
-      (SELECT "country" as type, s_name as name, null as name_top, null as city_id, null as region_id, pk_c_code as country_code  FROM ' . DB_TABLE_PREFIX . 't_country WHERE s_name like "' . $term . '%")
+      (SELECT "country" as type, s_name as name, null as name_top, null as city_id, null as region_id, pk_c_code as country_code  FROM ' . DB_TABLE_PREFIX . 't_country WHERE s_name like \'' . $term . '%\')
       UNION ALL
-      (SELECT "region" as type, r.s_name as name, c.s_name as name_top, null as city_id, r.pk_i_id  as region_id, r.fk_c_country_code as country_code  FROM ' . DB_TABLE_PREFIX . 't_region r, ' . DB_TABLE_PREFIX . 't_country c WHERE r.fk_c_country_code = c.pk_c_code AND r.s_name like "' . $term . '%")
+      (SELECT "region" as type, r.s_name as name, c.s_name as name_top, null as city_id, r.pk_i_id  as region_id, r.fk_c_country_code as country_code  FROM ' . DB_TABLE_PREFIX . 't_region r, ' . DB_TABLE_PREFIX . 't_country c WHERE r.fk_c_country_code = c.pk_c_code AND r.s_name like \'' . $term . '%\')
       UNION ALL
-      (SELECT "city" as type, c.s_name as name, concat(r.s_name, concat(", ", upper(c.fk_c_country_code))) as name_top, c.pk_i_id as city_id, c.fk_i_region_id as region_id, c.fk_c_country_code as country_code  FROM ' . DB_TABLE_PREFIX . 't_city c, ' . DB_TABLE_PREFIX . 't_region r WHERE c.s_name like "' . $term . '%" AND c.fk_i_region_id = r.pk_i_id limit ' . $max . ')
+      (SELECT "city" as type, c.s_name as name, concat(r.s_name, concat(", ", upper(c.fk_c_country_code))) as name_top, c.pk_i_id as city_id, c.fk_i_region_id as region_id, c.fk_c_country_code as country_code  FROM ' . DB_TABLE_PREFIX . 't_city c, ' . DB_TABLE_PREFIX . 't_region r WHERE c.s_name like \'' . $term . '%\' AND c.fk_i_region_id = r.pk_i_id limit ' . $max . ')
     ';  
   }
 
@@ -58,7 +59,9 @@ if(isset($_GET['clearCookieAll']) && $_GET['clearCookieAll'] == 'done') {
 
 // GET ITEMS FOR AUTOCOMPLETE VIA AJAX
 if(isset($_GET['ajaxItem']) && $_GET['ajaxItem'] == '1' && isset($_GET['pattern']) && $_GET['pattern'] <> '') {
-  $pattern = osc_esc_html(Params::getParam('pattern'));
+  $pattern = mb_substr(trim((string)Params::getParam('pattern')), 0, 80);
+  $patternSql = Item::newInstance()->dao->escapeStr($pattern, true);
+  $locale = Item::newInstance()->dao->escapeStr(osc_current_user_locale());
   $max = 12;
 
   $db_prefix = DB_TABLE_PREFIX;
@@ -75,7 +78,9 @@ if(isset($_GET['ajaxItem']) && $_GET['ajaxItem'] == '1' && isset($_GET['pattern'
       LIMIT 1
     )
 
-    WHERE d.fk_c_locale_code = '" . osc_current_user_locale() . "' AND (s_title LIKE '%" . $pattern . "%' OR s_description LIKE '%" . $pattern . "%') 
+    WHERE d.fk_c_locale_code = '" . $locale . "' AND (d.s_title LIKE '%" . $patternSql . "%' OR d.s_description LIKE '%" . $patternSql . "%')
+      AND i.b_enabled = 1 AND i.b_active = 1 AND i.b_spam = 0
+      AND (i.dt_expiration IS NULL OR i.dt_expiration >= NOW())
     ORDER BY dt_pub_date DESC
     LIMIT " . $max . ";
   ";
@@ -89,7 +94,7 @@ if(isset($_GET['ajaxItem']) && $_GET['ajaxItem'] == '1' && isset($_GET['pattern'
   }
 
   foreach( $prepare as $i => $p ) {
-    $prepare[$i]['s_title'] = str_ireplace($pattern, '<b>' . $pattern . '</b>', $prepare[$i]['s_title']);
+    $prepare[$i]['s_title'] = str_ireplace(osc_esc_html($pattern), '<b>' . osc_esc_html($pattern) . '</b>', osc_esc_html($prepare[$i]['s_title']));
     $prepare[$i]['i_price'] = starter_ajax_item_format_price($prepare[$i]['i_price'], $prepare[$i]['fk_c_currency_code']);
     $prepare[$i]['item_url'] = osc_item_url_ns($prepare[$i]['pk_i_id']);
     if($prepare[$i]['image_url'] <> '') {
@@ -105,8 +110,8 @@ if(isset($_GET['ajaxItem']) && $_GET['ajaxItem'] == '1' && isset($_GET['pattern'
 
 
 // INCREASE CLICK COUNT ON PHONE NUMBER
-if(isset($_GET['ajaxPhoneClick']) && $_GET['ajaxPhoneClick'] == '1' && isset($_GET['itemId']) && $_GET['itemId'] > 0) {
-  starter_increase_clicks(Params::getParam('itemId'), Params::getParam('itemUserId'));
+if(isset($_GET['ajaxPhoneClick']) && $_GET['ajaxPhoneClick'] == '1' && isset($_GET['itemId']) && (int)$_GET['itemId'] > 0) {
+  starter_increase_clicks((int)Params::getParam('itemId'), (int)Params::getParam('itemUserId'));
   echo 1;
 }
 

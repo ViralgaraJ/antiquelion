@@ -2191,6 +2191,9 @@ function starter_get_cat_color( $id ) {
 
 // INCREASE PHONE CLICK VIEWS
 function starter_increase_clicks($itemId, $itemUserId = NULL) {
+  // both come straight from the query string; only plain IDs may reach the SQL below
+  $itemId = (int)$itemId;
+  $itemUserId = (int)$itemUserId;
   if($itemId > 0) {
     if($itemUserId == '' || $itemUserId == 0 || ($itemUserId <> '' && $itemUserId > 0 && $itemUserId <> osc_logged_user_id())) {
       $db_prefix = DB_TABLE_PREFIX;
