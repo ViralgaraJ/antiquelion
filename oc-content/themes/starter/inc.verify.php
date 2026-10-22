@@ -406,6 +406,34 @@ function antique_marketplace_admin_actions() {
       $db->query(sprintf("UPDATE `%s` SET b_reported = 0 WHERE pk_i_id = %d", antique_msg_threads_table(), $id));
       osc_add_flash_ok_message(__('Report closed.', 'starter'), 'admin');
       break;
+    // Reported listings (Osclass's report counters in t_item_stats)
+    case 'clear_item_reports':
+      Item::newInstance()->clearStat($id, 'all');
+      osc_add_flash_ok_message(__('Reports dismissed. The listing stays as it is.', 'starter'), 'admin');
+      break;
+    case 'hide_item':
+    case 'show_item':
+      $items = new ItemActions(true);
+      $act == 'hide_item' ? $items->disable($id) : $items->enable($id);
+      if ($act == 'hide_item') { Item::newInstance()->clearStat($id, 'all'); }
+      osc_add_flash_ok_message($act == 'hide_item' ? __('Listing hidden. Only you and the seller can see it now.', 'starter') : __('Listing is visible again.', 'starter'), 'admin');
+      break;
+    case 'delete_item':
+      $item = Item::newInstance()->findByPrimaryKey($id);
+      if ($item) {
+        $items = new ItemActions(true);
+        $items->delete($item['s_secret'], $id);
+      }
+      osc_add_flash_ok_message(__('Listing deleted.', 'starter'), 'admin');
+      break;
+    // Suspending a member disables their account and hides their listings (Osclass "Block")
+    case 'suspend_user':
+    case 'unsuspend_user':
+      require_once LIB_PATH . 'osclass/UserActions.php';
+      $users = new UserActions(true);
+      $act == 'suspend_user' ? $users->disable($id) : $users->enable($id);
+      osc_add_flash_ok_message($act == 'suspend_user' ? __('Member suspended. They cannot sign in and their listings are hidden.', 'starter') : __('Member restored. Their listings are visible again.', 'starter'), 'admin');
+      break;
   }
   osc_redirect_to(antique_marketplace_admin_url($tab));
 }

@@ -3,12 +3,14 @@
   starter_backoffice_menu(__('Marketplace', 'starter'));
 
   $al_tab = Params::getParam('tab');
-  if (!in_array($al_tab, array('verify', 'reviews', 'messages', 'seo'), true)) { $al_tab = 'verify'; }
+  if (!in_array($al_tab, array('overview', 'listings', 'verify', 'reviews', 'messages', 'seo'), true)) { $al_tab = 'overview'; }
   $al_db = antique_msg_db();
   $al_url = function ($tab) { return antique_marketplace_admin_url($tab); };
   $al_token = osc_csrfguard_generate_token();
-  $al_form = function ($act, $id, $label, $class = '', $extra = '') use ($al_token, $al_tab) {
-    return '<form method="post" action="' . osc_esc_html(antique_marketplace_admin_url($al_tab)) . '" class="almk-inline">'
+  // $confirm: question shown before a destructive action
+  $al_form = function ($act, $id, $label, $class = '', $extra = '', $confirm = '') use ($al_token, $al_tab) {
+    return '<form method="post" action="' . osc_esc_html(antique_marketplace_admin_url($al_tab)) . '" class="almk-inline"'
+      . ($confirm !== '' ? ' onsubmit="return confirm(' . osc_esc_html(json_encode($confirm)) . ')"' : '') . '>'
       . '<input type="hidden" name="octoken" value="' . $al_token . '" /><input type="hidden" name="al_mk" value="' . $act . '" /><input type="hidden" name="tab" value="' . $al_tab . '" /><input type="hidden" name="id" value="' . (int)$id . '" />'
       . $extra . '<button type="submit" class="almk-btn ' . $class . '">' . osc_esc_html($label) . '</button></form>';
   };
@@ -16,6 +18,19 @@
   $al_pending = $al_count("SELECT COUNT(*) AS n FROM `" . antique_sellers_table() . "` WHERE i_verify = " . ANTIQUE_VERIFY_PENDING);
   $al_rep_reviews = $al_count("SELECT COUNT(*) AS n FROM `" . antique_reviews_table() . "` WHERE b_reported = 1");
   $al_rep_threads = $al_count("SELECT COUNT(*) AS n FROM `" . antique_msg_threads_table() . "` WHERE b_reported = 1");
+  $al_p = DB_TABLE_PREFIX;
+  // listings with open reports (Osclass keeps the counters per day in t_item_stats)
+  $al_rep_sql = "SELECT s.fk_i_item_id, SUM(s.i_num_spam) AS spam, SUM(s.i_num_offensive) AS offensive, SUM(s.i_num_bad_classified) AS badcat,
+      SUM(s.i_num_repeated) AS repeated, SUM(s.i_num_expired) AS expired, MAX(s.dt_date) AS last
+    FROM `{$al_p}t_item_stats` s GROUP BY s.fk_i_item_id
+    HAVING SUM(s.i_num_spam + s.i_num_offensive + s.i_num_bad_classified + s.i_num_repeated + s.i_num_expired) > 0";
+  $al_rep_items = $al_count("SELECT COUNT(*) AS n FROM ({$al_rep_sql}) x");
+  $al_suspended = function ($uid) { $u = User::newInstance()->findByPrimaryKey($uid); return $u && !(int)$u['b_enabled']; };
+  $al_suspend_form = function ($uid, $who) use ($al_form, $al_suspended) {
+    return $al_suspended($uid)
+      ? $al_form('unsuspend_user', $uid, sprintf(__('Restore %s', 'starter'), $who))
+      : $al_form('suspend_user', $uid, sprintf(__('Suspend %s', 'starter'), $who), 'is-bad', '', __('Suspend this member? They will not be able to sign in, and all their listings will be hidden.', 'starter'));
+  };
 ?>
 <style>
   .almk { max-width: 1180px; font-size: 14px; }
@@ -48,18 +63,123 @@
   .almk-msgs p { margin: 0 0 6px; }
   .almk-seo label { display: flex; flex-direction: column; gap: 4px; margin: 0 0 14px; }
   .almk-seo input[type=text], .almk-seo textarea { width: 100%; max-width: 640px; padding: 8px 10px; border: 1px solid #D9D2C3; border-radius: 4px; font-size: 14px; }
+  .almk-tabs { flex-wrap: wrap; }
+  .almk-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; margin: 0 0 22px; }
+  .almk-stat { display: block; padding: 14px 16px; border: 1px solid #E5DFD3; border-radius: 8px; background: #fff; color: #14213D; text-decoration: none; }
+  .almk-stat strong { display: block; font-size: 26px; line-height: 1.2; }
+  .almk-stat span { color: #6B7280; font-size: 13px; }
+  a.almk-stat:hover { border-color: #A67C2E; }
+  .almk-stat.is-alert { border-color: #F3B4AE; background: #FFF6F5; }
+  .almk-stat.is-alert strong { color: #B42318; }
+  .almk-stat.is-ok strong { color: #067647; }
+  .almk-h { margin: 0 0 10px; font-size: 15px; color: #14213D; }
   .almk-empty { padding: 30px; border: 1px dashed #D6CDBB; border-radius: 8px; background: #fff; color: #6B7280; text-align: center; }
 </style>
 
 <div class="mb-body almk">
   <nav class="almk-tabs">
+    <a href="<?php echo $al_url('overview'); ?>"<?php echo $al_tab == 'overview' ? ' class="is-active"' : ''; ?>><?php _e('Overview', 'starter'); ?></a>
+    <a href="<?php echo $al_url('listings'); ?>"<?php echo $al_tab == 'listings' ? ' class="is-active"' : ''; ?>><?php _e('Reported listings', 'starter'); ?><?php if ($al_rep_items) { ?><em><?php echo $al_rep_items; ?></em><?php } ?></a>
     <a href="<?php echo $al_url('verify'); ?>"<?php echo $al_tab == 'verify' ? ' class="is-active"' : ''; ?>><?php _e('Seller verification', 'starter'); ?><?php if ($al_pending) { ?><em><?php echo $al_pending; ?></em><?php } ?></a>
     <a href="<?php echo $al_url('reviews'); ?>"<?php echo $al_tab == 'reviews' ? ' class="is-active"' : ''; ?>><?php _e('Reviews', 'starter'); ?><?php if ($al_rep_reviews) { ?><em><?php echo $al_rep_reviews; ?></em><?php } ?></a>
     <a href="<?php echo $al_url('messages'); ?>"<?php echo $al_tab == 'messages' ? ' class="is-active"' : ''; ?>><?php _e('Reported conversations', 'starter'); ?><?php if ($al_rep_threads) { ?><em><?php echo $al_rep_threads; ?></em><?php } ?></a>
     <a href="<?php echo $al_url('seo'); ?>"<?php echo $al_tab == 'seo' ? ' class="is-active"' : ''; ?>><?php _e('SEO and analytics', 'starter'); ?></a>
   </nav>
 
-  <?php if ($al_tab == 'verify') { ?>
+  <?php if ($al_tab == 'overview') { ?>
+    <?php
+      $al_week = "DATE_SUB(NOW(), INTERVAL 7 DAY)";
+      $al_waiting = $al_count("SELECT COUNT(*) AS n FROM `{$al_p}t_item` WHERE b_active = 0 AND b_enabled = 1");
+      $al_todo = array(
+        array($al_rep_items, __('Reported listings', 'starter'), $al_url('listings')),
+        array($al_pending, __('Sellers waiting for verification', 'starter'), $al_url('verify')),
+        array($al_rep_threads, __('Reported conversations', 'starter'), $al_url('messages')),
+        array($al_rep_reviews, __('Reported reviews', 'starter'), $al_url('reviews')),
+        array($al_waiting, __('Listings not activated yet', 'starter'), osc_admin_base_url(true) . '?page=items')
+      );
+      $al_live = array(
+        array($al_count("SELECT COUNT(*) AS n FROM `{$al_p}t_item` WHERE b_enabled = 1 AND b_active = 1 AND b_spam = 0 AND (dt_expiration IS NULL OR dt_expiration >= NOW())"), __('Listings online', 'starter')),
+        array($al_count("SELECT COUNT(*) AS n FROM `{$al_p}t_item_auctions` WHERE b_active = 1 AND dt_end_date > NOW()"), __('Auctions running', 'starter')),
+        array($al_count("SELECT COUNT(*) AS n FROM `" . antique_sellers_table() . "` WHERE i_verify = " . ANTIQUE_VERIFY_OK), __('Verified sellers', 'starter')),
+        array($al_count("SELECT COUNT(*) AS n FROM `{$al_p}t_user` WHERE b_enabled = 1 AND b_active = 1"), __('Members', 'starter'))
+      );
+      $al_recent = array(
+        array($al_count("SELECT COUNT(*) AS n FROM `{$al_p}t_user` WHERE dt_reg_date >= {$al_week}"), __('New members', 'starter')),
+        array($al_count("SELECT COUNT(*) AS n FROM `{$al_p}t_item` WHERE dt_pub_date >= {$al_week}"), __('New listings', 'starter')),
+        array($al_count("SELECT COUNT(*) AS n FROM `{$al_p}t_item_bids` WHERE dt_date >= {$al_week}"), __('Bids', 'starter')),
+        array($al_count("SELECT COUNT(*) AS n FROM `" . antique_msg_table() . "` WHERE s_kind = 'text' AND dt_sent >= {$al_week}"), __('Messages', 'starter')),
+        array($al_count("SELECT COUNT(*) AS n FROM `" . antique_offers_table() . "` WHERE dt_created >= {$al_week}"), __('Offers made', 'starter')),
+        array($al_count("SELECT COUNT(*) AS n FROM `" . antique_offers_table() . "` WHERE s_status = 'accepted' AND dt_responded >= {$al_week}"), __('Offers accepted', 'starter'))
+      );
+      $al_cron = (int)osc_get_preference('cron_seen', 'starter_theme');
+      $al_cron_ok = $al_cron > 0 && time() - $al_cron < ANTIQUE_CRON_FALLBACK;
+    ?>
+    <h3 class="almk-h"><?php _e('Needs your attention', 'starter'); ?></h3>
+    <div class="almk-grid">
+      <?php foreach ($al_todo as $al_s) { ?>
+        <a class="almk-stat<?php echo $al_s[0] ? ' is-alert' : ''; ?>" href="<?php echo osc_esc_html($al_s[2]); ?>"><strong><?php echo (int)$al_s[0]; ?></strong><span><?php echo osc_esc_html($al_s[1]); ?></span></a>
+      <?php } ?>
+    </div>
+    <h3 class="almk-h"><?php _e('Right now', 'starter'); ?></h3>
+    <div class="almk-grid">
+      <?php foreach ($al_live as $al_s) { ?><div class="almk-stat"><strong><?php echo (int)$al_s[0]; ?></strong><span><?php echo osc_esc_html($al_s[1]); ?></span></div><?php } ?>
+    </div>
+    <h3 class="almk-h"><?php _e('Last 7 days', 'starter'); ?></h3>
+    <div class="almk-grid">
+      <?php foreach ($al_recent as $al_s) { ?><div class="almk-stat"><strong><?php echo (int)$al_s[0]; ?></strong><span><?php echo osc_esc_html($al_s[1]); ?></span></div><?php } ?>
+    </div>
+    <h3 class="almk-h"><?php _e('Site health', 'starter'); ?></h3>
+    <div class="almk-card">
+      <h3><?php _e('Server cron', 'starter'); ?> <span class="almk-tag<?php echo $al_cron_ok ? ' is-ok' : ' is-bad'; ?>"><?php echo $al_cron_ok ? __('Running', 'starter') : __('Not running', 'starter'); ?></span></h3>
+      <p class="almk-meta"><?php echo $al_cron
+        ? sprintf(__('Last ran %s ago. It closes auctions, expires offers and sends watchlist emails.', 'starter'), osc_esc_html(antique_bids_time_left(max(60, time() - $al_cron))))
+        : __('It has not run yet. Add the cron job in cPanel so auctions close on time even when nobody is browsing.', 'starter'); ?>
+        <?php if (!$al_cron_ok) { ?><br><?php _e('Until it runs, visitors\' page loads do this work instead.', 'starter'); ?><?php } ?></p>
+    </div>
+
+  <?php } elseif ($al_tab == 'listings') { ?>
+    <?php
+      // wrapped: MariaDB cannot sort by an expression over aggregate aliases
+      $res = $al_db->query("SELECT * FROM ({$al_rep_sql}) x ORDER BY (x.spam + x.offensive) DESC, x.last DESC LIMIT 200");
+      $rows = $res ? $res->result() : array();
+      $al_reasons = antique_report_reasons();
+      $al_cols = array('spam' => 'spam', 'offensive' => 'offensive', 'badcat' => 'badcat', 'repeated' => 'repeated', 'expired' => 'expired');
+    ?>
+    <p class="almk-meta"><?php _e('Listings visitors reported with "Report this listing". Hide or delete what breaks the terms, and dismiss the rest.', 'starter'); ?></p>
+    <?php if (!$rows) { ?><div class="almk-empty"><?php _e('No reported listings.', 'starter'); ?></div><?php } ?>
+    <?php foreach ($rows as $r) {
+      $al_item = Item::newInstance()->findByPrimaryKey($r['fk_i_item_id']);
+      if (!$al_item) { continue; }
+      $al_hidden = !(int)$al_item['b_enabled'];
+      $al_seller = (int)$al_item['fk_i_user_id'];
+    ?>
+      <div class="almk-card">
+        <h3><a href="<?php echo osc_esc_html(osc_item_url_from_item($al_item)); ?>" target="_blank"><?php echo osc_esc_html($al_item['s_title']); ?></a>
+          <?php if ($al_hidden) { ?><span class="almk-tag"><?php _e('Hidden', 'starter'); ?></span><?php } ?>
+          <?php if ((int)$al_item['b_spam']) { ?><span class="almk-tag is-bad"><?php _e('Spam', 'starter'); ?></span><?php } ?>
+        </h3>
+        <div class="almk-meta">
+          <?php echo sprintf(__('Seller: %1$s (%2$s)', 'starter'), osc_esc_html($al_item['s_contact_name']), osc_esc_html($al_item['s_contact_email'])); ?>
+          <?php if ($al_seller && $al_suspended($al_seller)) { ?> <span class="almk-tag is-bad"><?php _e('Suspended', 'starter'); ?></span><?php } ?>
+          · <?php echo sprintf(__('Listed %s', 'starter'), osc_esc_html(date('j M Y', strtotime($al_item['dt_pub_date'])))); ?>
+          · <?php echo sprintf(__('Last report %s', 'starter'), osc_esc_html(date('j M Y', strtotime($r['last'])))); ?>
+          · <a href="<?php echo osc_admin_base_url(true); ?>?page=items&action=item_edit&id=<?php echo (int)$al_item['pk_i_id']; ?>"><?php _e('Edit in oc-admin', 'starter'); ?></a>
+        </div>
+        <div class="almk-docs" style="margin-top:10px">
+          <?php foreach ($al_cols as $al_k => $al_col) { if ((int)$r[$al_col] < 1) { continue; } ?>
+            <span class="almk-tag<?php echo in_array($al_k, array('spam', 'offensive'), true) ? ' is-bad' : ''; ?>"><?php echo osc_esc_html($al_reasons[$al_k][0]); ?> &times; <?php echo (int)$r[$al_col]; ?></span>
+          <?php } ?>
+        </div>
+        <div class="almk-actions">
+          <?php echo $al_form('clear_item_reports', $al_item['pk_i_id'], __('Dismiss reports', 'starter')); ?>
+          <?php echo $al_hidden ? $al_form('show_item', $al_item['pk_i_id'], __('Show listing again', 'starter')) : $al_form('hide_item', $al_item['pk_i_id'], __('Hide listing', 'starter'), 'is-bad'); ?>
+          <?php echo $al_form('delete_item', $al_item['pk_i_id'], __('Delete listing', 'starter'), 'is-bad', '', __('Delete this listing for good? Its photos, bids and offers are removed too.', 'starter')); ?>
+          <?php if ($al_seller) { echo $al_suspend_form($al_seller, __('seller', 'starter')); } ?>
+        </div>
+      </div>
+    <?php } ?>
+
+  <?php } elseif ($al_tab == 'verify') { ?>
     <?php
       $res = $al_db->query("SELECT s.*, u.s_name, u.s_email, u.b_company, u.s_phone_mobile, u.dt_reg_date FROM `" . antique_sellers_table() . "` s JOIN `" . DB_TABLE_PREFIX . "t_user` u ON u.pk_i_id = s.fk_i_user_id
         WHERE s.i_verify IN (" . ANTIQUE_VERIFY_PENDING . "," . ANTIQUE_VERIFY_OK . ") ORDER BY (s.i_verify = " . ANTIQUE_VERIFY_PENDING . ") DESC, s.dt_verify_req ASC LIMIT 200");
@@ -205,6 +325,8 @@
           <?php echo $al_form('clear_thread', $t['pk_i_id'], __('Close report', 'starter')); ?>
           <a class="almk-btn" style="display:inline-flex;align-items:center;text-decoration:none" href="<?php echo osc_admin_base_url(true); ?>?page=users&action=edit&id=<?php echo (int)$t['fk_i_seller_id']; ?>"><?php _e('Seller in oc-admin', 'starter'); ?></a>
           <a class="almk-btn" style="display:inline-flex;align-items:center;text-decoration:none" href="<?php echo osc_admin_base_url(true); ?>?page=users&action=edit&id=<?php echo (int)$t['fk_i_buyer_id']; ?>"><?php _e('Buyer in oc-admin', 'starter'); ?></a>
+          <?php echo $al_suspend_form((int)$t['fk_i_seller_id'], __('seller', 'starter')); ?>
+          <?php echo $al_suspend_form((int)$t['fk_i_buyer_id'], __('buyer', 'starter')); ?>
         </div>
       </div>
     <?php } ?>
