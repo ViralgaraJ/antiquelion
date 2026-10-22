@@ -52,7 +52,7 @@
         </div>
         <div class="al-listing-actions">
           <?php if ($b['status'] == 'outbid') { ?><a class="al-btn al-btn-brass" href="<?php echo osc_item_url(); ?>#al-auction"><?php _e('Bid again', 'starter'); ?></a>
-          <?php } elseif ($b['status'] == 'won') { ?><a class="al-btn al-btn-ink" href="<?php echo osc_item_url(); ?>#contact"><?php _e('Contact seller', 'starter'); ?></a>
+          <?php } elseif ($b['status'] == 'won') { ?><a class="al-btn al-btn-ink" href="<?php echo osc_item_url(); ?>#al-contact"><?php _e('Contact seller', 'starter'); ?></a>
           <?php } else { ?><a class="al-btn al-btn-outline" href="<?php echo osc_item_url(); ?>"><?php _e('View', 'starter'); ?></a><?php } ?>
         </div>
       </article>

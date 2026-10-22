@@ -124,6 +124,12 @@ echo '<script>window.alWatch = ' . json_encode(array(
 )) . ';</script>' . PHP_EOL;
 echo '<script defer src="' . osc_current_web_theme_js_url('al-watch.js') . '?v=' . filemtime(__DIR__ . '/js/al-watch.js') . '"></script>' . PHP_EOL;
 
+// Conversation page (Account > Messages)
+if (Params::getParam('route') == 'al-thread') {
+  echo '<script>window.alMsg = ' . json_encode(array('error' => __('Your message could not be sent. Check your connection and try again.', 'starter'))) . ';</script>' . PHP_EOL;
+  echo '<script defer src="' . osc_current_web_theme_js_url('al-messages.js') . '?v=' . filemtime(__DIR__ . '/js/al-messages.js') . '"></script>' . PHP_EOL;
+}
+
 // International phone inputs on the forms that collect a phone number
 $al_phone_page = in_array(osc_get_osclass_location(), array('register', 'item'))
   || (osc_get_osclass_location() == 'user' && in_array(osc_get_osclass_section(), array('profile', 'pub_profile')))

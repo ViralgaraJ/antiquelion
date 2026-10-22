@@ -57,9 +57,7 @@
 
         <?php if (!$is_me) { ?>
           <div class="al-seller-actions">
-            <?php if ($can_contact) { ?>
-              <a class="al-btn al-btn-brass al-btn-block" href="#al-contact"><?php _e('Message seller', 'starter'); ?></a>
-            <?php } ?>
+            <a class="al-btn al-btn-brass al-btn-block" href="#al-contact"><?php _e('Message seller', 'starter'); ?></a>
             <?php if ($phone_ok) { ?>
               <?php if ($phone_login) { ?>
                 <a class="al-btn al-btn-outline al-btn-block" href="<?php echo osc_user_login_url(); ?>"><?php _e('Sign in to see phone number', 'starter'); ?></a>
@@ -99,30 +97,18 @@
         <div class="al-empty-state"><h2><?php _e('No active listings right now', 'starter'); ?></h2><p><?php _e('Save a search to hear when this seller lists something new.', 'starter'); ?></p></div>
       <?php } ?>
 
-      <?php if ($can_contact) { ?>
+      <?php if (!$is_me) { ?>
         <section class="al-panel al-section-block" id="al-contact">
           <h2 class="al-panel-title"><?php echo sprintf(__('Message %s', 'starter'), osc_esc_html(antique_seller_display_name(osc_user_id(), osc_user_name()))); ?></h2>
-          <form action="<?php echo osc_base_url(true); ?>" method="post" name="contact_form" id="contact_form_public" class="al-form">
-            <input type="hidden" name="page" value="user" />
-            <input type="hidden" name="action" value="contact_post" />
-            <input type="hidden" name="id" value="<?php echo osc_user_id(); ?>" />
-            <div class="al-form-row al-form-2">
-              <label><span><?php _e('Your name', 'starter'); ?> <em>*</em></span><input type="text" name="yourName" required autocomplete="name" value="<?php echo osc_esc_html(osc_is_web_user_logged_in() ? osc_logged_user_name() : ''); ?>" /></label>
-              <label><span><?php _e('Email', 'starter'); ?> <em>*</em></span><input type="email" name="yourEmail" required autocomplete="email" value="<?php echo osc_esc_html(osc_is_web_user_logged_in() ? osc_logged_user_email() : ''); ?>" /></label>
+          <?php if (osc_is_web_user_logged_in()) { ?>
+            <?php echo antique_msg_compose(0, osc_user_id(), antique_seller_display_name(osc_user_id(), osc_user_name())); ?>
+          <?php } else { ?>
+            <p class="al-muted"><?php _e('Sign in to message this seller. Your conversation stays on the site and your email address is never shown.', 'starter'); ?></p>
+            <div class="al-inline-actions">
+              <a class="al-btn al-btn-ink" href="<?php echo osc_esc_html(antique_login_back_url(osc_user_public_profile_url(osc_user_id()) . '#al-contact')); ?>"><?php _e('Sign in', 'starter'); ?></a>
+              <a class="al-btn al-btn-outline" href="<?php echo osc_register_account_url(); ?>"><?php _e('Create an account', 'starter'); ?></a>
             </div>
-            <div class="al-form-row al-form-2">
-              <label><span><?php _e('Phone (optional)', 'starter'); ?></span><input type="tel" name="phoneNumber" value="" /></label>
-            </div>
-            <label class="al-form-full"><span><?php _e('Message', 'starter'); ?> <em>*</em></span><textarea name="message" required rows="5"></textarea></label>
-            <?php osc_show_recaptcha(); ?>
-            <button type="submit" class="al-btn al-btn-brass"><?php _e('Send message', 'starter'); ?></button>
-          </form>
-        </section>
-      <?php } else if (!$is_me) { ?>
-        <section class="al-panel al-section-block" id="al-contact">
-          <h2 class="al-panel-title"><?php _e('Contact this seller', 'starter'); ?></h2>
-          <p class="al-muted"><?php _e('Please sign in to message sellers.', 'starter'); ?></p>
-          <a class="al-btn al-btn-ink" href="<?php echo osc_user_login_url(); ?>"><?php _e('Sign in', 'starter'); ?></a>
+          <?php } ?>
         </section>
       <?php } ?>
     </main>

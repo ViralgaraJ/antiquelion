@@ -177,6 +177,7 @@
             <span class="al-buy-label"><?php _e('Price', 'starter'); ?></span>
             <div class="al-buy-amount"><?php echo antique_format_price(osc_item_price()); ?></div>
           </div>
+          <?php if (!$is_owner && $content_only == 0) { echo antique_offer_box(osc_item()); } ?>
         <?php } ?>
 
         <ul class="al-meta">
@@ -334,10 +335,12 @@
           <h2 class="al-panel-title"><?php _e('Ask the seller a question', 'starter'); ?></h2>
           <?php if (osc_item_is_expired()) { ?>
             <p class="al-muted"><?php _e('This listing has expired, so the seller can no longer be contacted.', 'starter'); ?></p>
-          <?php } else if (osc_reg_user_can_contact() && !osc_is_web_user_logged_in()) { ?>
-            <p class="al-muted"><?php _e('Please sign in to contact the seller.', 'starter'); ?></p>
+          <?php } else if (osc_item_user_id() > 0 && osc_is_web_user_logged_in()) { ?>
+            <?php echo antique_msg_compose(osc_item_id(), osc_item_user_id(), $seller_name); ?>
+          <?php } else if (osc_item_user_id() > 0 || (osc_reg_user_can_contact() && !osc_is_web_user_logged_in())) { ?>
+            <p class="al-muted"><?php _e('Sign in to message the seller. Your conversation stays on the site and your email address is never shown.', 'starter'); ?></p>
             <div class="al-inline-actions">
-              <a class="al-btn al-btn-ink" href="<?php echo osc_user_login_url(); ?>"><?php _e('Sign in', 'starter'); ?></a>
+              <a class="al-btn al-btn-ink" href="<?php echo osc_esc_html(antique_login_back_url(osc_item_url() . '#al-contact')); ?>"><?php _e('Sign in', 'starter'); ?></a>
               <a class="al-btn al-btn-outline" href="<?php echo osc_register_account_url(); ?>"><?php _e('Create an account', 'starter'); ?></a>
             </div>
           <?php } else { ?>

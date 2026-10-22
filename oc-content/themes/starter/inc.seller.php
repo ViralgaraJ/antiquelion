@@ -111,6 +111,13 @@ function antique_seller_router() {
     osc_redirect_to($mode == 'selling' ? osc_user_list_items_url() : antique_buying_url());
   }
 
+  $loginBack = html_entity_decode((string)Params::getParam('al_login_back'), ENT_QUOTES, 'UTF-8');
+  if ($loginBack !== '' && strpos($loginBack, osc_base_url()) === 0) {
+    if (osc_is_web_user_logged_in()) { osc_redirect_to($loginBack); }
+    Session::newInstance()->_set('al_after_login', $loginBack);
+    osc_redirect_to(osc_user_login_url());
+  }
+
   $page = Params::getParam('page');
   $action = Params::getParam('action');
   if ($page == 'custom' && Params::getParam('route') == 'al-sell' && antique_is_seller()) {
@@ -133,6 +140,11 @@ function antique_seller_router() {
   }
 }
 osc_add_hook('init', 'antique_seller_router', 2);
+
+// Sign-in link that returns to $url afterwards
+function antique_login_back_url($url) {
+  return osc_base_url(true) . '?al_login_back=' . rawurlencode($url);
+}
 
 // After signing in, go back to what the person was doing (e.g. "Sell an item")
 function antique_after_login_redirect($url) {

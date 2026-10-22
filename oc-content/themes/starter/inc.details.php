@@ -8,7 +8,7 @@ if (!defined('ABS_PATH')) { exit('ABS_PATH is not loaded. Direct access is not a
  * Rows live in t_al_item_details (created on first use).
  */
 
-define('ANTIQUE_DETAILS_SCHEMA', '1');
+define('ANTIQUE_DETAILS_SCHEMA', '2');   // 2: offer settings
 
 function antique_detail_options() {
   static $o = null;
@@ -70,11 +70,18 @@ function antique_details_schema() {
     `s_unit` varchar(2) NOT NULL DEFAULT 'cm',
     `s_provenance` text,
     `s_shipping` varchar(12) DEFAULT NULL,
+    `b_offers` tinyint(1) NOT NULL DEFAULT 1,
+    `d_offer_min` decimal(14,2) DEFAULT NULL,
     PRIMARY KEY (`fk_i_item_id`),
     KEY `idx_era` (`s_era`),
     KEY `idx_material` (`s_material`),
     KEY `idx_origin` (`s_origin`)
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+  // version 1 tables: add the offer settings
+  $cols = $ok ? Item::newInstance()->dao->query("SHOW COLUMNS FROM `" . antique_details_table() . "` LIKE 'b_offers'") : false;
+  if ($cols && $cols->numRows() == 0) {
+    $ok = Item::newInstance()->dao->query("ALTER TABLE `" . antique_details_table() . "` ADD `b_offers` tinyint(1) NOT NULL DEFAULT 1, ADD `d_offer_min` decimal(14,2) DEFAULT NULL");
+  }
   if ($ok) {
     osc_set_preference('details_schema', ANTIQUE_DETAILS_SCHEMA, 'starter_theme');
   }
@@ -93,7 +100,7 @@ function antique_item_details($itemId) {
   return $cache[$itemId] = array_merge(array(
     's_era' => '', 's_origin' => '', 's_material' => '', 's_maker' => '',
     'd_height' => null, 'd_width' => null, 'd_depth' => null, 's_unit' => 'cm',
-    's_provenance' => '', 's_shipping' => ''
+    's_provenance' => '', 's_shipping' => '', 'b_offers' => 1, 'd_offer_min' => null
   ), $row);
 }
 
@@ -121,8 +128,8 @@ function antique_details_form($itemId = 0) {
   $o = antique_detail_options();
   $d = antique_item_details($itemId);
   // keep what the seller typed when the form comes back with an error
-  foreach (array('era', 'origin', 'material', 'maker', 'height', 'width', 'depth', 'unit', 'provenance', 'shipping') as $f) {
-    $key = in_array($f, array('height', 'width', 'depth')) ? 'd_' . $f : 's_' . $f;
+  foreach (array('era', 'origin', 'material', 'maker', 'height', 'width', 'depth', 'unit', 'provenance', 'shipping', 'offers', 'offer_min') as $f) {
+    $key = in_array($f, array('height', 'width', 'depth', 'offer_min')) ? 'd_' . $f : ($f == 'offers' ? 'b_offers' : 's_' . $f);
     if (Params::existParam('al_' . $f)) { $d[$key] = Params::getParam('al_' . $f); }
   }
   ?>
@@ -159,6 +166,22 @@ function antique_details_form($itemId = 0) {
       <label class="al-df al-df-wide"><span><?php _e('Shipping', 'starter'); ?></span>
         <?php echo antique_details_select('al_shipping', $o['shipping'], $d['s_shipping'] ? $d['s_shipping'] : 'worldwide', __('Select shipping', 'starter')); ?>
       </label>
+      <fieldset class="al-df al-df-wide al-offers-set">
+        <legend><?php _e('Offers', 'starter'); ?></legend>
+        <input type="hidden" name="al_offers" value="0" />
+        <label class="al-check"><input type="checkbox" name="al_offers" value="1"<?php echo (int)$d['b_offers'] ? ' checked' : ''; ?> /><span><?php _e('Let buyers make offers on fixed-price listings', 'starter'); ?></span></label>
+        <label class="al-offer-min"><span><?php _e('Decline offers below', 'starter'); ?> <em><?php _e('(optional)', 'starter'); ?></em></span>
+          <input type="number" name="al_offer_min" min="0" step="any" inputmode="decimal" value="<?php echo osc_esc_html(antique_details_num($d['d_offer_min'])); ?>" placeholder="<?php echo osc_esc_html(__('Amount in your listing currency', 'starter')); ?>" />
+          <small class="al-hint"><?php _e('Lower offers are declined for you automatically. Buyers never see this amount.', 'starter'); ?></small>
+        </label>
+        <script>
+          (function () {
+            var box = document.currentScript.closest('.al-offers-set'), on = box.querySelector('input[type=checkbox]'), min = box.querySelector('.al-offer-min');
+            function sync() { min.hidden = !on.checked; }
+            on.addEventListener('change', sync); sync();
+          })();
+        </script>
+      </fieldset>
     </div>
   </div>
   <?php
@@ -183,7 +206,9 @@ function antique_details_save($item) {
     'd_depth'      => $num('al_depth'),
     's_unit'       => $pick('al_unit', $o['unit']) ?: 'cm',
     's_provenance' => trim(mb_substr(strip_tags((string)Params::getParam('al_provenance')), 0, 2000)),
-    's_shipping'   => $pick('al_shipping', $o['shipping'])
+    's_shipping'   => $pick('al_shipping', $o['shipping']),
+    'b_offers'     => Params::getParam('al_offers') === '0' ? 0 : 1,
+    'd_offer_min'  => (($m = (float)str_replace(',', '.', (string)Params::getParam('al_offer_min'))) > 0 && $m < 1000000000) ? round($m, 2) : null
   );
   $dao = Item::newInstance()->dao;
   $dao->query("DELETE FROM `" . antique_details_table() . "` WHERE fk_i_item_id = " . (int)$item['pk_i_id']);

@@ -78,7 +78,11 @@
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7z"/></svg>
           <span class="al-watch-badge" data-al-watch-total<?php echo $al_watch_total ? '' : ' hidden'; ?>><?php echo $al_watch_total; ?></span>
         </a>
-        <?php if (osc_is_web_user_logged_in()) { ?>
+        <?php if (osc_is_web_user_logged_in()) { $al_msg_total = antique_msg_unread_total(); ?>
+          <a class="al-msg-link" href="<?php echo antique_inbox_url(); ?>" aria-label="<?php echo osc_esc_html(__('Messages', 'starter')); ?>" title="<?php echo osc_esc_html(__('Messages', 'starter')); ?>">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <span class="al-watch-badge al-msg-badge" data-al-msg-total<?php echo $al_msg_total ? '' : ' hidden'; ?>><?php echo $al_msg_total; ?></span>
+          </a>
           <div class="al-account">
             <button type="button" class="al-account-btn" aria-haspopup="true" aria-expanded="false">
               <img src="<?php echo starter_profile_picture(osc_logged_user_id(), 'small', true); ?>" alt="" width="28" height="28" />
@@ -142,11 +146,11 @@
     </div>
     <span><?php _e('Sell', 'starter'); ?></span>
   </a>
-  <?php if(function_exists('im_messages') && function_exists('osc_route_url') && osc_is_web_user_logged_in()) { ?>
-    <a href="<?php echo (function_exists('osc_route_name_exists') && osc_route_name_exists('im-threads')) ? osc_route_url('im-threads') : osc_user_dashboard_url(); ?>" class="dock-item">
+  <?php if (osc_is_web_user_logged_in()) { $al_dock_unread = antique_msg_unread_total(); ?>
+    <a href="<?php echo antique_inbox_url(); ?>" class="dock-item<?php if (in_array(Params::getParam('route'), array('al-inbox', 'al-thread'))) { ?> active<?php } ?>">
       <i class="fa fa-commenting-o"></i>
       <span><?php _e('Messages', 'starter'); ?></span>
-      <?php if($message_count > 0) { ?><em class="dock-badge"><?php echo $message_count; ?></em><?php } ?>
+      <em class="dock-badge" data-al-msg-total<?php echo $al_dock_unread ? '' : ' hidden'; ?>><?php echo $al_dock_unread; ?></em>
     </a>
   <?php } else { ?>
     <a href="<?php echo osc_contact_url(); ?>" class="dock-item<?php if($loc == 'contact') { ?> active<?php } ?>">

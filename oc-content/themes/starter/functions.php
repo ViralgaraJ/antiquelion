@@ -13,6 +13,9 @@ require_once __DIR__ . '/inc.details.php';
 require_once __DIR__ . '/inc.report.php';
 require_once __DIR__ . '/inc.seller.php';
 require_once __DIR__ . '/inc.avatar.php';
+require_once __DIR__ . '/inc.mail.php';
+require_once __DIR__ . '/inc.messages.php';
+require_once __DIR__ . '/inc.offers.php';
 
 // "JPG, PNG or GIF" from the allowed upload extensions (Settings > Media)
 function antique_upload_formats() {
@@ -606,6 +609,7 @@ function antique_account_nav($compact = false) {
     );
   }
   $groups[__('Account', 'starter')] = array(
+    array(__('Messages', 'starter'), antique_inbox_url(), in_array($route, array('al-inbox', 'al-thread')), antique_msg_unread_total() ?: null),
     array(__('Account settings', 'starter'), osc_user_profile_url(), $loc == 'user' && $sec == 'profile', null)
   );
 
