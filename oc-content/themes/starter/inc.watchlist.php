@@ -154,13 +154,12 @@ function antique_watch_items() {
 }
 
 /**
- * "Ending soon" emails for watched auctions. Runs at most every 10 minutes.
+ * "Ending soon" emails for watched auctions. Runs from the server cron (inc.cron.php),
+ * or every 10 minutes on page loads while the cron is not running.
  */
 function antique_watch_ending_soon() {
   if (!function_exists('antique_bids_mail') || !class_exists('ModelBids')) { return; }
-  $last = (int)osc_get_preference('watch_ending_cron', 'starter_theme');
-  if (time() - $last < 600) { return; }
-  osc_set_preference('watch_ending_cron', time(), 'starter_theme', 'INTEGER');
+  if (!antique_job_due('watch_ending', 600)) { return; }
 
   $db = antique_watch_db();
   $p = DB_TABLE_PREFIX;
@@ -195,6 +194,7 @@ function antique_watch_ending_soon() {
   }
 }
 osc_add_hook('init', 'antique_watch_ending_soon');
+osc_add_hook('cron', 'antique_watch_ending_soon');
 
 /**
  * "A listing you watched has sold" email, sent once per watcher. Called when the

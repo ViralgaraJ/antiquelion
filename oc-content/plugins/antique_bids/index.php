@@ -38,8 +38,10 @@ function antique_bids_uninstall() {
     // Keep hook template empty
 }
 
-// Hook to run background checks on page initialization (lazy cron)
+// Winners are declared from the server cron (index.php?page=cron); page loads only
+// take over while it is not running (see the theme's inc.cron.php)
 osc_add_hook('init', 'antique_bids_lazy_cron');
+osc_add_hook('cron', 'antique_bids_lazy_cron');
 
 // Hook to display bidding card on top of item page sidebar
 osc_add_hook('item_sidebar_top', 'antique_bids_sidebar_widget');
@@ -860,6 +862,13 @@ function antique_bids_delete_item($itemID) {
  */
 function antique_bids_lazy_cron() {
     ModelBids::newInstance()->ensureSchema();
+
+    if (function_exists('antique_job_due')) {
+        if (antique_job_due('auctions', 60)) {
+            antique_bids_process_expired_auctions();
+        }
+        return;
+    }
 
     $last_cron = osc_get_preference('antique_bids_last_cron', 'antique_bids');
     if ($last_cron == '') {

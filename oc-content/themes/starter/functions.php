@@ -3,6 +3,7 @@ define('STARTER_THEME_VERSION', '1.5.1');
 define('USER_MENU_ICONS', 1);
 define('THEME_COMPATIBLE_WITH_OSCLASS_HOOKS', 820);     // Compatibility with new hooks up to version
 
+require_once __DIR__ . '/inc.cron.php';
 require_once __DIR__ . '/inc.geo.php';
 require_once __DIR__ . '/inc.currency.php';
 require_once __DIR__ . '/inc.phone.php';

@@ -121,11 +121,11 @@ function antique_offer_set_sold_flag($itemId, $value) {
 }
 
 /**
- * Expired offers: closed with a note in the conversation. Runs at most every 5 minutes.
+ * Expired offers: closed with a note in the conversation. Runs from the server cron
+ * (inc.cron.php), or every 5 minutes on page loads while the cron is not running.
  */
 function antique_offers_expire() {
-  if (time() - (int)osc_get_preference('offer_expire_run', 'starter_theme') < 300) { return; }
-  osc_set_preference('offer_expire_run', time(), 'starter_theme', 'INTEGER');
+  if (!antique_job_due('offers_expire', 300)) { return; }
   $res = antique_msg_db()->query(sprintf("SELECT * FROM `%s` WHERE s_status = 'pending' AND dt_expires <= '%s' LIMIT 100", antique_offers_table(), antique_msg_now()));
   if (!$res) { return; }
   foreach ($res->result() as $o) {
@@ -135,6 +135,7 @@ function antique_offers_expire() {
   }
 }
 osc_add_hook('init', 'antique_offers_expire', 9);
+osc_add_hook('cron', 'antique_offers_expire');
 
 function antique_offer_mail($toId, $subject, $heading, $lines, $thread, $cta) {
   $to = antique_msg_user($toId);
