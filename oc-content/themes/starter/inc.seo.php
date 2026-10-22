@@ -55,7 +55,7 @@ function antique_seo_page() {
     $p['seller'] = (int)Params::getParam('seller_post') ?: (int)Params::getParam('sUser');
     // anything that narrows the results beyond category / auctions / a page number
     $filters = array('sPattern', 'sCity', 'sRegion', 'sCountry', 'sItemCountry', 'sCityArea', 'sPriceMin', 'sPriceMax', 'pmin', 'pmax',
-      'sEra', 'sMaterial', 'sOrigin', 'sCondition', 'sTransaction', 'bPic', 'bPremium', 'sCompany', 'sOrder', 'iOrderType', 'sShowAs', 'seller_post', 'sUser', 'sPhone');
+      'sEra', 'sMaterial', 'sOrigin', 'sAvailable', 'sCondition', 'sTransaction', 'bPic', 'bPremium', 'sCompany', 'sOrder', 'iOrderType', 'sShowAs', 'seller_post', 'sUser', 'sPhone');
     $p['filtered'] = false;
     foreach ($filters as $f) { if (Params::getParam($f) !== '' && Params::getParam($f) !== null) { $p['filtered'] = true; break; } }
     if (osc_search_total_items() == 0) { $p['filtered'] = true; }   // empty result pages are not worth indexing

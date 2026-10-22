@@ -248,12 +248,16 @@ function starter_check_sold(){
   $secret = Params::getParam('secret');
   $item_type = Params::getParam('itemType');
 
-  if($status <> '' && $id <> '' && $id > 0) {
+  if(in_array((string)$status, array('0', '1', '2'), true) && $id <> '' && $id > 0) {
     $item = Item::newInstance()->findByPrimaryKey($id);
 
-    if( $secret == $item['s_secret'] ) {
-      //Item::newInstance()->dao->update(DB_TABLE_PREFIX.'t_item_starter', array('i_sold' => $status), array('fk_i_item_id' => $item['pk_i_id']));
-      $comm->update(DB_TABLE_PREFIX.'t_item_starter', array('i_sold' => $status), array('fk_i_item_id' => $item['pk_i_id']));
+    if( $item && $secret == $item['s_secret'] ) {
+      // upsert: listings posted from the admin or before the theme have no t_item_starter row
+      $comm->query(sprintf("INSERT INTO %st_item_starter (fk_i_item_id, i_sold) VALUES (%d, '%d') ON DUPLICATE KEY UPDATE i_sold = VALUES(i_sold)",
+        DB_TABLE_PREFIX, (int)$item['pk_i_id'], (int)$status));
+      if ((string)$status === '1' && function_exists('antique_watch_notify_sold')) {
+        antique_watch_notify_sold($item['pk_i_id']);
+      }
  
       if (osc_rewrite_enabled()) {
         $item_type_url = '?itemType=' . $item_type;
@@ -1443,6 +1447,12 @@ function starter_location_format($country = null, $region = null, $city = null) 
 function mb_filter_extend() {
   // SEARCH - ALL - INDIVIDUAL - COMPANY TYPE
   Search::newInstance()->addJoinTable( DB_TABLE_PREFIX.'t_item_starter.fk_i_item_id', DB_TABLE_PREFIX.'t_item_starter', DB_TABLE_PREFIX.'t_item.pk_i_id = '.DB_TABLE_PREFIX.'t_item_starter.fk_i_item_id', 'LEFT OUTER' ) ; // Mod
+
+
+  // SEARCH - AVAILABLE ONLY (hide sold and reserved)
+  if(Params::getParam('sAvailable') == '1') {
+    Search::newInstance()->addConditions(sprintf("COALESCE(%st_item_starter.i_sold, '') NOT IN ('1', '2')", DB_TABLE_PREFIX));
+  }
 
 
   // SEARCH - TRANSACTION

@@ -4,10 +4,11 @@ if (!defined('ABS_PATH')) { exit('ABS_PATH is not loaded. Direct access is not a
 /*
  * Watchlist: signed-in visitors save listings with the heart button on cards and on
  * the item page, see them under Account > Watchlist, and get an email shortly before
- * a watched auction ends. Rows live in t_al_watchlist (created on first use).
+ * a watched auction ends, and once when a watched listing sells. Rows live in
+ * t_al_watchlist (created on first use).
  */
 
-define('ANTIQUE_WATCH_SCHEMA', '1');
+define('ANTIQUE_WATCH_SCHEMA', '2');
 define('ANTIQUE_WATCH_ENDING_HOURS', 3);     // "ending soon" email this long before the end
 
 function antique_watch_table() {
@@ -27,9 +28,15 @@ function antique_watch_schema() {
     `fk_i_item_id` int(10) unsigned NOT NULL,
     `dt_added` datetime NOT NULL,
     `b_ending_sent` tinyint(1) NOT NULL DEFAULT 0,
+    `b_sold_sent` tinyint(1) NOT NULL DEFAULT 0,
     PRIMARY KEY (`fk_i_user_id`, `fk_i_item_id`),
     KEY `idx_item` (`fk_i_item_id`)
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8");
+  // schema 2: tables made by schema 1 lack b_sold_sent
+  $col = $ok ? $db->query("SHOW COLUMNS FROM `" . antique_watch_table() . "` LIKE 'b_sold_sent'") : false;
+  if ($col && $col->numRows() == 0) {
+    $ok = $db->query("ALTER TABLE `" . antique_watch_table() . "` ADD `b_sold_sent` tinyint(1) NOT NULL DEFAULT 0");
+  }
   if ($ok) {
     osc_set_preference('watch_schema', ANTIQUE_WATCH_SCHEMA, 'starter_theme');
   }
@@ -188,3 +195,40 @@ function antique_watch_ending_soon() {
   }
 }
 osc_add_hook('init', 'antique_watch_ending_soon');
+
+/**
+ * "A listing you watched has sold" email, sent once per watcher. Called when the
+ * seller marks a listing sold and when an auction is won. $skip: user IDs that
+ * already get their own email (the winner, the other bidders).
+ */
+function antique_watch_notify_sold($itemId, $skip = array()) {
+  if (!function_exists('antique_bids_mail')) { return; }
+  $item = Item::newInstance()->findByPrimaryKey((int)$itemId);
+  if (!$item) { return; }
+  $skip = array_map('intval', (array)$skip);
+  $skip[] = (int)$item['fk_i_user_id'];
+
+  $db = antique_watch_db();
+  $table = antique_watch_table();
+  $res = $db->query("SELECT fk_i_user_id FROM `{$table}` WHERE fk_i_item_id = " . (int)$itemId . " AND b_sold_sent = 0 LIMIT 500");
+  if (!$res) { return; }
+  $more = osc_search_url(array('page' => 'search', 'sCategory' => $item['fk_i_category_id'], 'sAvailable' => 1));
+  foreach ($res->result() as $r) {
+    $uid = (int)$r['fk_i_user_id'];
+    // claim first so a parallel request never sends it twice
+    $claim = $db->query("UPDATE `{$table}` SET b_sold_sent = 1 WHERE fk_i_user_id = {$uid} AND fk_i_item_id = " . (int)$itemId . " AND b_sold_sent = 0");
+    if (!$claim || $db->affectedRows() < 1 || in_array($uid, $skip, true)) { continue; }
+    $user = User::newInstance()->findByPrimaryKey($uid);
+    if (!$user) { continue; }
+    antique_bids_mail(
+      $user['s_email'], $user['s_name'],
+      sprintf(__('Sold: %s', 'starter'), $item['s_title']),
+      __('A listing you are watching has sold', 'starter'),
+      array(
+        sprintf(__('%s from your watchlist has been sold.', 'starter'), '<strong>' . osc_esc_html($item['s_title']) . '</strong>'),
+        __('Similar pieces are listed every day. Save a search to hear about them first.', 'starter')
+      ),
+      $more, __('See similar items for sale', 'starter')
+    );
+  }
+}

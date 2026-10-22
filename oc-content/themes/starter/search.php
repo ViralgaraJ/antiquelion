@@ -30,7 +30,7 @@
   // Active filter chips: label => URL without that filter
   $al_chips = array();
   // Every filter the page understands; a chip link keeps all of them except its own
-  $al_keep = array('sPattern', 'sCategory', 'sAuction', 'sItemCountry', 'sCondition', 'sTransaction', 'sPeriod', 'bPic', 'seller_post', 'sOrder', 'iOrderType', 'sCompany', 'pmin', 'pmax', 'sEra', 'sMaterial', 'sOrigin');
+  $al_keep = array('sPattern', 'sCategory', 'sAuction', 'sAvailable', 'sItemCountry', 'sCondition', 'sTransaction', 'sPeriod', 'bPic', 'seller_post', 'sOrder', 'iOrderType', 'sCompany', 'pmin', 'pmax', 'sEra', 'sMaterial', 'sOrigin');
   $al_strip = function ($keys) use ($al_keep) {
     $p = array('page' => 'search');
     foreach ($al_keep as $k) {
@@ -45,6 +45,7 @@
     if (!empty($c['s_name'])) { $al_chips[$c['s_name']] = $al_strip('sCategory'); }
   }
   if ($al_auction) { $al_chips[__('Live auctions', 'starter')] = $al_strip('sAuction'); }
+  if (Params::getParam('sAvailable') == '1') { $al_chips[__('Available only', 'starter')] = $al_strip('sAvailable'); }
   if (Params::getParam('sItemCountry') != '') {
     foreach ($al_countries as $co) {
       if (strtoupper($co['code']) == strtoupper(Params::getParam('sItemCountry'))) { $al_chips[$co['name']] = $al_strip('sItemCountry'); }
@@ -108,6 +109,7 @@
       </label>
 
       <label class="al-check"><input type="checkbox" name="sAuction" value="1"<?php echo $al_auction ? ' checked' : ''; ?> /><span><?php _e('Live auctions only', 'starter'); ?></span></label>
+      <label class="al-check"><input type="checkbox" name="sAvailable" value="1"<?php echo Params::getParam('sAvailable') == '1' ? ' checked' : ''; ?> /><span><?php _e('Hide sold and reserved', 'starter'); ?></span></label>
 
       <?php if (count($al_countries) > 0) { ?>
         <label><span><?php _e('Item location', 'starter'); ?></span>

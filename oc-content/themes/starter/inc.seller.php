@@ -237,7 +237,7 @@ function antique_my_bids() {
   $res = $model->dao->query("SELECT a.fk_i_item_id, a.dt_end_date, a.d_reserve_price,
       MAX(b.d_amount) AS my_bid, SUM(b.s_status = 'won') AS won
     FROM `{$p}t_item_auctions` a
-    JOIN `{$p}t_item_bids` b ON b.fk_i_item_id = a.fk_i_item_id AND b.fk_i_user_id = {$uid}
+    JOIN `{$p}t_item_bids` b ON b.fk_i_item_id = a.fk_i_item_id AND b.fk_i_user_id = {$uid} AND b.s_status IN ('active', 'won')
     JOIN `{$p}t_item` i ON i.pk_i_id = a.fk_i_item_id
     GROUP BY a.fk_i_item_id, a.dt_end_date, a.d_reserve_price
     ORDER BY (a.dt_end_date > NOW()) DESC, a.dt_end_date ASC");

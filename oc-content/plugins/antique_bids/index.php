@@ -10,6 +10,12 @@ Short Name: antique_bids
 
 require_once osc_plugins_path() . 'antique_bids/ModelBids.php';
 
+// Auction end dates are written with PHP's clock (the site timezone, set in
+// oc-load.php before plugins load), but "has it ended?" is asked in SQL with NOW(),
+// which uses MySQL's own timezone. Align the session so both agree; otherwise
+// winners are declared hours late and ended auctions still list as live.
+ModelBids::newInstance()->dao->query("SET time_zone = '" . date('P') . "'");
+
 /**
  * "USD 12,500" style amount in the listing's own currency.
  */
@@ -160,6 +166,15 @@ function antique_bids_sold_state($itemId) {
     return isset($extra['i_sold']) ? (int)$extra['i_sold'] : 0;
 }
 
+/**
+ * Sets the theme's sold flag (0 available, 1 sold). Upsert: some listings have no
+ * t_item_starter row yet.
+ */
+function antique_bids_set_sold_state($itemId, $state) {
+    ModelBids::newInstance()->dao->query(sprintf("INSERT INTO `%st_item_starter` (fk_i_item_id, i_sold) VALUES (%d, '%d') ON DUPLICATE KEY UPDATE i_sold = VALUES(i_sold)",
+        DB_TABLE_PREFIX, (int)$itemId, (int)$state));
+}
+
 function antique_bids_sidebar_widget() {
     $itemId = osc_item_id();
     $userId = osc_logged_user_id();
@@ -287,7 +302,7 @@ function antique_bids_sidebar_widget() {
             <div class="bid-expired-notice"><?php echo $soldState == 1 ? 'This item has been sold. Bidding is closed.' : 'This item is reserved. Bidding is paused.'; ?></div>
         <?php elseif (!osc_is_web_user_logged_in()): ?>
             <div class="bid-action-form guest">
-                <a href="<?php echo osc_user_login_url(); ?>" class="btn btn-secondary login-to-bid">Sign in to bid</a>
+                <a href="<?php echo function_exists('antique_login_back_url') ? osc_esc_html(antique_login_back_url(osc_item_url() . '#al-auction')) : osc_user_login_url(); ?>" class="btn btn-secondary login-to-bid">Sign in to bid</a>
             </div>
         <?php elseif ($isOwner): ?>
             <div class="bid-action-form owner">
@@ -665,35 +680,37 @@ function antique_bids_item_edit($catID = null, $itemID = null) {
  * Renders the custom auction fields card inside listing form
  */
 function antique_bids_render_form($auction = null) {
-    $enabled = ($auction && $auction['b_active'] == 1);
+    $model = ModelBids::newInstance();
+    $live = ($auction && $auction['b_active'] == 1 && strtotime($auction['dt_end_date']) > time());
+    // ended without a sale: switched off by default, switching it on runs a new auction
+    $unsold = ($auction && $model->isFinishedUnsold($auction));
+    $enabled = ($auction && $auction['b_active'] == 1 && !$unsold);
     $startingPrice = $auction ? (float)$auction['d_starting_price'] : '';
     $minIncrement = $auction ? (float)$auction['d_min_increment'] : 100;
     $reservePrice = ($auction && (float)$auction['d_reserve_price'] > 0) ? (float)$auction['d_reserve_price'] : '';
-    $locked = ($auction && ModelBids::newInstance()->hasBids($auction['fk_i_item_id']));
-    
+    $locked = ($auction && !$unsold && $model->hasBids($auction['fk_i_item_id']));
+    $endLabel = $auction ? osc_esc_html(date('j M Y, H:i', strtotime($auction['dt_end_date']))) : '';
     $duration = 7;
-    if ($auction) {
-        $diff = strtotime($auction['dt_end_date']) - time();
-        if ($diff > 0) {
-            $duration = round($diff / (24 * 60 * 60));
-            if ($duration < 1) $duration = 1;
-        }
-    }
     ?>
     <fieldset class="hook-block i-shadow round3 antique-bids-post-card">
         <div class="header-section">
             <h3>Sell by auction</h3>
         </div>
+        <?php if ($locked && $live) { ?>
+            <p class="bids-locked-note">Bidding has started, so this auction cannot be cancelled or changed. It ends <?php echo $endLabel; ?> (server time).</p>
+        <?php } elseif ($unsold) { ?>
+            <p class="bids-locked-note">Your last auction ended <?php echo $endLabel; ?> without a sale. Switch this on to run a new auction; earlier bids will not carry over.</p>
+        <?php } ?>
         <div class="form-row checkbox-row">
             <label class="toggle-switch">
-                <input type="checkbox" name="bids_enabled" id="bids_enabled" value="1" <?php echo $enabled ? 'checked' : ''; ?>>
+                <input type="checkbox" name="bids_enabled" id="bids_enabled" value="1" <?php echo $enabled ? 'checked' : ''; ?><?php echo ($locked && $live) ? ' disabled' : ''; ?>>
                 <span class="slider-toggle"></span>
             </label>
             <label class="toggle-label" for="bids_enabled">Run this listing as a timed auction</label>
         </div>
         
         <div id="bids-details-panel" class="bids-slide-panel" style="<?php echo $enabled ? 'display: flex;' : 'display: none;'; ?>">
-            <?php if ($locked) { ?>
+            <?php if ($locked && !$live) { ?>
                 <p class="bids-locked-note">Bidding has started, so the auction terms can no longer be changed.</p>
             <?php } ?>
             <div class="form-row">
@@ -724,15 +741,18 @@ function antique_bids_render_form($auction = null) {
                 <label for="bids_duration">Auction length</label>
                 <div class="input-wrap-post select-wrap">
                     <select name="bids_duration" id="bids_duration"<?php echo $locked ? ' disabled' : ''; ?>>
+                        <?php if ($live && !$locked) { ?>
+                            <option value="keep" selected>Keep the current end (<?php echo $endLabel; ?>)</option>
+                        <?php } ?>
                         <option value="3" <?php echo $duration == 3 ? 'selected' : ''; ?>>3 days</option>
                         <option value="5" <?php echo $duration == 5 ? 'selected' : ''; ?>>5 days</option>
-                        <option value="7" <?php echo $duration == 7 ? 'selected' : ''; ?>>7 days (recommended)</option>
+                        <option value="7" <?php echo ($duration == 7 && !($live && !$locked)) ? 'selected' : ''; ?>>7 days (recommended)</option>
                         <option value="10" <?php echo $duration == 10 ? 'selected' : ''; ?>>10 days</option>
                         <option value="14" <?php echo $duration == 14 ? 'selected' : ''; ?>>14 days</option>
                         <option value="30" <?php echo $duration == 30 ? 'selected' : ''; ?>>30 days</option>
                     </select>
                 </div>
-                <span class="help-text"><?php echo $locked ? 'Ends ' . osc_esc_html(date('j M Y, H:i', strtotime($auction['dt_end_date']))) . ' (server time).' : 'Counted from when the listing is published.'; ?></span>
+                <span class="help-text"><?php echo $locked ? 'Ends ' . $endLabel . ' (server time).' : ($live ? 'Choosing a length restarts the auction from now.' : 'Counted from when the listing is published.'); ?></span>
             </div>
         </div>
     </fieldset>
@@ -815,6 +835,9 @@ function antique_bids_edited_item($item) {
             $duration = 7;
         }
         
+        if (Params::getParam('bids_duration') === 'keep') {
+            $duration = 0;   // keep the running auction's end date
+        }
         ModelBids::newInstance()->saveAuction($itemId, $startingPrice, $minIncrement, $duration, true, (float)Params::getParam('bids_reserve_price'));
     } else {
         // Disable listing auction active state
@@ -872,8 +895,13 @@ function antique_bids_process_expired_auctions() {
         $reserve = (float)$auction['d_reserve_price'];
         if ($highest && ($reserve <= 0 || (float)$highest['d_amount'] >= $reserve)) {
             $model->setBidStatus($highest['pk_i_id'], 'won');
+            antique_bids_set_sold_state($itemId, 1);
             antique_bids_send_winner_emails($itemId, $highest);
             antique_bids_send_lost_emails($itemId, (int)$highest['fk_i_user_id']);
+            if (function_exists('antique_watch_notify_sold')) {
+                // bidders already got a winner / auction-ended email
+                antique_watch_notify_sold($itemId, $model->getBidderIds($itemId));
+            }
         } elseif ($highest) {
             antique_bids_send_reserve_not_met_emails($itemId, $highest, $reserve);
         } else {
@@ -1117,6 +1145,7 @@ function antique_bids_ajax_cancel_winner_offer_second() {
             'hasNewWinner' => true
         ));
     } else {
+        antique_bids_set_sold_state($itemId, 0);   // nobody bought it: available again (and can be re-auctioned)
         antique_bids_send_cancellation_no_bidders_emails($itemId, $currentWinnerBid);
 
         echo json_encode(array(

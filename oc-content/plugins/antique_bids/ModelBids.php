@@ -55,12 +55,14 @@ class ModelBids extends DAO {
     }
 
     /**
-     * Whether any bid (active, won or withdrawn) exists for an item
+     * Whether the current run of an auction has bids (active or won; bids from an
+     * earlier run that ended unsold are 'withdrawn' and do not count)
      */
     public function hasBids($itemId) {
         $this->dao->select('pk_i_id');
         $this->dao->from(DB_TABLE_PREFIX . 't_item_bids');
         $this->dao->where('fk_i_item_id', (int)$itemId);
+        $this->dao->whereIn('s_status', array('active', 'won'));
         $this->dao->limit(1);
         $result = $this->dao->get();
         return ($result && $result->numRows() > 0);
@@ -164,10 +166,10 @@ class ModelBids extends DAO {
     }
 
     /**
-     * Distinct user IDs that bid on an item.
+     * Distinct user IDs with a live or winning bid in the current run of an auction.
      */
     public function getBidderIds($itemId) {
-        $result = $this->dao->query("SELECT DISTINCT fk_i_user_id FROM `" . DB_TABLE_PREFIX . "t_item_bids` WHERE fk_i_item_id = " . (int)$itemId);
+        $result = $this->dao->query("SELECT DISTINCT fk_i_user_id FROM `" . DB_TABLE_PREFIX . "t_item_bids` WHERE fk_i_item_id = " . (int)$itemId . " AND s_status IN ('active', 'won')");
         $ids = array();
         if ($result) {
             foreach ($result->result() as $r) {
@@ -329,10 +331,26 @@ class ModelBids extends DAO {
     }
 
     /**
+     * True when an auction has ended, its result has been declared and nobody won
+     * (no bids, reserve not met, or the winner was cancelled with no one to offer it to).
+     * Such an auction can be run again.
+     */
+    public function isFinishedUnsold($auction) {
+        if (!$auction || strtotime($auction['dt_end_date']) > time() || (int)$auction['b_processed'] !== 1) {
+            return false;
+        }
+        $result = $this->dao->query("SELECT 1 FROM `" . DB_TABLE_PREFIX . "t_item_bids` WHERE fk_i_item_id = " . (int)$auction['fk_i_item_id'] . " AND s_status = 'won' LIMIT 1");
+        return !($result && $result->numRows() > 0);
+    }
+
+    /**
      * Inserts or updates the auction parameters for a listing.
+     * $durationDays = 0 keeps the end date of a running auction (editing the
+     * listing must not restart its timer).
      */
     public function saveAuction($itemId, $startingPrice, $minIncrement, $durationDays, $active, $reservePrice = 0) {
         $prefix = DB_TABLE_PREFIX;
+        $keepEnd = ((int)$durationDays === 0);
         if (!in_array((int)$durationDays, array(3, 5, 7, 10, 14, 30))) {
             $durationDays = 7;
         }
@@ -346,28 +364,44 @@ class ModelBids extends DAO {
         $endDate = date('Y-m-d H:i:s', time() + ((int)$durationDays * 24 * 60 * 60));
 
         $exists = $this->getAuction($itemId);
-        if ($exists && $this->hasBids($itemId)) {
+        $live = $exists && strtotime($exists['dt_end_date']) > time();
+        $unsold = $exists && $this->isFinishedUnsold($exists);
+
+        if ($exists && !$active) {
+            if ($live && $this->hasBids($itemId)) {
+                return true;   // bidders are committed: a running auction with bids cannot be withdrawn
+            }
+            return $this->dao->update($prefix . 't_item_auctions', array('b_active' => 0), array('fk_i_item_id' => (int)$itemId));
+        }
+
+        if ($unsold) {
+            // running it again: the earlier bids and maximums belong to the old run
+            // (kept as 'withdrawn' for the record; s_status may be an ENUM, so no new value)
+            $this->dao->delete($prefix . 't_item_bid_proxies', array('fk_i_item_id' => (int)$itemId));
+            $this->dao->query("UPDATE `{$prefix}t_item_bids` SET s_status = 'withdrawn' WHERE fk_i_item_id = " . (int)$itemId . " AND s_status = 'active'");
+        } elseif ($exists && $this->hasBids($itemId)) {
             // Once bidding has started the terms are locked: editing the listing
             // must not restart the timer or re-open a finished auction.
             return $this->dao->update(
                 $prefix . 't_item_auctions',
-                array('b_active' => $active ? 1 : 0),
+                array('b_active' => 1),
                 array('fk_i_item_id' => (int)$itemId)
             );
-        } elseif ($exists) {
-            return $this->dao->update(
-                $prefix . 't_item_auctions',
-                array(
-                    'd_starting_price' => (float)$startingPrice,
-                    'd_reserve_price'  => (float)$reservePrice,
-                    'd_min_increment'  => (float)$minIncrement,
-                    'dt_start_date'    => date('Y-m-d H:i:s'),
-                    'dt_end_date'      => $endDate,
-                    'b_active'         => $active ? 1 : 0,
-                    'b_processed'      => 0
-                ),
-                array('fk_i_item_id' => (int)$itemId)
+        }
+
+        if ($exists) {
+            $data = array(
+                'd_starting_price' => (float)$startingPrice,
+                'd_reserve_price'  => (float)$reservePrice,
+                'd_min_increment'  => (float)$minIncrement,
+                'b_active'         => 1
             );
+            if (!($keepEnd && $live && (int)$exists['b_active'] === 1)) {
+                $data['dt_start_date'] = date('Y-m-d H:i:s');
+                $data['dt_end_date'] = $endDate;
+                $data['b_processed'] = 0;
+            }
+            return $this->dao->update($prefix . 't_item_auctions', $data, array('fk_i_item_id' => (int)$itemId));
         } else {
             return $this->dao->insert(
                 $prefix . 't_item_auctions',
