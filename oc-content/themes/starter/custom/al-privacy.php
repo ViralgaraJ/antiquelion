@@ -24,8 +24,8 @@
 
 <h2><?php _e('Services we use', 'starter'); ?></h2>
 <ul>
-  <li><?php _e('Country lookup uses a DB-IP database on our own server; your IP address is not sent to them.', 'starter'); ?></li>
-  <li><?php _e('Exchange rates are downloaded from ExchangeRate-API; no personal data is sent.', 'starter'); ?></li>
+  <li><?php printf(__('Country lookup uses the %s database (licensed under CC BY 4.0) on our own server; your IP address is not sent to them.', 'starter'), '<a href="https://db-ip.com" target="_blank" rel="noopener">IP geolocation by DB-IP</a>'); ?></li>
+  <li><?php printf(__('Exchange rates are downloaded from %s; no personal data is sent.', 'starter'), '<a href="https://www.exchangerate-api.com" target="_blank" rel="noopener">Rates by Exchange Rate API</a>'); ?></li>
   <li><?php _e('Fonts, flags and some scripts load from Google Fonts and public content delivery networks, which receive your IP address when your browser requests them.', 'starter'); ?></li>
   <li><?php _e('"View location on Google Maps" opens Google Maps, which has its own privacy policy.', 'starter'); ?></li>
   <li><?php _e('Our hosting and email providers process data on our behalf to run the site.', 'starter'); ?></li>

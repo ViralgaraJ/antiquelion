@@ -18,7 +18,8 @@
   <ol class="al-sell-steps">
     <li class="is-done"><span>1</span><?php _e('Account created', 'starter'); ?></li>
     <li class="is-current"><span>2</span><?php _e('Seller details', 'starter'); ?></li>
-    <li><span>3</span><?php _e('List your first item', 'starter'); ?></li>
+    <li><span>3</span><?php _e('Verify your identity', 'starter'); ?></li>
+    <li><span>4</span><?php _e('List your first item', 'starter'); ?></li>
   </ol>
   <p><?php _e('Selling is free. Buyers contact you directly or bid on your auctions, and you agree payment and delivery with them. Tell buyers who they are dealing with:', 'starter'); ?></p>
 </div>

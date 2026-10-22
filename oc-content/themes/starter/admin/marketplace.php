@@ -35,6 +35,10 @@
   .almk-btn { height: 34px; padding: 0 14px; border: 1px solid #14213D; border-radius: 4px; background: #fff; color: #14213D; font-weight: 700; cursor: pointer; }
   .almk-btn.is-ok { background: #067647; border-color: #067647; color: #fff; }
   .almk-btn.is-bad { border-color: #B42318; color: #B42318; }
+  .almk-docs { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+  .almk-sub { margin: 26px 0 6px; font-size: 16px; }
+  .almk-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 14px; border-bottom: 1px solid #EFEAE0; background: #fff; }
+  .almk-row:first-of-type { border-top-left-radius: 8px; border-top-right-radius: 8px; }
   .almk-doc { display: inline-block; padding: 7px 14px; border-radius: 4px; background: #A67C2E; color: #fff !important; font-weight: 700; text-decoration: none; }
   .almk-tag { display: inline-block; padding: 1px 8px; border-radius: 999px; background: #F3EFE6; color: #4B5563; font-size: 12px; font-weight: 700; }
   .almk-tag.is-ok { background: #DCF5E7; color: #067647; }
@@ -61,6 +65,7 @@
         WHERE s.i_verify IN (" . ANTIQUE_VERIFY_PENDING . "," . ANTIQUE_VERIFY_OK . ") ORDER BY (s.i_verify = " . ANTIQUE_VERIFY_PENDING . ") DESC, s.dt_verify_req ASC LIMIT 200");
       $rows = $res ? $res->result() : array();
     ?>
+    <p class="almk-meta"><?php _e('Sellers can list items only after you approve them here. Check that the name and address match the document.', 'starter'); ?></p>
     <?php if (!$rows) { ?><div class="almk-empty"><?php _e('No verification requests yet.', 'starter'); ?></div><?php } ?>
     <?php foreach ($rows as $r) { $pending = (int)$r['i_verify'] === ANTIQUE_VERIFY_PENDING; ?>
       <div class="almk-card">
@@ -78,7 +83,15 @@
           <dt><?php echo $pending ? __('Requested', 'starter') : __('Verified', 'starter'); ?></dt><dd><?php echo osc_esc_html($pending ? (string)$r['dt_verify_req'] : (string)$r['dt_verified']); ?></dd>
         </dl>
         <?php if ($pending) { ?>
-          <?php if ($r['s_doc']) { ?><a class="almk-doc" href="<?php echo osc_esc_html(osc_admin_ajax_hook_url('al_verify_doc', array('seller' => (int)$r['fk_i_user_id']))); ?>" target="_blank" rel="noopener"><?php _e('Open document', 'starter'); ?></a><?php } ?>
+          <?php $al_docs = antique_verify_docs($r); ?>
+          <?php if ($al_docs) { ?>
+            <div class="almk-docs">
+              <span class="almk-tag"><?php echo osc_esc_html(antique_verify_doc_label((string)$r['s_doc_type'])); ?></span>
+              <?php foreach ($al_docs as $al_i => $al_d) { ?>
+                <a class="almk-doc" href="<?php echo osc_esc_html(osc_admin_ajax_hook_url('al_verify_doc', array('seller' => (int)$r['fk_i_user_id'], 'n' => $al_i))); ?>" target="_blank" rel="noopener"><?php echo count($al_docs) > 1 ? ($al_i ? __('Open back', 'starter') : __('Open front', 'starter')) : __('Open document', 'starter'); ?></a>
+              <?php } ?>
+            </div>
+          <?php } ?>
           <div class="almk-actions">
             <?php echo $al_form('approve', $r['fk_i_user_id'], __('Approve and verify', 'starter'), 'is-ok'); ?>
             <?php echo $al_form('decline', $r['fk_i_user_id'], __('Decline', 'starter'), 'is-bad', '<input type="text" name="note" maxlength="500" placeholder="' . osc_esc_html(__('Reason shown to the seller (e.g. the document is not readable)', 'starter')) . '" />'); ?>
@@ -87,6 +100,29 @@
           <div class="almk-actions"><?php echo $al_form('unverify', $r['fk_i_user_id'], __('Remove badge', 'starter'), 'is-bad'); ?></div>
         <?php } ?>
       </div>
+    <?php } ?>
+
+    <?php
+      $res = $al_db->query("SELECT s.fk_i_user_id, s.i_verify, s.dt_started, u.s_name, u.s_email, u.b_company,
+          (SELECT COUNT(*) FROM `" . DB_TABLE_PREFIX . "t_item` i WHERE i.fk_i_user_id = s.fk_i_user_id) AS n_items
+        FROM `" . antique_sellers_table() . "` s JOIN `" . DB_TABLE_PREFIX . "t_user` u ON u.pk_i_id = s.fk_i_user_id
+        WHERE s.i_verify IN (" . ANTIQUE_VERIFY_NONE . "," . ANTIQUE_VERIFY_DECLINED . ") ORDER BY n_items DESC, s.dt_started DESC LIMIT 300");
+      $al_unver = $res ? $res->result() : array();
+    ?>
+    <?php if ($al_unver) { ?>
+      <h3 class="almk-sub"><?php echo sprintf(__('Sellers not verified yet (%d)', 'starter'), count($al_unver)); ?></h3>
+      <p class="almk-meta"><?php _e('They cannot list new items. Their existing listings stay online. Ask them to send their details from Account > Get verified, or verify people you already know without a document.', 'starter'); ?></p>
+      <?php foreach ($al_unver as $r) { ?>
+        <div class="almk-row">
+          <div>
+            <strong><?php echo osc_esc_html(antique_seller_display_name($r['fk_i_user_id'], $r['s_name'])); ?></strong>
+            <span class="almk-tag"><?php echo $r['b_company'] ? __('Dealer', 'starter') : __('Private seller', 'starter'); ?></span>
+            <?php if ((int)$r['i_verify'] === ANTIQUE_VERIFY_DECLINED) { ?><span class="almk-tag is-bad"><?php _e('Declined', 'starter'); ?></span><?php } ?>
+            <div class="almk-meta"><?php echo osc_esc_html($r['s_email']); ?> · <?php echo sprintf(__('%d listings', 'starter'), (int)$r['n_items']); ?> · <a href="<?php echo osc_user_public_profile_url($r['fk_i_user_id']); ?>" target="_blank"><?php _e('Shop page', 'starter'); ?></a></div>
+          </div>
+          <?php echo $al_form('verify_direct', $r['fk_i_user_id'], __('Verify without a document', 'starter')); ?>
+        </div>
+      <?php } ?>
     <?php } ?>
 
   <?php } elseif ($al_tab == 'reviews') { ?>

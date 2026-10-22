@@ -31,6 +31,7 @@
         <a class="al-btn al-btn-brass" href="<?php echo osc_item_post_url(); ?>"><?php _e('Sell an item', 'starter'); ?></a>
       </div>
 
+      <?php echo antique_verify_banner(); ?>
       <?php osc_run_hook('user_items_top'); ?>
 
       <?php if (osc_count_items() > 0) { ?>

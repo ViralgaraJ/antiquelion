@@ -2,7 +2,7 @@
 if (!defined('ABS_PATH')) { exit('ABS_PATH is not loaded. Direct access is not allowed.'); }
 
 /*
- * Verified sellers. A seller sends their legal or business name, address and a
+ * Verified sellers. Sellers must be verified before they can list items. A seller sends their legal or business name, address and a
  * document (photo ID, or business registration for dealers) from Account > Get
  * verified; the site team checks it under Theme Setting > Marketplace in oc-admin and
  * approves or declines. Approved sellers show a "Verified dealer" / "Verified seller"
@@ -10,7 +10,7 @@ if (!defined('ABS_PATH')) { exit('ABS_PATH is not loaded. Direct access is not a
  * git-ignored) and only admins can open them; they are deleted once a request is decided.
  */
 
-define('ANTIQUE_VERIFY_SCHEMA', '1');
+define('ANTIQUE_VERIFY_SCHEMA', '2');
 define('ANTIQUE_VERIFY_MAX_BYTES', 8 * 1024 * 1024);
 
 // i_verify values
@@ -30,7 +30,8 @@ function antique_verify_schema() {
     's_reg_number'     => "varchar(60) DEFAULT NULL",
     's_address'        => "varchar(255) DEFAULT NULL",
     's_website'        => "varchar(200) DEFAULT NULL",
-    's_doc'            => "varchar(80) DEFAULT NULL",
+    's_doc'            => "varchar(80) DEFAULT NULL",   // file names, "front|back"
+    's_doc_type'       => "varchar(20) DEFAULT NULL",
     's_verify_note'    => "varchar(500) DEFAULT NULL",
     'dt_verify_req'    => "datetime DEFAULT NULL",
     'dt_verified'      => "datetime DEFAULT NULL",
@@ -75,6 +76,83 @@ function antique_verify_prepare_dir() {
   return is_writable($dir);
 }
 
+/**
+ * Document types a seller can send: private sellers send photo ID, dealers a business document.
+ * 'sides' = 2 when the document has a back side worth sending.
+ */
+function antique_verify_doc_types($dealer) {
+  if ($dealer) {
+    return array(
+      'business_reg' => array('label' => __('Business registration certificate', 'starter'), 'sides' => 1),
+      'business_doc' => array('label' => __('Recent business document (tax, utility or bank letter)', 'starter'), 'sides' => 1),
+      'passport'     => array('label' => __('Owner\'s passport', 'starter'), 'sides' => 1),
+      'licence'      => array('label' => __('Owner\'s driving licence', 'starter'), 'sides' => 2)
+    );
+  }
+  return array(
+    'passport' => array('label' => __('Passport', 'starter'), 'sides' => 1),
+    'licence'  => array('label' => __('Driving licence', 'starter'), 'sides' => 2),
+    'id_card'  => array('label' => __('National ID card', 'starter'), 'sides' => 2),
+    'permit'   => array('label' => __('Residence permit', 'starter'), 'sides' => 2)
+  );
+}
+
+function antique_verify_doc_label($type) {
+  $all = antique_verify_doc_types(false) + antique_verify_doc_types(true);
+  return isset($all[$type]) ? $all[$type]['label'] : __('Document', 'starter');
+}
+
+// Stored document file names for a seller row (front first)
+function antique_verify_docs($row) {
+  if (!$row || empty($row['s_doc'])) { return array(); }
+  return array_values(array_filter(array_map('basename', explode('|', (string)$row['s_doc']))));
+}
+
+function antique_verify_delete_docs($row) {
+  foreach (antique_verify_docs($row) as $f) { @unlink(antique_verify_dir() . $f); }
+}
+
+// The largest upload the server accepts, in bytes (PHP upload and post limits)
+function antique_verify_upload_limit() {
+  $bytes = function ($v) {
+    $v = trim((string)$v);
+    if ($v === '' || $v === '-1' || $v === '0') { return PHP_INT_MAX; }
+    $n = (float)$v;
+    switch (strtolower(substr($v, -1))) { case 'g': $n *= 1024; case 'm': $n *= 1024; case 'k': $n *= 1024; }
+    return (int)$n;
+  };
+  return min(ANTIQUE_VERIFY_MAX_BYTES, $bytes(ini_get('upload_max_filesize')), $bytes(ini_get('post_max_size')));
+}
+
+function antique_verify_limit_text() {
+  $mb = antique_verify_upload_limit() / 1048576;
+  return ($mb >= 1 ? rtrim(rtrim(number_format($mb, 1), '0'), '.') . ' MB' : round($mb * 1024) . ' KB');
+}
+
+/**
+ * Sellers can list items only once the site team has verified them.
+ */
+function antique_can_list($uid = null) {
+  if ($uid === null) { $uid = osc_is_web_user_logged_in() ? osc_logged_user_id() : 0; }
+  return antique_is_seller($uid) && antique_seller_verified($uid);
+}
+
+/**
+ * Notice on the seller's listings page while they cannot list yet.
+ */
+function antique_verify_banner() {
+  if (!osc_is_web_user_logged_in() || !antique_is_seller() || antique_can_list()) { return ''; }
+  $st = antique_verify_status(osc_logged_user_id());
+  if ($st == ANTIQUE_VERIFY_PENDING) {
+    $text = __('We are checking your details. You can list new items as soon as your account is verified, usually within 2 working days.', 'starter');
+    $btn = __('See status', 'starter');
+  } else {
+    $text = $st == ANTIQUE_VERIFY_DECLINED ? __('Your last verification request was not approved. Send a new one to start listing items.', 'starter') : __('Get verified to list items. Every seller is checked by our team to keep buyers safe.', 'starter');
+    $btn = __('Get verified', 'starter');
+  }
+  return '<div class="al-notice al-verify-banner"><p>' . osc_esc_html($text) . '</p><a class="al-btn al-btn-outline" href="' . osc_esc_html(antique_verify_url()) . '">' . osc_esc_html($btn) . '</a></div>';
+}
+
 function antique_verify_status($uid) {
   $row = antique_seller_row($uid);
   return $row && isset($row['i_verify']) ? (int)$row['i_verify'] : ANTIQUE_VERIFY_NONE;
@@ -102,6 +180,10 @@ function antique_seller_badge($uid, $size = 'normal') {
 function antique_verify_post() {
   $back = antique_verify_url();
   if (!osc_is_web_user_logged_in()) { osc_redirect_to(osc_user_login_url()); }
+  // over the server's post limit PHP drops the whole form, token included
+  if (empty($_POST) && isset($_SERVER['CONTENT_LENGTH']) && (int)$_SERVER['CONTENT_LENGTH'] > 0) {
+    antique_msg_reply(false, sprintf(__('The files are too big to send. Use photos under %s in total, or take the photo again at a lower resolution.', 'starter'), antique_verify_limit_text()), $back);
+  }
   if (!osc_csrfguard_validate_token(Params::getParam('octoken'))) {
     antique_msg_reply(false, __('Your session expired. Please try again.', 'starter'), $back);
   }
@@ -119,31 +201,36 @@ function antique_verify_post() {
   $address = $clean('address', 255);
   $website = $clean('website', 200);
   if ($website !== '' && !preg_match('#^https?://#i', $website)) { $website = 'https://' . $website; }
-  Session::newInstance()->_set('al_verify_form', compact('legal', 'reg', 'address', 'website'));
+  $types = antique_verify_doc_types($dealer);
+  $docType = (string)Params::getParam('doc_type');
+  Session::newInstance()->_set('al_verify_form', compact('legal', 'reg', 'address', 'website', 'docType'));
 
   $errors = array();
+  if (!isset($types[$docType])) { $errors[] = $dealer ? __('Choose the document you are sending.', 'starter') : __('Choose your ID type: passport, driving licence, national ID card or residence permit.', 'starter'); }
   if (mb_strlen($legal) < 3) { $errors[] = $dealer ? __('Enter your registered business name.', 'starter') : __('Enter your full legal name, as on your ID.', 'starter'); }
   if (mb_strlen($address) < 8) { $errors[] = __('Enter your full address.', 'starter'); }
   if ($website !== '' && !filter_var($website, FILTER_VALIDATE_URL)) { $errors[] = __('Enter a valid website address, or leave it empty.', 'starter'); }
   if (Params::getParam('consent') != '1') { $errors[] = __('Please confirm that the details are true and that we may check them.', 'starter'); }
 
-  $f = isset($_FILES['doc']) ? $_FILES['doc'] : null;
-  $ext = '';
-  if (!$f || $f['error'] === UPLOAD_ERR_NO_FILE) {
-    $errors[] = $dealer ? __('Upload your business registration or a recent business document.', 'starter') : __('Upload a photo of your passport, driving licence or national ID card.', 'starter');
-  } elseif ($f['error'] !== UPLOAD_ERR_OK || !is_uploaded_file($f['tmp_name'])) {
-    $errors[] = in_array($f['error'], array(UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE), true) ? __('The document is too big. The limit is 8 MB.', 'starter') : __('The document did not upload. Please try again.', 'starter');
-  } elseif ($f['size'] > ANTIQUE_VERIFY_MAX_BYTES) {
-    $errors[] = __('The document is too big. The limit is 8 MB.', 'starter');
-  } else {
-    $mime = function_exists('finfo_open') ? finfo_file(finfo_open(FILEINFO_MIME_TYPE), $f['tmp_name']) : '';
-    $types = array('image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp', 'application/pdf' => 'pdf');
-    if (!isset($types[$mime])) {
-      $errors[] = __('Upload a JPG, PNG, WebP or PDF file.', 'starter');
-    } else {
-      $ext = $types[$mime];
+  $limit = antique_verify_limit_text();
+  $check = function ($field, $required, $what) use (&$errors, $limit) {
+    $f = isset($_FILES[$field]) ? $_FILES[$field] : null;
+    if (!$f || $f['error'] === UPLOAD_ERR_NO_FILE) {
+      if ($required) { $errors[] = $what; }
+      return null;
     }
-  }
+    if ($f['error'] !== UPLOAD_ERR_OK || !is_uploaded_file($f['tmp_name'])) {
+      $errors[] = in_array($f['error'], array(UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE), true) ? sprintf(__('The document is too big. The limit is %s.', 'starter'), $limit) : __('The document did not upload. Please try again.', 'starter');
+      return null;
+    }
+    if ($f['size'] > ANTIQUE_VERIFY_MAX_BYTES) { $errors[] = sprintf(__('The document is too big. The limit is %s.', 'starter'), $limit); return null; }
+    $mime = function_exists('finfo_open') ? finfo_file(finfo_open(FILEINFO_MIME_TYPE), $f['tmp_name']) : '';
+    $ok = array('image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp', 'application/pdf' => 'pdf');
+    if (!isset($ok[$mime])) { $errors[] = __('Upload a JPG, PNG, WebP or PDF file.', 'starter'); return null; }
+    return array('tmp' => $f['tmp_name'], 'ext' => $ok[$mime]);
+  };
+  $front = $check('doc', true, $dealer ? __('Upload your business document.', 'starter') : __('Upload a photo of your ID (the side with your photo).', 'starter'));
+  $backSide = (isset($types[$docType]) && $types[$docType]['sides'] == 2) ? $check('doc_back', false, '') : null;
   if ($errors) {
     osc_add_flash_error_message(implode('<br>', array_map('osc_esc_html', $errors)));
     osc_redirect_to($back);
@@ -151,17 +238,23 @@ function antique_verify_post() {
   if (!antique_verify_prepare_dir()) {
     antique_msg_reply(false, __('Documents cannot be received right now. Please try again later.', 'starter'), $back);
   }
-  $row = antique_seller_row($uid);
-  if (!empty($row['s_doc'])) { @unlink(antique_verify_dir() . basename($row['s_doc'])); }
-  $file = 'v' . $uid . '-' . bin2hex(random_bytes(12)) . '.' . $ext;
-  if (!move_uploaded_file($f['tmp_name'], antique_verify_dir() . $file)) {
-    antique_msg_reply(false, __('The document did not upload. Please try again.', 'starter'), $back);
+  antique_verify_delete_docs(antique_seller_row($uid));
+  $files = array();
+  foreach (array($front, $backSide) as $doc) {
+    if (!$doc) { continue; }
+    $name = 'v' . $uid . '-' . bin2hex(random_bytes(10)) . '.' . $doc['ext'];
+    if (!move_uploaded_file($doc['tmp'], antique_verify_dir() . $name)) {
+      foreach ($files as $done) { @unlink(antique_verify_dir() . $done); }
+      antique_msg_reply(false, __('The document did not upload. Please try again.', 'starter'), $back);
+    }
+    @chmod(antique_verify_dir() . $name, 0640);
+    $files[] = $name;
   }
-  @chmod(antique_verify_dir() . $file, 0640);
+  $file = implode('|', $files);
 
   $db = antique_msg_db();
-  $db->query(sprintf("UPDATE `%s` SET i_verify = %d, s_legal_name = %s, s_reg_number = %s, s_address = %s, s_website = %s, s_doc = %s, s_verify_note = NULL, dt_verify_req = '%s' WHERE fk_i_user_id = %d",
-    antique_sellers_table(), ANTIQUE_VERIFY_PENDING, $db->escape($legal), $reg === '' ? 'NULL' : $db->escape($reg), $db->escape($address), $website === '' ? 'NULL' : $db->escape($website), $db->escape($file), antique_msg_now(), $uid));
+  $db->query(sprintf("UPDATE `%s` SET i_verify = %d, s_legal_name = %s, s_reg_number = %s, s_address = %s, s_website = %s, s_doc = %s, s_doc_type = %s, s_verify_note = NULL, dt_verify_req = '%s' WHERE fk_i_user_id = %d",
+    antique_sellers_table(), ANTIQUE_VERIFY_PENDING, $db->escape($legal), $reg === '' ? 'NULL' : $db->escape($reg), $db->escape($address), $website === '' ? 'NULL' : $db->escape($website), $db->escape($file), $db->escape($docType), antique_msg_now(), $uid));
   Session::newInstance()->_drop('al_verify_form');
 
   $admin = osc_contact_email();
@@ -171,7 +264,7 @@ function antique_verify_post() {
       __('Check them under Theme Setting > Marketplace in oc-admin.', 'starter')
     ), osc_admin_base_url(true) . '?page=appearance&action=render&file=oc-content/themes/' . osc_current_web_theme() . '/admin/marketplace.php', __('Open Marketplace', 'starter'));
   }
-  antique_msg_reply(true, __('Thank you. We will check your details, usually within 2 working days, and email you the result.', 'starter'), $back);
+  antique_msg_reply(true, __('Thank you. We will check your details, usually within 2 working days, and email you the result. You can list items as soon as you are verified.', 'starter'), $back);
 }
 osc_add_hook('ajax_al_verify', 'antique_verify_post');
 
@@ -186,20 +279,20 @@ function antique_verify_decide($uid, $approve, $note = '') {
   $db->query(sprintf("UPDATE `%s` SET i_verify = %d, s_verify_note = %s, dt_verified = %s, s_doc = NULL WHERE fk_i_user_id = %d",
     antique_sellers_table(), $approve ? ANTIQUE_VERIFY_OK : ANTIQUE_VERIFY_DECLINED, $note === '' ? 'NULL' : $db->escape(mb_substr($note, 0, 500)),
     $approve ? "'" . antique_msg_now() . "'" : 'NULL', $uid));
-  // the document is no longer needed once a decision is made
-  if (!empty($row['s_doc'])) { @unlink(antique_verify_dir() . basename($row['s_doc'])); }
+  // the documents are no longer needed once a decision is made
+  antique_verify_delete_docs($row);
   $u = User::newInstance()->findByPrimaryKey($uid);
   if ($u) {
     if ($approve) {
       antique_mail($u['s_email'], $u['s_name'], __('Your account is verified', 'starter'), __('You are now a verified seller', 'starter'), array(
         __('Good news: we checked your details and your account is now verified.', 'starter'),
-        __('Buyers now see a verified badge next to your name on your listings and shop page.', 'starter')
-      ), osc_user_public_profile_url($uid), __('See your shop page', 'starter'));
+        __('You can now list items for sale, and buyers see a verified badge next to your name on your listings and shop page.', 'starter')
+      ), osc_item_post_url(), __('List an item', 'starter'));
     } else {
       antique_mail($u['s_email'], $u['s_name'], __('We could not verify your account', 'starter'), __('Verification was not approved', 'starter'), array(
         __('We checked your details but could not verify your account this time.', 'starter'),
         $note !== '' ? sprintf(__('Reason: %s', 'starter'), osc_esc_html($note)) : '',
-        __('You can correct your details and send a new request at any time. Your uploaded document has been deleted.', 'starter')
+        __('You can correct your details and send a new request at any time. Your uploaded documents have been deleted.', 'starter')
       ), antique_verify_url(), __('Send a new request', 'starter'));
     }
   }
@@ -209,15 +302,17 @@ function antique_verify_decide($uid, $approve, $note = '') {
 // oc-admin: open a seller's document (admins only)
 function antique_verify_doc_admin() {
   if (!osc_is_admin_user_logged_in()) { http_response_code(403); exit; }
+  $docs = antique_verify_docs(antique_seller_row((int)Params::getParam('seller')));
+  $n = (int)Params::getParam('n');
   $row = antique_seller_row((int)Params::getParam('seller'));
-  $file = $row && !empty($row['s_doc']) ? antique_verify_dir() . basename($row['s_doc']) : '';
+  $file = isset($docs[$n]) ? antique_verify_dir() . $docs[$n] : '';
   if ($file === '' || !is_file($file)) { http_response_code(404); echo 'Document not found.'; exit; }
   $types = array('jpg' => 'image/jpeg', 'png' => 'image/png', 'webp' => 'image/webp', 'pdf' => 'application/pdf');
   $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
   while (ob_get_level()) { ob_end_clean(); }
   header('Content-Type: ' . (isset($types[$ext]) ? $types[$ext] : 'application/octet-stream'));
   header('Content-Length: ' . filesize($file));
-  header('Content-Disposition: inline; filename="verification-' . (int)$row['fk_i_user_id'] . '.' . $ext . '"');
+  header('Content-Disposition: inline; filename="verification-' . (int)$row['fk_i_user_id'] . ($n ? '-back' : '') . '.' . $ext . '"');
   header('X-Content-Type-Options: nosniff');
   header('Cache-Control: private, no-store');
   header("Content-Security-Policy: default-src 'none'; img-src 'self'; style-src 'unsafe-inline'; plugin-types application/pdf");
@@ -228,7 +323,7 @@ osc_add_hook('ajax_admin_al_verify_doc', 'antique_verify_doc_admin');
 
 function antique_verify_delete_user($uid) {
   $row = antique_seller_row($uid);
-  if ($row && !empty($row['s_doc'])) { @unlink(antique_verify_dir() . basename($row['s_doc'])); }
+  antique_verify_delete_docs($row);
   if ($row && !empty($row['s_banner']) && function_exists('antique_shop_banner_dir')) { @unlink(antique_shop_banner_dir() . basename($row['s_banner'])); }
   antique_msg_db()->query("DELETE FROM `" . antique_sellers_table() . "` WHERE fk_i_user_id = " . (int)$uid);
 }
@@ -257,6 +352,10 @@ function antique_marketplace_admin_actions() {
     case 'decline':
       antique_verify_decide($id, $act == 'approve', trim(mb_substr(strip_tags((string)Params::getParam('note')), 0, 500)));
       osc_add_flash_ok_message($act == 'approve' ? __('Seller verified. They have been emailed.', 'starter') : __('Request declined. The seller has been emailed.', 'starter'), 'admin');
+      break;
+    case 'verify_direct':
+      antique_verify_decide($id, true);
+      osc_add_flash_ok_message(__('Seller verified. They can list items now and have been emailed.', 'starter'), 'admin');
       break;
     case 'unverify':
       $db->query(sprintf("UPDATE `%s` SET i_verify = %d, dt_verified = NULL WHERE fk_i_user_id = %d", antique_sellers_table(), ANTIQUE_VERIFY_NONE, $id));

@@ -7,7 +7,8 @@ if (!defined('ABS_PATH')) { exit('ABS_PATH is not loaded. Direct access is not a
  * - "Start selling" turns the account into a seller account once (seller type,
  *   phone, location, about, seller terms), after which the person can switch
  *   between Buying (bids, watchlist, saved searches) and Selling (listings);
- * - posting a listing needs a seller account; visitors and buyers are guided there.
+ * - posting a listing needs a seller account verified by the site team (inc.verify.php);
+ *   visitors and buyers are guided there.
  * Sellers are rows in t_al_sellers (created on first use; anyone who already
  * has listings becomes a seller automatically).
  */
@@ -132,6 +133,14 @@ function antique_seller_router() {
     if (!antique_is_seller()) {
       osc_redirect_to(antique_seller_setup_url());
     }
+    // listing needs a verified seller
+    if (!antique_can_list()) {
+      $st = antique_verify_status(osc_logged_user_id());
+      osc_add_flash_info_message($st == ANTIQUE_VERIFY_PENDING
+        ? __('We are still checking your details. You can list items as soon as your account is verified.', 'starter')
+        : __('To keep buyers safe, every seller is verified before listing. Send your details below; checks usually take up to 2 working days.', 'starter'));
+      osc_redirect_to(antique_verify_url());
+    }
   }
 
   if ($page == 'user' && $action == 'dashboard' && osc_is_web_user_logged_in()) {
@@ -207,8 +216,12 @@ function antique_seller_setup_post() {
   Session::newInstance()->_drop('al_seller_form');
   setcookie('al_mode', 'selling', time() + 365 * 86400, '/');
 
-  osc_add_flash_ok_message(__('Your seller account is ready. List your first item below.', 'starter'));
-  osc_redirect_to(osc_item_post_url());
+  if (antique_can_list($uid)) {
+    osc_add_flash_ok_message(__('Your seller account is ready. List your first item below.', 'starter'));
+    osc_redirect_to(osc_item_post_url());
+  }
+  osc_add_flash_ok_message(__('Step 1 done. Now verify your identity: you can list items once our team approves it.', 'starter'));
+  osc_redirect_to(antique_verify_url());
 }
 osc_add_hook('ajax_al_seller_setup', 'antique_seller_setup_post');
 

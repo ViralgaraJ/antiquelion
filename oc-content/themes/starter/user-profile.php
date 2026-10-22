@@ -34,9 +34,10 @@
               <div class="al-avatar-actions">
                 <label class="al-btn al-btn-outline al-avatar-pick">
                   <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" hidden />
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>
                   <span><?php echo $al_has_photo ? __('Change photo', 'starter') : __('Upload photo', 'starter'); ?></span>
                 </label>
-                <button type="button" class="al-text-link is-danger al-avatar-remove"<?php echo $al_has_photo ? '' : ' hidden'; ?>><?php _e('Remove', 'starter'); ?></button>
+                <button type="button" class="al-text-link is-danger al-avatar-remove"<?php echo $al_has_photo ? '' : ' hidden'; ?>><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg><?php _e('Remove', 'starter'); ?></button>
               </div>
               <div class="al-avatar-msg" role="status" aria-live="polite"></div>
             </div>

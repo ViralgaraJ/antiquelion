@@ -90,8 +90,6 @@
         <span class="al-footer-maker"><?php printf(__('Designed, developed &amp; distributed by %s', 'starter'), '<a href="https://www.viralgaraj.com/" target="_blank" rel="noopener">ViralGaraj</a>'); ?></span>
       </span>
       <span class="al-footer-credits">
-        <a href="https://www.exchangerate-api.com" target="_blank" rel="noopener"><?php _e('Rates by Exchange Rate API', 'starter'); ?></a>
-        <a href="https://db-ip.com" target="_blank" rel="noopener"><?php _e('IP geolocation by DB-IP', 'starter'); ?></a>
         <?php
           $order_id = (int)osc_get_preference('link_remover_order_id', 'starter_theme');
           if ($order_id < 8000 || $order_id > 500000 || osc_get_preference('remove_footer_link', 'starter_theme') == 0) {
