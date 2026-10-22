@@ -130,6 +130,21 @@ function antique_verify_limit_text() {
 }
 
 /**
+ * File type from the file's first bytes: jpg, png, webp, pdf, heic or ''. Does not rely on
+ * PHP's fileinfo extension, which some hosts leave switched off.
+ */
+function antique_verify_sniff($path) {
+  $h = @file_get_contents($path, false, null, 0, 16);
+  if ($h === false || strlen($h) < 12) { return ''; }
+  if (strncmp($h, "\xFF\xD8\xFF", 3) === 0) { return 'jpg'; }
+  if (strncmp($h, "\x89PNG\r\n\x1A\n", 8) === 0) { return 'png'; }
+  if (substr($h, 0, 4) === 'RIFF' && substr($h, 8, 4) === 'WEBP') { return 'webp'; }
+  if (strpos(substr($h, 0, 8), '%PDF-') !== false || strpos((string)@file_get_contents($path, false, null, 0, 1024), '%PDF-') !== false) { return 'pdf'; }
+  if (substr($h, 4, 4) === 'ftyp' && in_array(substr($h, 8, 4), array('heic', 'heix', 'hevc', 'heim', 'heis', 'mif1', 'msf1'), true)) { return 'heic'; }
+  return '';
+}
+
+/**
  * Sellers can list items only once the site team has verified them.
  */
 function antique_can_list($uid = null) {
@@ -224,10 +239,10 @@ function antique_verify_post() {
       return null;
     }
     if ($f['size'] > ANTIQUE_VERIFY_MAX_BYTES) { $errors[] = sprintf(__('The document is too big. The limit is %s.', 'starter'), $limit); return null; }
-    $mime = function_exists('finfo_open') ? finfo_file(finfo_open(FILEINFO_MIME_TYPE), $f['tmp_name']) : '';
-    $ok = array('image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp', 'application/pdf' => 'pdf');
-    if (!isset($ok[$mime])) { $errors[] = __('Upload a JPG, PNG, WebP or PDF file.', 'starter'); return null; }
-    return array('tmp' => $f['tmp_name'], 'ext' => $ok[$mime]);
+    $ext = antique_verify_sniff($f['tmp_name']);
+    if ($ext === 'heic') { $errors[] = __('This is an iPhone HEIC photo, which we cannot open. Take a screenshot of the photo and upload that, or set Settings > Camera > Formats to Most Compatible.', 'starter'); return null; }
+    if ($ext === '') { $errors[] = __('Upload a JPG, PNG, WebP or PDF file.', 'starter'); return null; }
+    return array('tmp' => $f['tmp_name'], 'ext' => $ext);
   };
   $front = $check('doc', true, $dealer ? __('Upload your business document.', 'starter') : __('Upload a photo of your ID (the side with your photo).', 'starter'));
   $backSide = (isset($types[$docType]) && $types[$docType]['sides'] == 2) ? $check('doc_back', false, '') : null;
