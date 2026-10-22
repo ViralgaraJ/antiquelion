@@ -947,6 +947,15 @@ h1, h2, h3, .al-display {
 .al-btn-danger:hover { background: #FEF3F2; border-color: var(--al-danger); }
 .al-btn-whatsapp { background: #128C7E; color: #FFFFFF !important; }
 .al-btn-whatsapp:hover { background: #0E6F64; }
+/* custom-home.css forces a:hover/a:focus to gold with !important (0,1,1);
+   restate each filled button's text colour at (0,2,0) so it stays readable */
+.al-btn-gilt:hover, .al-btn-gilt:focus { color: var(--al-ink) !important; }
+.al-btn-ink:hover, .al-btn-ink:focus,
+.al-btn-brass:hover, .al-btn-brass:focus,
+.al-btn-whatsapp:hover, .al-btn-whatsapp:focus,
+.al-btn-outline-light:hover, .al-btn-outline-light:focus { color: #FFFFFF !important; }
+.al-btn-outline:focus { color: var(--al-brass-text) !important; }
+.al-btn-danger:hover, .al-btn-danger:focus { color: var(--al-danger) !important; }
 .al-btn-block { display: flex; width: 100%; box-sizing: border-box; }
 .al-btn svg { margin-right: 8px; flex: 0 0 auto; }
 .al-btn:focus-visible,
@@ -3211,9 +3220,12 @@ html:not(#al-a):not(#al-b) body:not(#al-c) .al-shop-title h1 { margin: 0; paddin
 .al-shop-type { padding: 3px 10px; border-radius: 999px; background: var(--al-ivory); color: var(--al-muted); font-size: 12px; font-weight: 700; }
 .al-shop-tagline { margin: 0; color: #2B3445; font-size: 15px; line-height: 1.5; }
 .al-shop-title .al-rating-line { margin-top: 0; }
-.al-shop-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; }
-.al-shop-actions .al-btn { min-height: 46px; padding: 0 20px; }
-.al-shop-actions .al-phone-revealed { display: flex; gap: 10px; }
+.al-shop-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 360px; align-self: end; }
+.al-shop-actions > .al-btn,
+.al-shop-actions .al-phone-revealed > .al-btn:only-child { grid-column: 1 / -1; }
+.al-shop-actions .al-phone-revealed { display: contents; }
+.al-shop-actions .al-btn { min-height: 46px; padding: 0 14px; font-size: 14.5px; white-space: nowrap; box-sizing: border-box; }
+.al-shop-actions .al-btn svg { width: 17px; height: 17px; }
 .al-shop-stats { display: flex; flex-wrap: wrap; gap: 0; margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--al-line-soft); }
 .al-shop-stats li { display: flex; flex-direction: column; gap: 2px; flex: 1 1 140px; margin: 0; padding: 14px 20px; border-right: 1px solid var(--al-line-soft); }
 .al-shop-stats li:last-child { border-right: 0; }
@@ -3245,9 +3257,7 @@ html:not(#al-a):not(#al-b) body:not(#al-c) .al-shop-policies h3 { margin: 0 0 4p
   .al-shop-avatar { width: 84px; height: 84px; }
   .al-shop-title { padding-top: 44px; }
   html:not(#al-a):not(#al-b) body:not(#al-c) .al-shop-title h1 { font-size: 28px; }
-  .al-shop-actions { grid-column: 1 / -1; justify-content: stretch; }
-  .al-shop-actions > * { flex: 1 1 auto; }
-  .al-shop-actions .al-btn { width: 100%; }
+  .al-shop-actions { grid-column: 1 / -1; width: 100%; }
   .al-shop-stats li { flex: 1 1 33%; padding: 12px 14px; }
   .al-shop-stats li:nth-child(3n) { border-right: 0; }
   .al-shop-stats strong { font-size: 22px; }
