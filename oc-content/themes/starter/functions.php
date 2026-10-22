@@ -18,6 +18,7 @@ require_once __DIR__ . '/inc.messages.php';
 require_once __DIR__ . '/inc.offers.php';
 require_once __DIR__ . '/inc.reviews.php';
 require_once __DIR__ . '/inc.verify.php';
+require_once __DIR__ . '/inc.shop.php';
 
 // "JPG, PNG or GIF" from the allowed upload extensions (Settings > Media)
 function antique_upload_formats() {
@@ -599,6 +600,7 @@ function antique_account_nav($compact = false) {
         array(__('Expired', 'starter'), osc_user_list_items_url() . $sep . 'itemType=expired', $type == 'expired', $counts['expired']),
         array(__('Sell an item', 'starter'), osc_item_post_url(), false, null),
         array(__('My shop page', 'starter'), osc_user_public_profile_url($uid), $loc == 'user' && $sec == 'pub_profile', null),
+        array(__('Shop settings', 'starter'), antique_shop_settings_url(), $route == 'al-shop', null),
         array(antique_seller_verified($uid) ? __('Verified', 'starter') : __('Get verified', 'starter'), antique_verify_url(), $route == 'al-verify', null)
       )
     );

@@ -3190,3 +3190,103 @@ html:not(#al-a):not(#al-b) body:not(#al-c) .al-verify-file input[type="file"] { 
 .al-verify-state.is-pending svg { color: var(--al-brass); }
 .al-verify-declined { display: flex; flex-direction: column; gap: 4px; border-color: #F1C4BF; background: #FEF3F2; }
 .al-verify-declined span { font-weight: 500; }
+
+/* ===================== Shop page (storefront) ===================== */
+.al-shop { padding-top: 24px; padding-bottom: 72px; clear: both; }
+.al-shop-hero { position: relative; background: var(--al-paper); border: 1px solid var(--al-line); border-radius: 12px; overflow: hidden; }
+.al-shop-banner { height: 220px; background: var(--al-ink) center / cover no-repeat; }
+.al-shop-banner.is-pattern {
+  background-color: var(--al-ink);
+  background-image:
+    radial-gradient(circle at 20% 30%, rgba(217, 178, 106, 0.22) 0 2px, transparent 3px),
+    radial-gradient(circle at 70% 60%, rgba(217, 178, 106, 0.16) 0 2px, transparent 3px),
+    linear-gradient(135deg, #14213D 0%, #1E2D4F 55%, #2A3B63 100%);
+  background-size: 46px 46px, 62px 62px, cover;
+}
+.al-shop-id { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 20px; align-items: end; margin-top: -52px; padding: 0 28px 18px; }
+.al-shop-avatar { position: relative; width: 104px; height: 104px; border: 4px solid var(--al-paper); border-radius: 50%; background: var(--al-paper); object-fit: cover; box-shadow: 0 6px 18px rgba(20, 33, 61, 0.18); }
+.al-shop-title { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; min-width: 0; padding-top: 58px; }
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-shop-title h1 { margin: 0; padding: 0; color: var(--al-ink); font-family: var(--al-font-display); font-size: 36px; font-weight: 700; line-height: 1.1; text-align: left; overflow-wrap: anywhere; }
+.al-shop-badges { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.al-shop-badges .al-verified { margin-top: 0; }
+.al-shop-type { padding: 3px 10px; border-radius: 999px; background: var(--al-ivory); color: var(--al-muted); font-size: 12px; font-weight: 700; }
+.al-shop-tagline { margin: 0; color: #2B3445; font-size: 15px; line-height: 1.5; }
+.al-shop-title .al-rating-line { margin-top: 0; }
+.al-shop-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; }
+.al-shop-actions .al-btn { min-height: 46px; padding: 0 20px; }
+.al-shop-actions .al-phone-revealed { display: flex; gap: 10px; }
+.al-shop-stats { display: flex; flex-wrap: wrap; gap: 0; margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--al-line-soft); }
+.al-shop-stats li { display: flex; flex-direction: column; gap: 2px; flex: 1 1 140px; margin: 0; padding: 14px 20px; border-right: 1px solid var(--al-line-soft); }
+.al-shop-stats li:last-child { border-right: 0; }
+.al-shop-stats strong { color: var(--al-ink); font-family: var(--al-font-display); font-size: 26px; font-weight: 700; line-height: 1.1; }
+.al-shop-stats span { color: var(--al-muted); font-size: 12.5px; font-weight: 600; }
+
+.al-shop-tabs { position: sticky; top: 0; z-index: 30; display: flex; gap: 6px; margin: 20px 0; padding: 8px; background: rgba(247, 244, 238, 0.94); backdrop-filter: blur(6px); border: 1px solid var(--al-line); border-radius: 999px; overflow-x: auto; scrollbar-width: none; }
+.al-shop-tabs::-webkit-scrollbar { display: none; }
+.al-shop-tabs a { flex: 0 0 auto; padding: 8px 16px; border-radius: 999px; color: var(--al-ink) !important; font-size: 14px; font-weight: 700; text-decoration: none !important; white-space: nowrap; }
+.al-shop-tabs a:hover { background: var(--al-paper); }
+.al-shop-tabs a.is-active { background: var(--al-ink); color: #FFFFFF !important; }
+.al-shop-tabs em { margin-left: 4px; color: inherit; opacity: 0.7; font-style: normal; font-weight: 700; }
+.al-shop-section, .al-shop-cols section { scroll-margin-top: 90px; }
+.al-shop .al-profile-grid { grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 20px; }
+.al-shop-cols { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 24px; align-items: start; margin-top: 32px; }
+.al-shop-side { display: flex; flex-direction: column; gap: 16px; }
+.al-shop-side .al-panel + .al-panel { margin-top: 0; }
+.al-shop-about { margin: 0 0 4px; color: #2B3445; font-size: 14.5px; line-height: 1.65; }
+.al-shop-side .al-meta { margin-top: 14px; }
+.al-shop-policies { display: flex; flex-direction: column; gap: 14px; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--al-line-soft); }
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-shop-policies h3 { margin: 0 0 4px; padding: 0; color: var(--al-ink); font-family: var(--al-font-ui); font-size: 13px; font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; text-align: left; }
+.al-shop-policies p { margin: 0; color: #2B3445; font-size: 14px; line-height: 1.6; }
+.al-shop-nopolicy { margin-top: 14px; }
+@media (max-width: 1080px) { .al-shop-cols { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 760px) {
+  .al-shop { padding-top: 12px; padding-bottom: 96px; }
+  .al-shop-banner { height: 130px; }
+  .al-shop-id { grid-template-columns: auto minmax(0, 1fr); gap: 14px; margin-top: -40px; padding: 0 16px 14px; }
+  .al-shop-avatar { width: 84px; height: 84px; }
+  .al-shop-title { padding-top: 44px; }
+  html:not(#al-a):not(#al-b) body:not(#al-c) .al-shop-title h1 { font-size: 28px; }
+  .al-shop-actions { grid-column: 1 / -1; justify-content: stretch; }
+  .al-shop-actions > * { flex: 1 1 auto; }
+  .al-shop-actions .al-btn { width: 100%; }
+  .al-shop-stats li { flex: 1 1 33%; padding: 12px 14px; }
+  .al-shop-stats li:nth-child(3n) { border-right: 0; }
+  .al-shop-stats strong { font-size: 22px; }
+  .al-shop-tabs { top: 0; border-radius: 12px; }
+  .al-shop .al-profile-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+}
+
+/* shop settings */
+.al-shop-form { gap: 16px; }
+.al-shop-form .al-panel { display: flex; flex-direction: column; gap: 14px; }
+.al-shop-form .al-panel + .al-panel { margin-top: 0; }
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-shop-h { margin: 0; padding: 0; color: var(--al-ink); font-family: var(--al-font-display); font-size: 22px; font-weight: 600; text-align: left; }
+.al-shop-banner-preview { height: 150px; border-radius: 8px; background: var(--al-ink) center / cover no-repeat; }
+.al-shop-banner-preview.is-empty { display: flex; align-items: center; justify-content: center; background-image: linear-gradient(135deg, #14213D 0%, #2A3B63 100%); color: rgba(255, 255, 255, 0.75); font-size: 13.5px; font-weight: 600; text-align: center; padding: 0 16px; }
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-shop-file input[type="file"] { height: auto !important; padding: 10px !important; border: 1px dashed #CDBF9F !important; border-radius: 6px; background: #FCFBF8 !important; font-size: 14px; }
+.al-shop-file .al-hint { display: block; margin-top: 6px; }
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-shop-form textarea { height: 110px !important; }
+.al-shop-save { position: sticky; bottom: 0; padding: 12px 0; background: linear-gradient(to top, var(--al-ivory) 70%, transparent); }
+@media (max-width: 767px) { .al-shop-save { bottom: calc(60px + env(safe-area-inset-bottom)); } .al-shop-save .al-btn { width: 100%; } }
+/* shop page refinements: lining numbers, even stat tiles, avatar over the banner, tabs that fit */
+.al-shop-id { align-items: start; }
+.al-shop-actions { align-self: end; }
+.al-shop-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1px; background: var(--al-line-soft); }
+.al-shop-stats li { padding: 14px 20px; border-right: 0; background: var(--al-paper); }
+.al-shop-stats strong { font-family: var(--al-font-ui); font-size: 22px; font-weight: 800; font-variant-numeric: lining-nums tabular-nums; }
+@media (max-width: 760px) {
+  .al-shop-title { padding-top: 46px; }
+  .al-shop-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .al-shop-stats li { padding: 12px 16px; }
+  .al-shop-stats li:last-child:nth-child(odd) { grid-column: 1 / -1; }
+  .al-shop-stats strong { font-size: 20px; }
+  .al-shop-tabs { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 4px; padding: 6px; overflow: visible; }
+  .al-shop-tabs a { padding: 9px 4px; font-size: 13px; text-align: center; }
+  .al-shop-tabs em { margin-left: 2px; }
+}
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-shop-policies h3 { font-family: var(--al-font-ui) !important; }
+@media (max-width: 760px) {
+  .al-shop-id { grid-template-columns: minmax(0, 1fr); gap: 12px; margin-top: -44px; }
+  .al-shop-title { padding-top: 0; }
+  .al-shop-actions { grid-column: auto; }
+}
