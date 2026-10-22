@@ -1,0 +1,8 @@
+# Browser caching for Osclass's bundled jQuery, jQuery UI and Fancybox. The server
+# sends no caching headers for JavaScript; these files only change on an Osclass upgrade.
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType application/javascript "access plus 30 days"
+  ExpiresByType text/javascript "access plus 30 days"
+  ExpiresByType text/css "access plus 30 days"
+</IfModule>

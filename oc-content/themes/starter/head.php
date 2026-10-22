@@ -435,7 +435,7 @@ if ($jquery_version == '1') {
 }
 
 if(starter_is_rtl()) {
-  osc_enqueue_style('rtl', osc_current_web_theme_url('css/rtl.css')  . '?v=' . date("Ymdhis"));
+  osc_enqueue_style('rtl', osc_current_web_theme_url('css/rtl.css') . '?v=' . filemtime(__DIR__ . '/css/rtl.css'));
 }
 
 
@@ -454,7 +454,7 @@ if(starter_ajax_image_upload() && (osc_is_publish_page() || osc_is_edit_page()))
 
 
 osc_register_script('jquery-drag', osc_current_web_theme_js_url('jquery.drag.min.js'), 'jquery');
-osc_register_script('global', osc_current_web_theme_js_url('global.js?v=' . date("Ymdhis")));
+osc_register_script('global', osc_current_web_theme_js_url('global.js') . '?v=' . filemtime(__DIR__ . '/js/global.js'));
 
 if ($jquery_version == '1') {
   osc_register_script('fancybox', osc_current_web_theme_url('js/fancybox/jquery.fancybox.pack.js'), array('jquery'));
