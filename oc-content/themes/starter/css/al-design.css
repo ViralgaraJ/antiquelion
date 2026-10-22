@@ -2806,6 +2806,17 @@ html body .al-mode-switch { align-items: stretch; }
 html body .al-mode-switch a,
 html body #al-header .al-account-menu .al-mode-switch a { display: flex !important; align-items: center; justify-content: center; min-height: 36px; margin: 0 !important; padding: 6px 10px !important; white-space: nowrap; font-family: var(--al-font-ui) !important; font-size: 13px !important; font-weight: 700 !important; line-height: 1.2 !important; letter-spacing: 0 !important; border: 0 !important; }
 html body #al-header .al-account-menu .al-mode-switch { margin: 12px 14px 6px !important; }
+/* the header menu's generic link hover (ivory fill, brass text) sits at (1,2,1) and wiped out the
+   pills: the active one turned ivory with white text. Restate every pill state above it. */
+html body #al-header .al-account-menu .al-mode-switch a { border-radius: 999px; background: transparent; color: var(--al-muted) !important; transition: background-color 0.15s, color 0.15s; }
+html body #al-header .al-account-menu .al-mode-switch a:hover,
+html body #al-header .al-account-menu .al-mode-switch a:focus { background: #FFFFFF; color: var(--al-ink) !important; }
+html body #al-header .al-account-menu .al-mode-switch a.is-active,
+html body #al-header .al-account-menu .al-mode-switch a.is-active:hover,
+html body #al-header .al-account-menu .al-mode-switch a.is-active:focus { background: var(--al-ink); color: #FFFFFF !important; box-shadow: 0 1px 4px rgba(20, 33, 61, 0.2); }
+html body #al-header .al-account-menu .al-mode-switch a.is-cta { color: var(--al-brass-text) !important; }
+html body #al-header .al-account-menu .al-mode-switch a.is-cta:hover,
+html body #al-header .al-account-menu .al-mode-switch a.is-cta:focus { background: #F6F0E3; color: var(--al-brass-text) !important; }
 
 /* ======================================================================
    Phones: sell / edit form fills the screen, one even gutter
