@@ -189,7 +189,7 @@ function antique_watch_ending_soon() {
         sprintf(__('%1$s ends in %2$s.', 'starter'), '<strong>' . osc_esc_html($item['s_title']) . '</strong>', '<strong>' . osc_esc_html($left) . '</strong>'),
         sprintf($state['hasBids'] ? __('Current bid: %s.', 'starter') : __('Starting bid: %s. No bids yet.', 'starter'), '<strong>' . osc_esc_html(antique_bids_money($state['amount'], $item['fk_c_currency_code'])) . '</strong>')
       ),
-      osc_item_url_from_item($item), __('View the auction', 'starter')
+      osc_item_url_from_item($item), __('View the auction', 'starter'), 'watchlist'
     );
   }
 }
@@ -228,7 +228,7 @@ function antique_watch_notify_sold($itemId, $skip = array()) {
         sprintf(__('%s from your watchlist has been sold.', 'starter'), '<strong>' . osc_esc_html($item['s_title']) . '</strong>'),
         __('Similar pieces are listed every day. Save a search to hear about them first.', 'starter')
       ),
-      $more, __('See similar items for sale', 'starter')
+      $more, __('See similar items for sale', 'starter'), 'watchlist'
     );
   }
 }

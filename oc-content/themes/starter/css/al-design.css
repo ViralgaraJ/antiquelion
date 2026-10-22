@@ -3580,3 +3580,19 @@ html:not(#al-a):not(#al-b) body:not(#al-c) .al-ie .al-btn:focus-visible { outlin
 /* corners that rotation uncovers are saved white: show them white while editing too */
 .al-ie-stage .cropper-canvas, .al-ie-stage .cropper-view-box { background: #FFFFFF; }
 html:not(#al-a):not(#al-b) body:not(#al-c) .al-ie :is(.al-ie-chip, .al-ie-tool, .al-ie-x, .al-btn) { transition: none !important; }
+
+/* Email settings (Account) and the unsubscribe page */
+.al-notify-list { list-style: none; margin: 0; padding: 0; }
+.al-notify-list li { padding: 14px 0; border-top: 1px solid var(--al-line-soft); }
+.al-notify-list li:first-child { border-top: 0; padding-top: 4px; }
+.al-notify-list .al-check { align-items: flex-start !important; }
+.al-notify-list .al-check input[type="checkbox"] { margin-top: 2px !important; flex: 0 0 auto; }
+.al-notify-list .al-check span { display: flex; flex-direction: column; gap: 2px; }
+.al-notify-list .al-check small { color: var(--al-muted); font-size: 13px; font-weight: 400; line-height: 1.45; }
+.al-notify-note { margin: 0 0 8px; color: var(--al-muted); font-size: 14px; line-height: 1.55; }
+.al-notify-note:last-child { margin-bottom: 0; }
+.al-unsub { padding-top: 48px; padding-bottom: 64px; }
+.al-unsub .al-panel { max-width: 560px; margin: 0 auto; }
+.al-unsub h1 { margin: 0 0 12px; font-family: "Cormorant Garamond", Georgia, serif; font-size: 30px; font-weight: 600; color: var(--al-ink); }
+.al-unsub p { margin: 0 0 12px; font-size: 15px; line-height: 1.6; }
+.al-unsub-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px !important; }

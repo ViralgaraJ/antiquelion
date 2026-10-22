@@ -15,6 +15,7 @@ require_once __DIR__ . '/inc.report.php';
 require_once __DIR__ . '/inc.seller.php';
 require_once __DIR__ . '/inc.avatar.php';
 require_once __DIR__ . '/inc.mail.php';
+require_once __DIR__ . '/inc.notify.php';
 require_once __DIR__ . '/inc.messages.php';
 require_once __DIR__ . '/inc.offers.php';
 require_once __DIR__ . '/inc.reviews.php';
@@ -622,7 +623,8 @@ function antique_account_nav($compact = false) {
   }
   $groups[__('Account', 'starter')] = array(
     array(__('Messages', 'starter'), antique_inbox_url(), in_array($route, array('al-inbox', 'al-thread')), antique_msg_unread_total() ?: null),
-    array(__('Account settings', 'starter'), osc_user_profile_url(), $loc == 'user' && $sec == 'profile', null)
+    array(__('Account settings', 'starter'), osc_user_profile_url(), $loc == 'user' && $sec == 'profile', null),
+    array(__('Email settings', 'starter'), antique_notify_url(), $route == 'al-notify', null)
   );
 
   $html = '<nav class="al-acc-nav' . ($compact ? ' is-compact' : '') . '" aria-label="' . osc_esc_html(__('My account', 'starter')) . '">';

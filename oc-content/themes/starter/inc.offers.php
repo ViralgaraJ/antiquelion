@@ -137,10 +137,11 @@ function antique_offers_expire() {
 osc_add_hook('init', 'antique_offers_expire', 9);
 osc_add_hook('cron', 'antique_offers_expire');
 
-function antique_offer_mail($toId, $subject, $heading, $lines, $thread, $cta) {
+// $topic '' for accepted offers, which are always emailed
+function antique_offer_mail($toId, $subject, $heading, $lines, $thread, $cta, $topic = 'offers') {
   $to = antique_msg_user($toId);
   if ($to['email'] == '') { return; }
-  antique_mail($to['email'], $to['name'], $subject, $heading, $lines, antique_thread_url($thread['pk_i_id']), $cta);
+  antique_mail($to['email'], $to['name'], $subject, $heading, $lines, antique_thread_url($thread['pk_i_id']), $cta, $topic);
 }
 
 /**
@@ -278,11 +279,11 @@ function antique_offer_post() {
       sprintf(__('Good news: your offer of %1$s for %2$s was accepted. The item is reserved for you.', 'starter'), '<strong>' . osc_esc_html($money) . '</strong>', '<strong>' . osc_esc_html($title) . '</strong>'),
       sprintf(__('Agree payment and delivery with %s in your conversation. Pay only by a method you trust, and keep the agreement in writing on the site.', 'starter'), osc_esc_html($seller['name'])),
       __('Once the item arrives, please leave a review for the seller. It helps other collectors buy safely.', 'starter')
-    ), $thread, __('Arrange payment and delivery', 'starter'));
+    ), $thread, __('Arrange payment and delivery', 'starter'), '');
     antique_offer_mail($sellerId, sprintf(__('You accepted an offer: %s', 'starter'), $title), __('Offer accepted', 'starter'), array(
       sprintf(__('You accepted %1$s\'s offer of %2$s for %3$s. The listing now shows as reserved.', 'starter'), osc_esc_html($buyer['name']), '<strong>' . osc_esc_html($money) . '</strong>', '<strong>' . osc_esc_html($title) . '</strong>'),
       __('Agree payment and delivery in the conversation. When the sale is complete, mark the listing as sold.', 'starter')
-    ), $thread, __('Open the conversation', 'starter'));
+    ), $thread, __('Open the conversation', 'starter'), '');
     antique_msg_reply(true, __('Offer accepted. The item is now reserved for this buyer.', 'starter'), $url);
   }
 

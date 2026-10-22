@@ -921,8 +921,12 @@ function antique_bids_process_expired_auctions() {
 
 /**
  * Sends one branded HTML email. $paragraphs are HTML strings (escape user data first).
+ * $topic marks an optional email the member can unsubscribe from (theme inc.notify.php).
  */
-function antique_bids_mail($to, $toName, $subject, $heading, $paragraphs, $ctaUrl = '', $ctaLabel = '') {
+function antique_bids_mail($to, $toName, $subject, $heading, $paragraphs, $ctaUrl = '', $ctaLabel = '', $topic = '') {
+    if (function_exists('antique_mail')) {
+        return antique_mail($to, $toName, $subject, $heading, $paragraphs, $ctaUrl, $ctaLabel, $topic);
+    }
     if (trim((string)$to) === '') {
         return false;
     }
@@ -970,7 +974,7 @@ function antique_bids_send_outbid_email($itemId, $userId, $price) {
             'Another bidder has placed a higher maximum bid on <strong>' . $title . '</strong>.',
             'Current bid: <strong>' . osc_esc_html(antique_bids_money($price, $item['fk_c_currency_code'])) . '</strong>. The auction is still running, so you can bid again.'
         ),
-        osc_item_url_from_item($item), 'Bid again'
+        osc_item_url_from_item($item), 'Bid again', 'outbid'
     );
 }
 
@@ -1031,7 +1035,7 @@ function antique_bids_send_lost_emails($itemId, $winnerId) {
                 'The auction for <strong>' . osc_esc_html($item['s_title']) . '</strong> has ended and another bidder won.',
                 'Thank you for bidding. New antiques are listed every day.'
             ),
-            osc_search_url(array('page' => 'search', 'sAuction' => 1)), 'See live auctions'
+            osc_search_url(array('page' => 'search', 'sAuction' => 1)), 'See live auctions', 'auction_updates'
         );
     }
 }
@@ -1067,7 +1071,7 @@ function antique_bids_send_reserve_not_met_emails($itemId, $highest, $reserve) {
                 'The auction for <strong>' . $title . '</strong> has ended. Your bid of <strong>' . $amount . '</strong> was the highest, but it did not reach the seller\'s reserve price, so the item was not sold.',
                 'The seller may still contact you, or you can ask them a question from the listing.'
             ),
-            osc_item_url_from_item($item), 'View listing'
+            osc_item_url_from_item($item), 'View listing', 'auction_updates'
         );
     }
 }

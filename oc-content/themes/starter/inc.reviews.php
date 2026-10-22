@@ -210,7 +210,7 @@ function antique_review_post() {
         str_repeat('&#9733;', $rating) . str_repeat('&#9734;', 5 - $rating),
         antique_mail_quote($body),
         __('You can post one public reply under the review on your shop page.', 'starter')
-      ), osc_user_public_profile_url($sellerId) . '#al-reviews', __('See the review', 'starter'));
+      ), osc_user_public_profile_url($sellerId) . '#al-reviews', __('See the review', 'starter'), 'reviews');
     }
     antique_msg_reply(true, __('Thank you. Your review is now on the seller\'s shop page.', 'starter'), osc_user_public_profile_url($sellerId) . '#al-reviews');
   }

@@ -4,9 +4,14 @@ if (!defined('ABS_PATH')) { exit('ABS_PATH is not loaded. Direct access is not a
 /*
  * Branded HTML email (same look as the auction emails) with a plain-text part.
  * $paragraphs are trusted HTML fragments: escape any user text before passing it.
+ * $topic marks an optional email (see inc.notify.php): it is skipped when the member
+ * turned that topic off, and gets an unsubscribe link. Leave it empty for emails
+ * about a deal or the account, which are always sent.
  */
-function antique_mail($to, $toName, $subject, $heading, $paragraphs, $ctaUrl = '', $ctaLabel = '') {
+function antique_mail($to, $toName, $subject, $heading, $paragraphs, $ctaUrl = '', $ctaLabel = '', $topic = '') {
   if (trim((string)$to) === '') { return false; }
+  $notify = function_exists('antique_notify_mail_info') ? antique_notify_mail_info($to, $topic) : array('skip' => false, 'footer' => '', 'unsub' => '');
+  if ($notify['skip']) { return false; }
   $site = osc_esc_html(osc_page_title());
   $body = '<div style="background:#F7F4EE;padding:28px 12px;font-family:Arial,Helvetica,sans-serif;color:#14213D;">'
         . '<div style="max-width:560px;margin:0 auto;background:#FFFFFF;border:1px solid #E6DFD1;border-radius:6px;overflow:hidden;">'
@@ -22,6 +27,7 @@ function antique_mail($to, $toName, $subject, $heading, $paragraphs, $ctaUrl = '
   }
   $body .= '</div><div style="padding:16px 28px;background:#FBF9F4;border-top:1px solid #EFE9DD;font-size:12px;color:#6B7280;">'
          . sprintf(__('You are receiving this email because of your activity on %s.', 'starter'), '<a href="' . osc_base_url() . '" style="color:#8A6420;">' . $site . '</a>')
+         . $notify['footer']
          . '</div></div></div>';
 
   return @osc_sendMail(array(
@@ -29,6 +35,7 @@ function antique_mail($to, $toName, $subject, $heading, $paragraphs, $ctaUrl = '
     'to'       => $to,
     'to_name'  => $toName,
     'subject'  => $subject,
+    'al_unsub' => $notify['unsub'],
     'body'     => $body,
     'alt_body' => trim(preg_replace("/\n{3,}/", "\n\n", html_entity_decode(strip_tags(str_replace(array('</p>', '</h1>', '</div>', '<br/>', '<br>'), "\n", $body)), ENT_QUOTES, 'UTF-8')))
   ));

@@ -218,7 +218,7 @@ function antique_msg_email($thread, $senderId, $body) {
       : sprintf(__('%s wrote:', 'starter'), '<strong>' . osc_esc_html($from['name']) . '</strong>'),
     antique_mail_quote($body),
     __('Reply on the site so you both keep a record of what was agreed. Never send money or bank details to someone you have not checked.', 'starter')
-  ), antique_thread_url($thread['pk_i_id']), __('Read and reply', 'starter'));
+  ), antique_thread_url($thread['pk_i_id']), __('Read and reply', 'starter'), 'messages');
 }
 
 function antique_msg_mark_read($thread, $role) {
