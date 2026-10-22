@@ -1059,6 +1059,15 @@ h1, h2, h3, .al-display {
   line-height: 1.4 !important;
 }
 .al-form textarea { height: 140px !important; padding: 12px 14px !important; resize: vertical; }
+/* reCAPTCHA keeps its answer in a hidden textarea: the field resets must not show it
+   (the main reset further down also skips it with :not(.g-recaptcha-response)) */
+.al-form textarea.g-recaptcha-response { display: none !important; }
+/* the form's flex gap spaces it; Osclass prints a <br> after the widget that would add a blank row */
+.al-form .g-recaptcha { margin: 0; }
+.al-form > .g-recaptcha ~ br { display: none; }
+@media (max-width: 380px) {
+  .g-recaptcha { transform: scale(0.88); transform-origin: 0 0; margin-bottom: -9px !important; }
+}
 .al-form input:focus,
 .al-form select:focus,
 .al-form textarea:focus { border-color: var(--al-brass) !important; outline: none !important; box-shadow: 0 0 0 3px rgba(166, 124, 46, 0.2) !important; }
@@ -2429,7 +2438,7 @@ html:not(#al-x) body:is(#body-item-post, #body-item-edit) .content.add_item #pho
    outrank page-specific legacy ID rules (#contact, #contact_form, …).
    ====================================================================== */
 html:not(#al-a):not(#al-b) body:not(#al-c) .al-form :is(input[type="text"], input[type="email"], input[type="password"], input[type="url"], input[type="number"], input[type="search"], input:not([type])):not(.iti__tel-input):not(.al-dd-search):not(.iti__search-input),
-html:not(#al-a):not(#al-b) body:not(#al-c) .al-form textarea {
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-form textarea:not(.g-recaptcha-response) {
   box-sizing: border-box !important; display: block !important; width: 100% !important; height: 48px !important; min-height: 48px !important;
   margin: 0 !important; padding: 0 14px !important; text-indent: 0 !important; float: none !important;
   border: 1px solid var(--al-field-line) !important; border-radius: var(--al-radius) !important;
@@ -2437,7 +2446,7 @@ html:not(#al-a):not(#al-b) body:not(#al-c) .al-form textarea {
   color: var(--al-ink) !important; font-family: var(--al-font-ui) !important; font-size: 15px !important; font-weight: 500 !important; line-height: 1.4 !important;
   transition: border-color 0.15s, box-shadow 0.15s;
 }
-html:not(#al-a):not(#al-b) body:not(#al-c) .al-form textarea { height: 140px !important; min-height: 110px !important; padding: 12px 14px !important; line-height: 1.55 !important; resize: vertical; }
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-form textarea:not(.g-recaptcha-response) { height: 140px !important; min-height: 110px !important; padding: 12px 14px !important; line-height: 1.55 !important; resize: vertical; }
 html:not(#al-a):not(#al-b) body:not(#al-c) .al-form :is(input, textarea):not([type="checkbox"]):not([type="radio"]):not(.iti__tel-input):hover { border-color: var(--al-field-line-hover) !important; }
 html:not(#al-a):not(#al-b) body:not(#al-c) .al-form :is(input, textarea):not([type="checkbox"]):not([type="radio"]):focus { border-color: var(--al-brass) !important; box-shadow: 0 0 0 3px rgba(166, 124, 46, 0.2) !important; outline: none !important; }
 html:not(#al-a):not(#al-b) body:not(#al-c) .al-form :is(input, textarea).error { border-color: var(--al-danger) !important; }
