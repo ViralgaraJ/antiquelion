@@ -25,10 +25,19 @@
     <div class="al-shop-banner-preview<?php echo $al_shop['banner'] ? '' : ' is-empty'; ?>"<?php echo $al_shop['banner'] ? ' style="background-image:url(\'' . osc_esc_html($al_shop['banner']) . '\')"' : ''; ?>>
       <?php if (!$al_shop['banner']) { ?><span><?php _e('No banner yet. Your shop shows the AntiqueLion pattern.', 'starter'); ?></span><?php } ?>
     </div>
-    <label class="al-form-full al-shop-file"><span><?php echo $al_shop['banner'] ? __('Replace banner', 'starter') : __('Upload a banner', 'starter'); ?></span>
-      <input type="file" name="banner" accept="image/jpeg,image/png,image/webp" />
-      <small class="al-hint"><?php _e('A wide photo of your shop, stand or collection. JPG, PNG or WebP, at least 1200 × 300 pixels. We crop it to 4:1.', 'starter'); ?></small>
-    </label>
+    <div class="al-shop-banner-actions">
+      <label class="al-btn al-btn-outline al-shop-pick">
+        <input type="file" name="banner" accept="image/*" />
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M21 16l-5-5-8 8"/></svg>
+        <span><?php echo $al_shop['banner'] ? __('Replace banner', 'starter') : __('Upload a banner', 'starter'); ?></span>
+      </label>
+      <button type="button" class="al-btn al-btn-outline al-shop-adjust" hidden>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2v14a2 2 0 0 0 2 2h14"/><path d="M18 22V8a2 2 0 0 0-2-2H2"/></svg>
+        <span><?php _e('Adjust crop', 'starter'); ?></span>
+      </button>
+    </div>
+    <small class="al-hint"><?php _e('A wide photo of your shop, stand or collection, at least 1200 × 300 pixels. You can crop and straighten it before saving.', 'starter'); ?></small>
+    <div class="al-shop-banner-msg" role="status" aria-live="polite"></div>
     <?php if ($al_shop['banner']) { ?>
       <label class="al-check"><input type="checkbox" name="remove_banner" value="1" /><span><?php _e('Remove the banner', 'starter'); ?></span></label>
     <?php } ?>
@@ -64,3 +73,49 @@
     <button type="submit" class="al-btn al-btn-brass"><?php _e('Save shop page', 'starter'); ?></button>
   </div>
 </form>
+<script>
+(function () {
+  var form = document.querySelector('.al-shop-form');
+  if (!form) { return; }
+  var input = form.querySelector('input[name=banner]'), prev = form.querySelector('.al-shop-banner-preview');
+  var adjust = form.querySelector('.al-shop-adjust'), msg = form.querySelector('.al-shop-banner-msg');
+  var removeBox = form.querySelector('input[name=remove_banner]');
+  var t = <?php echo json_encode(array(
+    'title' => __('Crop your shop banner', 'starter'),
+    'apply' => __('Use banner', 'starter'),
+    'ready' => __('New banner ready. Click Save changes to publish it.', 'starter'),
+    'small' => __('This crop is too small for a sharp banner. Choose a larger photo or crop less (at least 800 pixels wide).', 'starter')
+  )); ?>;
+  var original = null;
+  function say(text, bad) { msg.textContent = text || ''; msg.className = 'al-shop-banner-msg' + (bad ? ' is-error' : ' is-ok'); }
+  function edit() {
+    if (!original || !window.alImageEditor) { return; }
+    window.alImageEditor.open(original, { title: t.title, aspect: 4, max: 1600, applyLabel: t.apply }).then(function (file) {
+      if (!file) { if (!input.dataset.ready) { input.value = ''; } return; }
+      var url = URL.createObjectURL(file), probe = new Image();
+      probe.onload = function () {
+        if (probe.naturalWidth < 800) { say(t.small, true); if (!input.dataset.ready) { input.value = ''; } return; }
+        window.alImageEditor.setInputFile(input, file);
+        input.dataset.ready = '1';
+        prev.classList.remove('is-empty');
+        var empty = prev.querySelector('span'); if (empty) { empty.remove(); }
+        prev.style.backgroundImage = 'url("' + url + '")';
+        adjust.hidden = false;
+        if (removeBox) { removeBox.checked = false; }
+        say(t.ready, false);
+      };
+      probe.src = url;
+    }, function (e) { input.value = ''; say(e.message, true); });
+  }
+  input.addEventListener('change', function () {
+    var f = input.files && input.files[0];
+    if (!f) { return; }
+    delete input.dataset.ready;
+    say('');
+    if (!window.alImageEditor) { return; }   // without the editor the server crops it
+    original = f;
+    edit();
+  });
+  adjust.addEventListener('click', edit);
+})();
+</script>

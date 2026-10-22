@@ -103,7 +103,7 @@
           <span class="al-doc-text">
             <strong><span class="al-doc-side" data-dealer="<?php echo osc_esc_html(__('Document', 'starter')); ?>"><?php echo osc_esc_html($al_lbl[0]); ?></span><?php if ($al_name == 'doc') { ?> <em>*</em><?php } ?></strong>
             <small class="al-doc-name" data-hint="<?php echo osc_esc_html($al_lbl[1]); ?>"><?php echo osc_esc_html($al_lbl[1]); ?></small>
-            <span class="al-doc-btn"><?php _e('Take a photo or choose a file', 'starter'); ?></span>
+            <span class="al-doc-acts"><span class="al-doc-btn"><?php _e('Take a photo or choose a file', 'starter'); ?></span><button type="button" class="al-doc-edit" hidden><?php _e('Edit', 'starter'); ?></button></span>
           </span>
         </label>
       <?php } ?>
@@ -145,6 +145,8 @@
     var input = drop.querySelector('input');
     input.value = '';
     drop.classList.remove('has-file');
+    drop.alOriginal = null; drop.alCurrent = null;
+    drop.querySelector('.al-doc-edit').hidden = true;
     var name = drop.querySelector('.al-doc-name');
     name.textContent = name.getAttribute('data-hint');
     drop.querySelector('.al-doc-btn').textContent = <?php echo json_encode(__('Take a photo or choose a file', 'starter')); ?>;
@@ -152,6 +154,8 @@
   }
   function setFile(drop, file) {
     var input = drop.querySelector('input');
+    drop.alCurrent = file;
+    drop.querySelector('.al-doc-edit').hidden = !drop.alOriginal;
     try { var dt = new DataTransfer(); dt.items.add(file); input.files = dt.files; } catch (e) { /* older browsers keep the original file */ }
     drop.classList.add('has-file');
     drop.querySelector('.al-doc-name').textContent = file.name + ' · ' + (file.size < 1048576 ? Math.max(1, Math.round(file.size / 1024)) + ' KB' : (file.size / 1048576).toFixed(1) + ' MB');
@@ -194,16 +198,42 @@
       var isPdf = file.type === 'application/pdf' || /\.pdf$/i.test(file.name);
       if (isPdf) {
         if (file.size > limit) { clear(drop); showError(<?php echo json_encode(__('This PDF is too big. The limit is %s. Send a photo instead.', 'starter')); ?>.replace('%s', limitText)); return; }
-        setFile(drop, file); return;
+        drop.alOriginal = null; setFile(drop, file); return;
       }
       if (file.type && !/^image\//.test(file.type)) { clear(drop); showError(<?php echo json_encode(__('Choose a photo or a PDF file.', 'starter')); ?>); return; }
-      var ok = /^image\/(jpeg|png|webp)$/.test(file.type);
-      if (ok && file.size <= TARGET) { setFile(drop, file); return; }
-      drop.classList.add('is-busy');
-      shrink(file).then(function (f) { setFile(drop, f); }, function () {
-        clear(drop);
-        showError(<?php echo json_encode(__('This photo could not be read. Choose a JPG or PNG photo, or take the photo again with your camera.', 'starter')); ?>);
-      }).then(function () { drop.classList.remove('is-busy'); });
+      if (!window.alImageEditor) { accept(drop, file); return; }
+      drop.alOriginal = file;
+      editDoc(drop);
+    });
+  });
+  // a photo, after editing: keep it if it is small enough, otherwise shrink it
+  function accept(drop, file) {
+    var ok = /^image\/(jpeg|png|webp)$/.test(file.type);
+    if (ok && file.size <= TARGET) { setFile(drop, file); return; }
+    drop.classList.add('is-busy');
+    shrink(file).then(function (f) { setFile(drop, f); }, function () {
+      clear(drop);
+      showError(<?php echo json_encode(__('This photo could not be read. Choose a JPG or PNG photo, or take the photo again with your camera.', 'starter')); ?>);
+    }).then(function () { drop.classList.remove('is-busy'); });
+  }
+  function editDoc(drop) {
+    var input = drop.querySelector('input');
+    window.alImageEditor.open(drop.alOriginal, {
+      title: <?php echo json_encode(__('Check your document photo', 'starter')); ?>,
+      aspects: [[<?php echo json_encode(__('Free', 'starter')); ?>, NaN], [<?php echo json_encode(__('ID card', 'starter')); ?>, 85.6 / 54], [<?php echo json_encode(__('Passport page', 'starter')); ?>, 125 / 88], [<?php echo json_encode(__('A4 page', 'starter')); ?>, 210 / 297]],
+      max: MAX_SIDE, quality: 0.9,
+      applyLabel: <?php echo json_encode(__('Use this photo', 'starter')); ?>
+    }).then(function (edited) {
+      if (edited) { accept(drop, edited); return; }
+      // cancelled: keep the photo they had, or nothing
+      if (drop.alCurrent) { window.alImageEditor.setInputFile(input, drop.alCurrent); } else { clear(drop); }
+    }, function (e) { clear(drop); showError(e.message); });
+  }
+  wrap.querySelectorAll('.al-doc-edit').forEach(function (b) {
+    b.addEventListener('click', function (e) {
+      e.preventDefault(); e.stopPropagation();
+      var drop = b.closest('.al-doc-drop');
+      if (drop.alOriginal) { editDoc(drop); }
     });
   });
   form.querySelectorAll('input[name=doc_type]').forEach(function (r) { r.addEventListener('change', syncType); });

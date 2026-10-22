@@ -3379,3 +3379,183 @@ html:not(#al-a):not(#al-b) body:not(#al-c) .al-form .al-doc-text { align-items: 
 html:not(#al-a):not(#al-b) body:not(#al-c) .al-avatar-actions .al-avatar-pick { flex-direction: row !important; white-space: nowrap; }
 html:not(#al-a):not(#al-b) body:not(#al-c) .al-doc-name { white-space: normal; overflow-wrap: anywhere; }
 html:not(#al-a):not(#al-b) body:not(#al-c) .al-avatar-actions :is(.al-avatar-pick, .al-avatar-remove) > :is(svg, span) { flex: none !important; width: auto !important; margin: 0 !important; padding: 0 !important; }
+
+/* ======================================================================
+   Photo editor (js/al-imgedit.js) and photo previews
+   ====================================================================== */
+html.al-ie-open, html.al-ie-open body { overflow: hidden !important; }
+.al-ie { position: fixed; inset: 0; z-index: 100000; display: flex; align-items: center; justify-content: center; padding: 24px; background: rgba(13, 21, 40, 0.72); }
+.al-ie[hidden] { display: none !important; }
+.al-ie-box { display: flex; flex-direction: column; width: min(960px, 100%); height: min(820px, calc(100vh - 48px)); height: min(820px, calc(100dvh - 48px)); overflow: hidden; border-radius: 12px; background: var(--al-paper); box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35); }
+.al-ie-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 18px; border-bottom: 1px solid var(--al-line); }
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-ie-head h3 { margin: 0 !important; color: var(--al-ink) !important; font-family: var(--al-font-display) !important; font-size: 22px !important; font-weight: 600 !important; line-height: 1.2 !important; }
+.al-ie-stage { position: relative; flex: 1 1 auto; min-height: 0; background: #1B2233; }
+.al-ie-stage > img { display: block; max-width: 100%; opacity: 0; }
+.al-ie-wait { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; }
+.al-ie.is-loading .al-ie-wait { display: flex; }
+.al-ie-wait span { width: 34px; height: 34px; border: 3px solid rgba(255, 255, 255, 0.25); border-top-color: var(--al-gilt); border-radius: 50%; animation: al-ie-spin .8s linear infinite; }
+@keyframes al-ie-spin { to { transform: rotate(360deg); } }
+.al-ie-stage .cropper-bg { background-image: none; }
+.al-ie-stage .cropper-modal { background: #0B1222; opacity: .55; }
+.al-ie-stage .cropper-view-box { outline: 2px solid #FFFFFF; outline-color: rgba(255, 255, 255, 0.9); }
+.al-ie-stage .cropper-line, .al-ie-stage .cropper-point { background-color: var(--al-gilt); }
+.al-ie-stage .cropper-point { width: 10px; height: 10px; opacity: 1; border-radius: 2px; }
+.al-ie-stage .cropper-point.point-se { width: 10px; height: 10px; }
+.al-ie.is-round .cropper-view-box, .al-ie.is-round .cropper-face { border-radius: 50%; }
+.al-ie-tools { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 18px; padding: 12px 18px; border-bottom: 1px solid var(--al-line); background: #FCFBF8; }
+.al-ie-aspects { display: flex; flex-wrap: wrap; gap: 6px; }
+.al-ie-aspects[hidden] { display: none; }
+.al-ie-row { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-ie :is(.al-ie-tool, .al-ie-chip, .al-ie-x) {
+  display: inline-flex !important; align-items: center !important; justify-content: center !important; gap: 6px;
+  float: none !important; width: auto !important; height: 38px !important; min-height: 38px !important; min-width: 38px; margin: 0 !important; padding: 0 9px !important;
+  border: 1px solid transparent !important; border-radius: 8px !important; background: transparent !important; box-shadow: none !important;
+  color: var(--al-ink) !important; font: 600 13px/1 var(--al-font-ui) !important; text-transform: none !important; letter-spacing: 0 !important; cursor: pointer;
+}
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-ie .al-ie-chip { height: 32px !important; min-height: 32px !important; padding: 0 12px !important; border-color: var(--al-line) !important; border-radius: 999px !important; background: var(--al-paper) !important; }
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-ie .al-ie-chip.is-on { border-color: var(--al-ink) !important; background: var(--al-ink) !important; color: #FFFFFF !important; }
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-ie :is(.al-ie-tool, .al-ie-x):hover { background: #F1EBDD !important; }
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-ie :is(.al-ie-tool, .al-ie-chip, .al-ie-x):focus-visible { outline: 2px solid var(--al-brass) !important; outline-offset: 1px; }
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-ie .al-ie-reset { margin-left: 6px !important; border-color: var(--al-line) !important; padding: 0 12px !important; }
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-ie .al-ie-reset svg { width: 16px; height: 16px; }
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-ie-straight { display: flex !important; flex-direction: row !important; align-items: center; gap: 10px; margin: 0 !important; color: var(--al-ink); font-size: 13px; font-weight: 600; }
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-ie-straight span { margin: 0 !important; color: inherit !important; font-size: 13px !important; }
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-ie-straight input[type="range"] { width: 180px !important; height: 24px !important; margin: 0 !important; padding: 0 !important; border: 0 !important; background: transparent !important; box-shadow: none !important; accent-color: var(--al-brass); }
+.al-ie-straight output { min-width: 44px; color: var(--al-muted); font-variant-numeric: tabular-nums; }
+.al-ie-foot { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 12px 18px; }
+.al-ie-tip { margin: 0; color: var(--al-muted); font-size: 12.5px; line-height: 1.4; }
+.al-ie-btns { display: flex; flex: 0 0 auto; gap: 10px; }
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-ie-btns .al-btn { float: none !important; min-width: 110px; height: 44px !important; min-height: 44px !important; margin: 0 !important; }
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-ie-btns .al-btn-ink:is(:hover, :focus) { background: #0D1628 !important; color: #FFFFFF !important; }
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-ie-btns .al-btn-outline:is(:hover, :focus) { background: #F1EBDD !important; color: var(--al-ink) !important; }
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-ie-btns .al-btn:disabled { opacity: .6; }
+@media (max-width: 720px) {
+  .al-ie { padding: 0; }
+  .al-ie-box { width: 100%; height: 100vh; height: 100dvh; border-radius: 0; }
+  .al-ie-head { padding: 10px 12px 10px 16px; padding-top: max(10px, env(safe-area-inset-top)); }
+  .al-ie-tools { justify-content: center; padding: 10px 12px; }
+  .al-ie-aspects { justify-content: center; width: 100%; }
+  .al-ie-row { justify-content: center; width: 100%; }
+  html:not(#al-a):not(#al-b) body:not(#al-c) .al-ie-straight { justify-content: center; width: 100%; }
+  html:not(#al-a):not(#al-b) body:not(#al-c) .al-ie-straight input[type="range"] { flex: 1 1 auto; width: auto !important; max-width: 260px; }
+  .al-ie-tip { display: none; }
+  .al-ie-foot { padding: 10px 12px; padding-bottom: max(10px, env(safe-area-inset-bottom)); }
+  .al-ie-btns { width: 100%; }
+  html:not(#al-a):not(#al-b) body:not(#al-c) .al-ie-btns .al-btn { flex: 1 1 0; }
+}
+
+/* Shop banner picker */
+.al-shop-banner-preview { height: auto !important; aspect-ratio: 4 / 1; min-height: 90px; }
+.al-shop-banner-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-shop-banner-actions .al-btn {
+  position: relative; display: inline-flex !important; flex-direction: row !important; align-items: center !important; gap: 8px;
+  float: none !important; width: auto !important; height: 40px !important; min-height: 40px !important; margin: 0 !important; padding: 0 16px !important;
+  border: 1px solid var(--al-ink) !important; border-radius: 8px !important; background: var(--al-paper) !important; box-shadow: none !important;
+  color: var(--al-ink) !important; font: 600 13px/1 var(--al-font-ui) !important; text-transform: none !important; cursor: pointer;
+}
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-shop-banner-actions .al-btn[hidden] { display: none !important; }
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-shop-banner-actions .al-btn:hover { background: var(--al-ink) !important; color: #FFFFFF !important; }
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-shop-banner-actions .al-btn > :is(svg, span) { flex: none !important; width: auto !important; margin: 0 !important; color: inherit !important; font: inherit !important; }
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-shop-banner-actions input[type="file"] { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; border: 0 !important; opacity: 0; overflow: hidden; }
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-shop-banner-actions .al-btn:has(input:focus-visible) { outline: 2px solid var(--al-brass); outline-offset: 2px; }
+.al-shop-banner-msg:empty { display: none; }
+.al-shop-banner-msg { font-size: 13px; font-weight: 600; }
+.al-shop-banner-msg.is-ok { color: #157F3C; }
+.al-shop-banner-msg.is-error { color: var(--al-danger); }
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-doc-acts { display: flex !important; flex-wrap: wrap; align-items: center; gap: 14px; margin: 0 !important; }
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-doc-edit {
+  display: inline-flex !important; align-items: center; float: none !important; width: auto !important; height: 30px !important; min-height: 30px !important; margin: 4px 0 0 !important; padding: 0 12px !important;
+  border: 1px solid var(--al-ink) !important; border-radius: 999px !important; background: var(--al-paper) !important; box-shadow: none !important;
+  color: var(--al-ink) !important; font: 700 12.5px/1 var(--al-font-ui) !important; text-transform: none !important; cursor: pointer;
+}
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-doc-edit[hidden] { display: none !important; }
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-doc-edit:hover { background: var(--al-ink) !important; color: #FFFFFF !important; }
+
+/* Listing photos (js/al-photos.js): previews with Edit / Delete, cover badge, upload progress */
+html:not(#al-a):not(#al-b) body:not(#al-c) #photos .al-photos-picker { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; margin: 0 !important; border: 0 !important; opacity: 0 !important; overflow: hidden !important; pointer-events: none; }
+html:not(#al-a):not(#al-b) body:not(#al-c) #photos { position: relative; }
+html:not(#al-a):not(#al-b) body:not(#al-c) #photos.is-dragover .qq-upload-button,
+html:not(#al-a):not(#al-b) body:not(#al-c) #photos.is-dragover .sample-box { border-color: var(--al-brass) !important; background: #F3E9D2 !important; }
+html:not(#al-a):not(#al-b) body:not(#al-c) #photos .qq-upload-list:not(:empty) {
+  display: grid !important; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; margin: 16px 0 0 !important; padding: 0 !important; list-style: none !important;
+}
+html:not(#al-a):not(#al-b) body:not(#al-c) #photos .qq-upload-list > li {
+  position: relative !important; float: none !important; display: block !important; width: auto !important; height: auto !important; aspect-ratio: 1 / 1; margin: 0 !important; padding: 0 !important;
+  overflow: hidden !important; border: 1px solid var(--al-line) !important; border-radius: 10px !important; background: #F3EFE6 !important; box-shadow: none !important;
+}
+html:not(#al-a):not(#al-b) body:not(#al-c) #photos .qq-upload-list > li::before { display: none !important; }
+html:not(#al-a):not(#al-b) body:not(#al-c) #photos .qq-upload-list > li.qq-placeholder { border: 2px dashed var(--al-brass) !important; background: #FBF6EA !important; }
+html:not(#al-a):not(#al-b) body:not(#al-c) #photos .qq-upload-list > li:first-child:not(.al-ph-pending) { border-color: var(--al-brass) !important; box-shadow: 0 0 0 1px var(--al-brass) !important; }
+html:not(#al-a):not(#al-b) body:not(#al-c) #photos .qq-upload-list > li .qq-upload-file,
+html:not(#al-a):not(#al-b) body:not(#al-c) #photos .qq-upload-list > li .qq-upload-size,
+html:not(#al-a):not(#al-b) body:not(#al-c) #photos .qq-upload-list > li .qq-upload-status-text { display: none !important; }
+html:not(#al-a):not(#al-b) body:not(#al-c) #photos .qq-upload-list > li .ajax_preview_img {
+  position: absolute !important; inset: 0 !important; width: 100% !important; height: 100% !important; margin: 0 !important; padding: 0 !important; border: 0 !important; background: transparent !important; float: none !important;
+}
+html:not(#al-a):not(#al-b) body:not(#al-c) #photos .qq-upload-list > li .ajax_preview_img img {
+  display: block !important; width: 100% !important; height: 100% !important; max-width: none !important; max-height: none !important; margin: 0 !important; padding: 0 !important;
+  object-fit: cover !important; border: 0 !important; border-radius: 0 !important; cursor: zoom-in;
+}
+/* round icon buttons on the photo */
+html:not(#al-a):not(#al-b) body:not(#al-c) #photos .qq-upload-list > li :is(.qq-upload-delete, .qq-upload-move) {
+  position: absolute !important; top: 8px !important; z-index: 3; display: inline-flex !important; align-items: center !important; justify-content: center !important;
+  width: 32px !important; height: 32px !important; margin: 0 !important; padding: 0 !important; border: 0 !important; border-radius: 50% !important;
+  background: rgba(255, 255, 255, 0.94) !important; box-shadow: 0 1px 4px rgba(13, 21, 40, 0.25) !important; font-size: 0 !important; line-height: 1 !important; text-decoration: none !important; opacity: 1 !important; float: none !important;
+}
+html:not(#al-a):not(#al-b) body:not(#al-c) #photos .qq-upload-list > li .qq-upload-delete { right: 8px !important; left: auto !important; color: var(--al-danger) !important; cursor: pointer; }
+html:not(#al-a):not(#al-b) body:not(#al-c) #photos .qq-upload-list > li .qq-upload-delete:hover { background: #FDF1EF !important; }
+html:not(#al-a):not(#al-b) body:not(#al-c) #photos .qq-upload-list > li .qq-upload-delete::before,
+html:not(#al-a):not(#al-b) body:not(#al-c) #photos .qq-upload-list > li .qq-upload-delete::after { display: none !important; content: none !important; }
+html:not(#al-a):not(#al-b) body:not(#al-c) #photos .qq-upload-list > li .qq-upload-move { left: 8px !important; right: auto !important; color: var(--al-ink) !important; cursor: grab; }
+html:not(#al-a):not(#al-b) body:not(#al-c) #photos .qq-upload-list > li .qq-upload-move i { font-size: 14px !important; color: inherit !important; }
+.al-sr { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+/* edit bar along the bottom */
+html:not(#al-a):not(#al-b) body:not(#al-c) #photos .al-ph-bar { position: absolute; left: 8px; right: 8px; bottom: 8px; z-index: 3; display: flex; }
+html:not(#al-a):not(#al-b) body:not(#al-c) #photos .al-ph-edit {
+  display: inline-flex !important; flex: 1 1 auto; align-items: center !important; justify-content: center !important; gap: 6px;
+  float: none !important; width: auto !important; height: 34px !important; min-height: 34px !important; margin: 0 !important; padding: 0 10px !important;
+  border: 0 !important; border-radius: 8px !important; background: rgba(20, 33, 61, 0.86) !important; box-shadow: none !important;
+  color: #FFFFFF !important; font: 700 13px/1 var(--al-font-ui) !important; text-transform: none !important; letter-spacing: 0 !important; cursor: pointer;
+}
+html:not(#al-a):not(#al-b) body:not(#al-c) #photos .al-ph-edit:is(:hover, :focus-visible) { background: var(--al-ink) !important; color: #FFFFFF !important; }
+html:not(#al-a):not(#al-b) body:not(#al-c) #photos .al-ph-edit svg { flex: none; }
+/* cover badge on the first photo only */
+html:not(#al-a):not(#al-b) body:not(#al-c) #photos .al-ph-cover { display: none; }
+html:not(#al-a):not(#al-b) body:not(#al-c) #photos .qq-upload-list > li:first-child .al-ph-cover {
+  position: absolute; top: 12px; left: 48px; z-index: 3; display: inline-block; padding: 4px 9px; border-radius: 999px;
+  background: var(--al-gilt); color: var(--al-ink); font-size: 11px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; line-height: 1.2;
+}
+html:not(#al-a):not(#al-b) body:not(#al-c) #photos .qq-upload-list > li:first-child:not(:has(.qq-upload-move)) .al-ph-cover { left: 10px; }
+/* uploading / replacing / failed */
+html:not(#al-a):not(#al-b) body:not(#al-c) #photos .qq-upload-list > li.al-ph-pending .ajax_preview_img img { opacity: .5; filter: saturate(.6); cursor: default; }
+html:not(#al-a):not(#al-b) body:not(#al-c) #photos .al-ph-progress { position: absolute; left: 10px; right: 10px; bottom: 12px; height: 6px; overflow: hidden; border-radius: 999px; background: rgba(255, 255, 255, 0.8); }
+html:not(#al-a):not(#al-b) body:not(#al-c) #photos .al-ph-progress span { display: block; width: 4%; height: 100%; border-radius: inherit; background: var(--al-brass); transition: width .2s ease; }
+html:not(#al-a):not(#al-b) body:not(#al-c) #photos .al-ph-state { position: absolute; left: 8px; right: 8px; top: 50%; transform: translateY(-50%); color: var(--al-ink); font-size: 12.5px; font-weight: 700; line-height: 1.35; text-align: center; text-shadow: 0 0 6px #FFFFFF; }
+html:not(#al-a):not(#al-b) body:not(#al-c) #photos .qq-upload-list > li.is-replacing { opacity: .45; pointer-events: none; }
+html:not(#al-a):not(#al-b) body:not(#al-c) #photos .qq-upload-list > li.is-failed { border-color: #F1C4BF !important; background: #FEF3F2 !important; }
+html:not(#al-a):not(#al-b) body:not(#al-c) #photos li.is-failed .al-ph-progress { display: none; }
+html:not(#al-a):not(#al-b) body:not(#al-c) #photos li.is-failed .ajax_preview_img img { opacity: .2; }
+html:not(#al-a):not(#al-b) body:not(#al-c) #photos li.is-failed .al-ph-state { top: 40%; color: var(--al-danger); text-shadow: none; }
+html:not(#al-a):not(#al-b) body:not(#al-c) #photos .al-ph-dismiss {
+  position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); float: none !important; width: auto !important; height: 30px !important; min-height: 30px !important; margin: 0 !important; padding: 0 12px !important;
+  border: 1px solid var(--al-danger) !important; border-radius: 999px !important; background: #FFFFFF !important; color: var(--al-danger) !important; font: 700 12px/1 var(--al-font-ui) !important; cursor: pointer;
+}
+.al-photos-note:empty { display: none; }
+.al-photos-note { margin-top: 12px; font-size: 13px; font-weight: 600; }
+.al-photos-note.is-ok { color: #157F3C; }
+.al-photos-note.is-error { color: var(--al-danger); }
+@media (max-width: 520px) {
+  html:not(#al-a):not(#al-b) body:not(#al-c) #photos .qq-upload-list:not(:empty) { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+}
+html:not(#al-a):not(#al-b) body:not(#al-c) #photos .qq-upload-list > li .ajax_preview_img { z-index: 1 !important; }
+html:not(#al-a):not(#al-b) body:not(#al-c) #photos .qq-upload-list > li :is(.qq-upload-delete, .al-ph-bar, .al-ph-cover, .al-ph-progress, .al-ph-state, .al-ph-dismiss) { z-index: 5 !important; }
+html:not(#al-a):not(#al-b) body:not(#al-c) #photos .qq-upload-list > li .qq-upload-move { z-index: 5 !important; }
+html:not(#al-a):not(#al-b) body:not(#al-c) #photos .qq-upload-list > li[hidden] { display: none !important; }
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-ie .al-ie-chip:is(:hover, :focus):not(.is-on) { border-color: var(--al-brass) !important; background: var(--al-paper) !important; color: var(--al-ink) !important; }
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-ie .al-ie-chip.is-on:is(:hover, :focus) { border-color: var(--al-ink) !important; background: var(--al-ink) !important; color: #FFFFFF !important; }
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-ie :is(.al-ie-tool, .al-ie-x):focus:not(:hover) { background: transparent !important; color: var(--al-ink) !important; }
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-ie .al-btn:focus { outline: none !important; box-shadow: none !important; }
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-ie .al-btn:focus-visible { outline: 2px solid var(--al-brass) !important; outline-offset: 2px !important; }
+/* corners that rotation uncovers are saved white: show them white while editing too */
+.al-ie-stage .cropper-canvas, .al-ie-stage .cropper-view-box { background: #FFFFFF; }
+html:not(#al-a):not(#al-b) body:not(#al-c) .al-ie :is(.al-ie-chip, .al-ie-tool, .al-ie-x, .al-btn) { transition: none !important; }

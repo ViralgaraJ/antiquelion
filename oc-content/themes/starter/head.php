@@ -118,6 +118,71 @@ echo '<script>window.alWatch = ' . json_encode(array(
 )) . ';</script>' . PHP_EOL;
 echo '<script defer src="' . osc_current_web_theme_js_url('al-watch.js') . '?v=' . filemtime(__DIR__ . '/js/al-watch.js') . '"></script>' . PHP_EOL;
 
+// Photo editor on every page where photos are added
+$al_photo_page = (osc_get_osclass_location() == 'user' && osc_get_osclass_section() == 'profile')
+  || (osc_get_osclass_location() == 'item' && in_array(osc_get_osclass_section(), array('item_add', 'item_edit')))
+  || in_array(Params::getParam('route'), array('al-shop', 'al-verify'));
+if ($al_photo_page) {
+  $al_v = function ($f) { return osc_current_web_theme_js_url($f) . '?v=' . filemtime(__DIR__ . '/js/' . $f); };
+  echo '<script>window.alImg = ' . json_encode(array(
+    'js' => $al_v('vendor/cropper/cropper.min.js'),
+    'css' => osc_current_web_theme_js_url('vendor/cropper/cropper.min.css') . '?v=' . filemtime(__DIR__ . '/js/vendor/cropper/cropper.min.css'),
+    't' => array(
+      'title' => __('Edit photo', 'starter'),
+      'apply' => __('Use photo', 'starter'),
+      'cancel' => __('Cancel', 'starter'),
+      'shape' => __('Crop shape', 'starter'),
+      'free' => __('Free', 'starter'),
+      'square' => __('Square', 'starter'),
+      'rotl' => __('Rotate left', 'starter'),
+      'rotr' => __('Rotate right', 'starter'),
+      'fliph' => __('Flip horizontally', 'starter'),
+      'flipv' => __('Flip vertically', 'starter'),
+      'zoomin' => __('Zoom in', 'starter'),
+      'zoomout' => __('Zoom out', 'starter'),
+      'reset' => __('Reset', 'starter'),
+      'straighten' => __('Straighten', 'starter'),
+      'tip' => __('Drag the photo to move it, drag the corners to crop, scroll or pinch to zoom.', 'starter'),
+      'unreadable' => __('This photo could not be opened. Choose a JPG, PNG or WebP photo, or take the photo again with your camera.', 'starter'),
+      'loadFail' => __('The photo editor could not load. Check your connection and try again.', 'starter')
+    )
+  )) . ';</script>' . PHP_EOL;
+  echo '<script defer src="' . $al_v('al-imgedit.js') . '"></script>' . PHP_EOL;
+  // Listing photos: direct upload, previews, edit (sell and edit forms)
+  if (osc_get_osclass_location() == 'item' && osc_image_upload_library() == 'UPPY') {
+    $al_mb = round(osc_max_size_kb() / 1024, 1);
+    echo '<script>window.alPhotos = ' . json_encode(array(
+      'upload' => osc_base_url(true) . '?page=ajax&action=ajax_upload',
+      'base' => osc_base_url(true),
+      'temp' => osc_content_url() . 'uploads/temp/',
+      'maxBytes' => (int)osc_max_size_kb() * 1024,
+      'reorder' => (bool)osc_image_upload_reorder(),
+      't' => array(
+        'add' => __('Add photos', 'starter'),
+        'edit' => __('Edit', 'starter'),
+        'editTitle' => __('Edit listing photo', 'starter'),
+        'apply' => __('Save photo', 'starter'),
+        'del' => __('Delete', 'starter'),
+        'cover' => __('Cover', 'starter'),
+        'photo' => __('Listing photo', 'starter'),
+        'reorder' => __('Drag to reorder', 'starter'),
+        'uploading' => __('Uploading…', 'starter'),
+        'added' => __('Photos added. Drag them to change the order; the first one is the cover.', 'starter'),
+        'updated' => __('Photo updated.', 'starter'),
+        'failed' => sprintf(__('This photo could not be uploaded. Use a JPG, PNG or GIF photo up to %s MB.', 'starter'), $al_mb),
+        'offline' => __('Upload failed. Check your connection and try again.', 'starter'),
+        'dismiss' => __('Remove', 'starter'),
+        'notImage' => __('Choose photos (JPG, PNG or GIF).', 'starter'),
+        'full' => sprintf(__('This listing already has the maximum of %d photos. Delete one to add another.', 'starter'), (int)osc_max_images_per_item()),
+        'some' => __('Only %d more photos fit, so the rest were not added.', 'starter'),
+        'wait' => __('Please wait until your photos finish uploading.', 'starter'),
+        'unreadable' => __('This photo could not be opened. Choose a JPG, PNG or WebP photo, or take the photo again with your camera.', 'starter')
+      )
+    )) . ';</script>' . PHP_EOL;
+    echo '<script defer src="' . $al_v('al-photos.js') . '"></script>' . PHP_EOL;
+  }
+}
+
 // Conversation page (Account > Messages)
 if (Params::getParam('route') == 'al-thread') {
   echo '<script>window.alMsg = ' . json_encode(array('error' => __('Your message could not be sent. Check your connection and try again.', 'starter'))) . ';</script>' . PHP_EOL;

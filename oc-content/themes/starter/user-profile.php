@@ -49,7 +49,7 @@
               var pickText = box.querySelector('.al-avatar-pick span'), remove = box.querySelector('.al-avatar-remove'), msg = box.querySelector('.al-avatar-msg');
               var url = <?php echo json_encode(osc_base_url(true) . '?page=ajax&action=runhook&hook=al_avatar'); ?>;
               var token = <?php echo json_encode(osc_csrfguard_generate_token()); ?>;
-              var t = <?php echo json_encode(array('saving' => __('Saving…', 'starter'), 'saved' => __('Photo updated.', 'starter'), 'removed' => __('Photo removed.', 'starter'), 'change' => __('Change photo', 'starter'), 'upload' => __('Upload photo', 'starter'), 'big' => __('This file is too big. The limit is 8 MB.', 'starter'), 'fail' => __('Something went wrong. Please try again.', 'starter'), 'confirm' => __('Remove your profile photo?', 'starter'))); ?>;
+              var t = <?php echo json_encode(array('saving' => __('Saving…', 'starter'), 'saved' => __('Photo updated.', 'starter'), 'removed' => __('Photo removed.', 'starter'), 'change' => __('Change photo', 'starter'), 'upload' => __('Upload photo', 'starter'), 'big' => __('This file is too big. The limit is 8 MB.', 'starter'), 'fail' => __('Something went wrong. Please try again.', 'starter'), 'confirm' => __('Remove your profile photo?', 'starter'), 'edit' => __('Crop your profile photo', 'starter'), 'apply' => __('Save photo', 'starter'))); ?>;
               function say(text, bad) { msg.textContent = text; msg.className = 'al-avatar-msg' + (bad ? ' is-error' : ' is-ok'); }
               function send(data, previous) {
                 data.append('octoken', token);
@@ -71,15 +71,23 @@
                 xhr.onerror = function () { box.classList.remove('is-busy'); if (previous) { img.src = previous; } say(t.fail, true); };
                 xhr.send(data);
               }
-              input.addEventListener('change', function () {
-                var f = input.files && input.files[0];
-                input.value = '';
-                if (!f) { return; }
+              function upload(f) {
                 if (f.size > 8 * 1024 * 1024) { say(t.big, true); return; }
                 var previous = img.src;
                 img.src = URL.createObjectURL(f);     // preview straight away
                 say(t.saving, false);
                 var d = new FormData(); d.append('photo', f); send(d, previous);
+              }
+              input.addEventListener('change', function () {
+                var f = input.files && input.files[0];
+                input.value = '';
+                if (!f) { return; }
+                say('', false);
+                if (!window.alImageEditor) { upload(f); return; }
+                // crop and straighten before saving
+                window.alImageEditor.open(f, { title: t.edit, aspect: 1, round: true, max: 1024, applyLabel: t.apply }).then(function (edited) {
+                  if (edited) { upload(edited); }
+                }, function (e) { say(e.message, true); });
               });
               remove.addEventListener('click', function () {
                 if (!window.confirm(t.confirm)) { return; }
