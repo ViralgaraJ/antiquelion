@@ -2,7 +2,6 @@
 <html dir="ltr" lang="<?php echo str_replace('_', '-', osc_current_user_locale()); ?>">
 <head>
   <?php osc_current_web_theme_path('head.php'); ?>
-  <meta name="robots" content="noindex, nofollow" />
 </head>
 <body id="body-404">
   <?php osc_current_web_theme_path('header.php'); ?>

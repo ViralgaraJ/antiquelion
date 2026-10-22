@@ -67,11 +67,20 @@ function antique_msg_open_read() {
 osc_add_hook('init', 'antique_msg_open_read', 6);
 
 // Account > Messages and one conversation (signed-in only)
-osc_add_route('al-inbox', 'account/messages/?$', 'account/messages/', 'al-inbox.php', true, 'custom', 'al-inbox', __('Messages', 'starter'));
-osc_add_route('al-thread', 'account/messages/([0-9]+)/?$', 'account/messages/{thread}/', 'al-thread.php', true, 'custom', 'al-thread', __('Conversation', 'starter'));
+osc_add_route('al-inbox', 'account/messages/?(?:\?.*)?$', 'account/messages/', 'al-inbox.php', true, 'custom', 'al-inbox', __('Messages', 'starter'));
+osc_add_route('al-thread', 'account/messages/([0-9]+)/?(?:\?.*)?$', 'account/messages/{thread}/', 'al-thread.php', true, 'custom', 'al-thread', __('Conversation', 'starter'));
+
+/**
+ * Route URL with query parameters. osc_route_url() builds "account/x/?&a=b" when
+ * friendly URLs are on, which does not match the route (404).
+ */
+function antique_route_url($id, $query = array()) {
+  $url = osc_route_url($id);
+  return $query ? $url . (strpos($url, '?') === false ? '?' : '&') . http_build_query($query) : $url;
+}
 
 function antique_inbox_url($filter = '') {
-  return osc_route_url('al-inbox', $filter !== '' ? array('f' => $filter) : array());
+  return antique_route_url('al-inbox', $filter !== '' ? array('f' => $filter) : array());
 }
 
 function antique_thread_url($id) {

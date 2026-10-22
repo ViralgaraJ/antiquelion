@@ -43,10 +43,10 @@ function antique_review_schema() {
 osc_add_hook('init', 'antique_review_schema', 1);
 
 // Account > Leave a review (?item=ID)
-osc_add_route('al-review', 'account/review/?$', 'account/review/', 'al-review.php', true, 'custom', 'al-review', __('Leave a review', 'starter'));
+osc_add_route('al-review', 'account/review/?(?:\?.*)?$', 'account/review/', 'al-review.php', true, 'custom', 'al-review', __('Leave a review', 'starter'));
 
 function antique_review_url($itemId) {
-  return osc_route_url('al-review', array('item' => (int)$itemId));
+  return antique_route_url('al-review', array('item' => (int)$itemId));
 }
 
 function antique_review_basis_labels() {

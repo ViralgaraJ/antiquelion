@@ -54,7 +54,7 @@ osc_add_hook('init', 'antique_verify_schema', 1);
 osc_add_hook('init_admin', 'antique_verify_schema', 1);
 
 // Account > Get verified (sellers)
-osc_add_route('al-verify', 'account/verification/?$', 'account/verification/', 'al-verify.php', true, 'custom', 'al-verify', __('Get verified', 'starter'));
+osc_add_route('al-verify', 'account/verification/?(?:\?.*)?$', 'account/verification/', 'al-verify.php', true, 'custom', 'al-verify', __('Get verified', 'starter'));
 
 function antique_verify_url() { return osc_route_url('al-verify'); }
 
@@ -270,6 +270,23 @@ function antique_marketplace_admin_actions() {
     case 'keep_review':
       $db->query(sprintf("UPDATE `%s` SET b_reported = 0 WHERE pk_i_id = %d", antique_reviews_table(), $id));
       osc_add_flash_ok_message(__('Report cleared. The review stays visible.', 'starter'), 'admin');
+      break;
+    case 'sitemap':
+      osc_add_flash_ok_message(antique_seo_write_sitemap() ? __('Sitemap and robots.txt rebuilt.', 'starter') : __('Could not write sitemap.xml or robots.txt. Check that the site folder is writable.', 'starter'), 'admin');
+      break;
+    case 'seo_save':
+      $ga = strtoupper(trim((string)Params::getParam('seo_ga4')));
+      if ($ga !== '' && !preg_match('/^G-[A-Z0-9]{4,16}$/', $ga)) {
+        osc_add_flash_error_message(__('The Analytics ID should look like G-ABC123XYZ.', 'starter'), 'admin');
+        break;
+      }
+      $code = function ($k) { $v = trim(html_entity_decode((string)Params::getParam($k, false, false), ENT_QUOTES, 'UTF-8')); if (preg_match('/content=["\']([^"\']+)/', $v, $m)) { $v = $m[1]; } return preg_replace('/[^A-Za-z0-9_\-]/', '', $v); };
+      osc_set_preference('seo_ga4', $ga, 'starter_theme');
+      osc_set_preference('seo_google_verify', $code('seo_google_verify'), 'starter_theme');
+      osc_set_preference('seo_bing_verify', $code('seo_bing_verify'), 'starter_theme');
+      $desc = trim(mb_substr(strip_tags((string)Params::getParam('seo_home_desc')), 0, 300));
+      osc_set_preference('seo_home_desc', $desc === antique_seo_default_home_desc() ? '' : $desc, 'starter_theme');
+      osc_add_flash_ok_message(__('SEO settings saved.', 'starter'), 'admin');
       break;
     case 'clear_thread':
       $db->query(sprintf("UPDATE `%s` SET b_reported = 0 WHERE pk_i_id = %d", antique_msg_threads_table(), $id));

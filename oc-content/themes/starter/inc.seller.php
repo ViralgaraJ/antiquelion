@@ -73,8 +73,8 @@ function antique_buying_url() {
 }
 
 // Account > Start selling, Account > Buying (signed-in only)
-osc_add_route('al-sell', 'account/start-selling/?$', 'account/start-selling/', 'al-sell.php', true, 'custom', 'al-sell', __('Start selling', 'starter'));
-osc_add_route('al-buying', 'account/buying/?$', 'account/buying/', 'al-buying.php', true, 'custom', 'al-buying', __('Buying', 'starter'));
+osc_add_route('al-sell', 'account/start-selling/?(?:\?.*)?$', 'account/start-selling/', 'al-sell.php', true, 'custom', 'al-sell', __('Start selling', 'starter'));
+osc_add_route('al-buying', 'account/buying/?(?:\?.*)?$', 'account/buying/', 'al-buying.php', true, 'custom', 'al-buying', __('Buying', 'starter'));
 
 /**
  * 'buying' or 'selling'. Seller pages are always selling and buyer pages always

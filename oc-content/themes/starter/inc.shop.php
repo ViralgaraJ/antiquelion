@@ -13,7 +13,7 @@ define('ANTIQUE_SHOP_BANNER_H', 400);
 define('ANTIQUE_SHOP_POLICY_MAX', 1000);
 
 // Account > Shop settings (sellers)
-osc_add_route('al-shop', 'account/shop/?$', 'account/shop/', 'al-shop.php', true, 'custom', 'al-shop', __('Shop settings', 'starter'));
+osc_add_route('al-shop', 'account/shop/?(?:\?.*)?$', 'account/shop/', 'al-shop.php', true, 'custom', 'al-shop', __('Shop settings', 'starter'));
 
 function antique_shop_settings_url() { return osc_route_url('al-shop'); }
 

@@ -75,14 +75,28 @@
     if (isset($al_ld_opt['material'][$al_ld_det['s_material']])) { $ld['material'] = $al_ld_opt['material'][$al_ld_det['s_material']]; }
     if ($al_ld_det['s_origin']) { $ld['countryOfOrigin'] = array('@type' => 'Country', 'name' => strtoupper($al_ld_det['s_origin'])); }
     if ($al_ld_det['s_maker'] !== '') { $ld['brand'] = array('@type' => 'Brand', 'name' => $al_ld_det['s_maker']); }
-    if (osc_item_price() > 0) {
+    // antiques are second-hand unless the seller says the item is new
+    $ld['itemCondition'] = ($condition !== '' && stripos($condition, 'new') === 0) ? 'https://schema.org/NewCondition' : 'https://schema.org/UsedCondition';
+    $al_ld_price = osc_item_price() > 0 ? osc_item_price() / 1000000 : 0;
+    if ($al_auction && function_exists('antique_bids_state')) {
+      $al_ld_state = antique_bids_state(osc_item_id());
+      if (!empty($al_ld_state['amount'])) { $al_ld_price = (float)$al_ld_state['amount']; }
+    }
+    if ($al_ld_price > 0) {
       $ld['offers'] = array(
         '@type' => 'Offer',
-        'price' => osc_item_price() / 1000000,
+        'price' => round($al_ld_price, 2),
         'priceCurrency' => osc_item_currency(),
-        'availability' => $item_extra['i_sold'] == 1 ? 'https://schema.org/SoldOut' : 'https://schema.org/InStock',
+        'availability' => $item_extra['i_sold'] == 1 ? 'https://schema.org/SoldOut' : ($item_extra['i_sold'] == 2 ? 'https://schema.org/LimitedAvailability' : 'https://schema.org/InStock'),
+        'itemCondition' => $ld['itemCondition'],
         'url' => osc_item_url()
       );
+      if (osc_item_user_id() > 0) {
+        $ld['offers']['seller'] = array('@type' => (!empty($item_user['b_company']) ? 'Organization' : 'Person'), 'name' => $seller_name, 'url' => osc_user_public_profile_url(osc_item_user_id()));
+      }
+      if (!osc_item_is_expired() && osc_item_field('dt_expiration') && strtotime(osc_item_field('dt_expiration')) < strtotime('+5 years')) {
+        $ld['offers']['priceValidUntil'] = date('Y-m-d', strtotime(osc_item_field('dt_expiration')));
+      }
     }
     echo json_encode($ld, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG);
   ?></script>

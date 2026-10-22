@@ -10,7 +10,6 @@
 <html dir="ltr" lang="<?php echo str_replace('_', '-', osc_current_user_locale()); ?>">
 <head>
   <?php osc_current_web_theme_path('head.php'); ?>
-  <meta name="robots" content="noindex, nofollow" />
   <script src="<?php echo osc_current_web_theme_js_url('jquery.validate.min.js'); ?>"></script>
 </head>
 

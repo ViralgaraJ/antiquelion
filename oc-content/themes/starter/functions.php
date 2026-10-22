@@ -19,6 +19,7 @@ require_once __DIR__ . '/inc.offers.php';
 require_once __DIR__ . '/inc.reviews.php';
 require_once __DIR__ . '/inc.verify.php';
 require_once __DIR__ . '/inc.shop.php';
+require_once __DIR__ . '/inc.seo.php';
 
 // "JPG, PNG or GIF" from the allowed upload extensions (Settings > Media)
 function antique_upload_formats() {

@@ -3,8 +3,6 @@
 
 <head>
   <?php osc_current_web_theme_path('head.php') ; ?>
-  <meta name="robots" content="noindex, nofollow" />
-  <meta name="googlebot" content="noindex, nofollow" />
 
   <?php 
     if(osc_images_enabled_at_items()) { 

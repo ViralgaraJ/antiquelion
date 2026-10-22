@@ -31,7 +31,6 @@
 <head>
   <?php osc_current_web_theme_path('head.php'); ?>
   <?php if ($about != '' || $al_shop['tagline'] !== '') { ?><meta name="description" content="<?php echo osc_esc_html(mb_substr($al_shop['tagline'] !== '' ? $al_shop['tagline'] : $about, 0, 160)); ?>" /><?php } ?>
-  <meta property="og:title" content="<?php echo osc_esc_html($al_name . ' - ' . osc_page_title()); ?>" />
   <?php if ($al_shop['banner']) { ?><meta property="og:image" content="<?php echo osc_esc_html($al_shop['banner']); ?>" /><?php } ?>
 </head>
 <body id="body-user-public-profile" class="al-profile-page al-shop-page">

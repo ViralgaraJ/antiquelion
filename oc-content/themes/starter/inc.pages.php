@@ -24,7 +24,7 @@ function antique_info_pages() {
 
 function antique_register_info_routes() {
   foreach (antique_info_pages() as $id => $p) {
-    osc_add_route($id, $p['slug'] . '/?$', $p['slug'] . '/', $id . '.php', false, 'custom', $id, $p['title']);
+    osc_add_route($id, $p['slug'] . '/?(?:\?.*)?$', $p['slug'] . '/', $id . '.php', false, 'custom', $id, $p['title']);
   }
 }
 antique_register_info_routes();

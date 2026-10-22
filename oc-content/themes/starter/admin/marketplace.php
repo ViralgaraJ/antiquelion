@@ -3,7 +3,7 @@
   starter_backoffice_menu(__('Marketplace', 'starter'));
 
   $al_tab = Params::getParam('tab');
-  if (!in_array($al_tab, array('verify', 'reviews', 'messages'), true)) { $al_tab = 'verify'; }
+  if (!in_array($al_tab, array('verify', 'reviews', 'messages', 'seo'), true)) { $al_tab = 'verify'; }
   $al_db = antique_msg_db();
   $al_url = function ($tab) { return antique_marketplace_admin_url($tab); };
   $al_token = osc_csrfguard_generate_token();
@@ -42,6 +42,8 @@
   .almk-quote { margin: 8px 0; padding: 10px 12px; border-left: 3px solid #D9B26A; background: #FBF9F4; white-space: pre-wrap; }
   .almk-msgs { max-height: 320px; overflow: auto; margin: 10px 0; padding: 10px; border: 1px solid #EFEAE0; border-radius: 6px; background: #FCFBF8; font-size: 13px; }
   .almk-msgs p { margin: 0 0 6px; }
+  .almk-seo label { display: flex; flex-direction: column; gap: 4px; margin: 0 0 14px; }
+  .almk-seo input[type=text], .almk-seo textarea { width: 100%; max-width: 640px; padding: 8px 10px; border: 1px solid #D9D2C3; border-radius: 4px; font-size: 14px; }
   .almk-empty { padding: 30px; border: 1px dashed #D6CDBB; border-radius: 8px; background: #fff; color: #6B7280; text-align: center; }
 </style>
 
@@ -50,6 +52,7 @@
     <a href="<?php echo $al_url('verify'); ?>"<?php echo $al_tab == 'verify' ? ' class="is-active"' : ''; ?>><?php _e('Seller verification', 'starter'); ?><?php if ($al_pending) { ?><em><?php echo $al_pending; ?></em><?php } ?></a>
     <a href="<?php echo $al_url('reviews'); ?>"<?php echo $al_tab == 'reviews' ? ' class="is-active"' : ''; ?>><?php _e('Reviews', 'starter'); ?><?php if ($al_rep_reviews) { ?><em><?php echo $al_rep_reviews; ?></em><?php } ?></a>
     <a href="<?php echo $al_url('messages'); ?>"<?php echo $al_tab == 'messages' ? ' class="is-active"' : ''; ?>><?php _e('Reported conversations', 'starter'); ?><?php if ($al_rep_threads) { ?><em><?php echo $al_rep_threads; ?></em><?php } ?></a>
+    <a href="<?php echo $al_url('seo'); ?>"<?php echo $al_tab == 'seo' ? ' class="is-active"' : ''; ?>><?php _e('SEO and analytics', 'starter'); ?></a>
   </nav>
 
   <?php if ($al_tab == 'verify') { ?>
@@ -110,6 +113,40 @@
       </div>
     <?php } ?>
 
+  <?php } elseif ($al_tab == 'seo') { ?>
+    <?php
+      $al_built = (int)osc_get_preference('seo_sitemap_built', 'starter_theme');
+      $al_sm = osc_base_path() . 'sitemap.xml';
+      $al_sm_n = is_file($al_sm) ? substr_count((string)file_get_contents($al_sm), '<url>') : 0;
+    ?>
+    <div class="almk-card">
+      <h3><?php _e('Friendly addresses', 'starter'); ?>
+        <span class="almk-tag<?php echo osc_rewrite_enabled() ? ' is-ok' : ' is-bad'; ?>"><?php echo osc_rewrite_enabled() ? __('On', 'starter') : __('Off', 'starter'); ?></span></h3>
+      <p class="almk-meta"><?php echo osc_rewrite_enabled()
+        ? __('Listings use addresses like /antique-furniture/teak-almirah-i25. Old index.php?page=... links redirect to them automatically.', 'starter')
+        : sprintf(__('Turn them on in <a href="%s">Settings &gt; Permalinks</a> (tick "Enable friendly urls" and save). Old links keep working.', 'starter'), osc_admin_base_url(true) . '?page=settings&action=permalinks'); ?></p>
+    </div>
+    <div class="almk-card">
+      <h3><?php _e('Sitemap and robots.txt', 'starter'); ?></h3>
+      <p class="almk-meta">
+        <?php if ($al_sm_n) { ?><?php echo sprintf(__('%1$d addresses, built %2$s.', 'starter'), $al_sm_n, $al_built ? osc_esc_html(date('j M Y H:i', $al_built)) : '–'); ?> <a href="<?php echo osc_base_url(); ?>sitemap.xml" target="_blank">sitemap.xml</a> · <a href="<?php echo osc_base_url(); ?>robots.txt" target="_blank">robots.txt</a><?php } else { _e('Not built yet.', 'starter'); } ?>
+        <br><?php echo sprintf(__('Rebuilt automatically every %d hours. Submit %s in Google Search Console and Bing Webmaster Tools.', 'starter'), ANTIQUE_SEO_SITEMAP_HOURS, '<strong>' . osc_base_url() . 'sitemap.xml</strong>'); ?>
+      </p>
+      <div class="almk-actions"><?php echo $al_form('sitemap', 0, __('Rebuild now', 'starter'), 'is-ok'); ?></div>
+    </div>
+    <form method="post" action="<?php echo osc_esc_html(antique_marketplace_admin_url('seo')); ?>" class="almk-card almk-seo">
+      <input type="hidden" name="octoken" value="<?php echo $al_token; ?>" /><input type="hidden" name="al_mk" value="seo_save" /><input type="hidden" name="tab" value="seo" />
+      <h3><?php _e('Search and analytics settings', 'starter'); ?></h3>
+      <label><strong><?php _e('Home page description', 'starter'); ?></strong><span class="almk-meta"><?php _e('Shown under your site name in Google. About 150 characters.', 'starter'); ?></span>
+        <textarea name="seo_home_desc" rows="3" maxlength="300"><?php echo osc_esc_html(antique_seo_pref('seo_home_desc') !== '' ? antique_seo_pref('seo_home_desc') : antique_seo_default_home_desc()); ?></textarea></label>
+      <label><strong><?php _e('Google Analytics 4 measurement ID', 'starter'); ?></strong><span class="almk-meta"><?php _e('Looks like G-ABC123XYZ (Analytics > Admin > Data streams). Visitors see a cookie banner, and nothing is tracked until they accept.', 'starter'); ?></span>
+        <input type="text" name="seo_ga4" maxlength="20" value="<?php echo osc_esc_html(antique_seo_pref('seo_ga4')); ?>" placeholder="G-XXXXXXXXXX" /></label>
+      <label><strong><?php _e('Google Search Console verification code', 'starter'); ?></strong><span class="almk-meta"><?php _e('Choose the "HTML tag" method and paste the tag (or just its content value).', 'starter'); ?></span>
+        <input type="text" name="seo_google_verify" maxlength="100" value="<?php echo osc_esc_html(antique_seo_pref('seo_google_verify')); ?>" /></label>
+      <label><strong><?php _e('Bing Webmaster verification code', 'starter'); ?></strong><span class="almk-meta"><?php _e('The content value of the msvalidate.01 meta tag.', 'starter'); ?></span>
+        <input type="text" name="seo_bing_verify" maxlength="100" value="<?php echo osc_esc_html(antique_seo_pref('seo_bing_verify')); ?>" /></label>
+      <div class="almk-actions"><button type="submit" class="almk-btn is-ok"><?php _e('Save', 'starter'); ?></button></div>
+    </form>
   <?php } else { ?>
     <?php
       $res = $al_db->query("SELECT * FROM `" . antique_msg_threads_table() . "` WHERE b_reported = 1 ORDER BY dt_last DESC LIMIT 100");

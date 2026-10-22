@@ -2,7 +2,6 @@
 <html dir="ltr" lang="<?php echo str_replace('_', '-', osc_current_user_locale()); ?>">
 <head>
   <?php osc_current_web_theme_path('head.php'); ?>
-  <meta name="robots" content="index, follow" />
 </head>
 <?php
   $search_cat_id = osc_search_category_id();

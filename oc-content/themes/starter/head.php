@@ -3,13 +3,7 @@
 <meta name="title" content="<?php echo osc_esc_html(meta_title()); ?>" />
 <?php if( meta_description() != '' ) { ?><meta name="description" content="<?php echo osc_esc_html(meta_description()); ?>" /><?php } ?>
 <?php if( osc_get_canonical() != '' ) { ?><link rel="canonical" href="<?php echo osc_get_canonical(); ?>"/><?php } ?>
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Cache-Control" content="no-cache" />
-<meta http-equiv="Expires" content="Mon, 01 Jul 1970 00:00:00 GMT" />
-<?php if( !osc_is_search_page() )  { ?>
-<meta name="robots" content="index, follow" />
-<meta name="googlebot" content="index, follow" />
-<?php } ?>
+<?php antique_seo_head(); ?>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
 
 <?php 

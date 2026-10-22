@@ -3290,3 +3290,15 @@ html:not(#al-a):not(#al-b) body:not(#al-c) .al-shop-policies h3 { font-family: v
   .al-shop-title { padding-top: 0; }
   .al-shop-actions { grid-column: auto; }
 }
+
+/* ===================== Cookie consent (only when Google Analytics is set) ===================== */
+.al-consent { position: fixed; left: 16px; right: 16px; bottom: 16px; z-index: 1000; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; max-width: 920px; margin: 0 auto; padding: 16px 18px; background: var(--al-paper); border: 1px solid var(--al-line); border-radius: 12px; box-shadow: 0 16px 40px rgba(20, 33, 61, 0.22); }
+.al-consent p { flex: 1 1 380px; margin: 0; color: var(--al-ink); font-size: 14px; line-height: 1.5; }
+.al-consent a { color: var(--al-brass-text) !important; font-weight: 700; }
+.al-consent-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.al-consent .al-btn { min-height: 42px; padding: 0 18px; font-size: 14px; }
+@media (max-width: 767px) {
+  .al-consent { left: 10px; right: 10px; bottom: calc(70px + env(safe-area-inset-bottom)); }
+  .al-consent-actions { width: 100%; }
+  .al-consent-actions .al-btn { flex: 1 1 0; }
+}

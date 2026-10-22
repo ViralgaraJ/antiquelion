@@ -2,8 +2,6 @@
 <html xmlns="http://www.w3.org/1999/xhtml" dir="ltr" lang="<?php echo str_replace('_', '-', osc_current_user_locale()); ?>">
 <head>
   <?php osc_current_web_theme_path('head.php') ; ?>
-  <meta name="robots" content="noindex, nofollow" />
-  <meta name="googlebot" content="noindex, nofollow" />
 </head>
 <body id="body-user-custom" class="body-ua al-account-page">
   <?php osc_current_web_theme_path('header.php') ; ?>

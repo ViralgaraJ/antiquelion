@@ -20,7 +20,6 @@
 <html dir="ltr" lang="<?php echo str_replace('_', '-', osc_current_user_locale()); ?>">
 <head>
   <?php osc_current_web_theme_path('head.php'); ?>
-  <meta name="robots" content="noindex, nofollow" />
 </head>
 <body id="body-item-send-friend" class="al-share-page">
   <?php osc_current_web_theme_path('header.php'); ?>

@@ -79,7 +79,7 @@ function antique_watchlist_url() {
 }
 
 // Account > Watchlist (user_menu route: Osclass sends signed-out visitors to the login page)
-osc_add_route('al-watchlist', 'account/watchlist/?$', 'account/watchlist/', 'al-watchlist.php', true, 'custom', 'al-watchlist', __('Watchlist', 'starter'));
+osc_add_route('al-watchlist', 'account/watchlist/?(?:\?.*)?$', 'account/watchlist/', 'al-watchlist.php', true, 'custom', 'al-watchlist', __('Watchlist', 'starter'));
 
 // AJAX toggle: index.php?page=ajax&action=runhook&hook=al_watch (POST itemId, octoken)
 function antique_watch_ajax() {

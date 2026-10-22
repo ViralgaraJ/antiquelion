@@ -33,6 +33,9 @@
 
 <h2><?php _e('Cookies', 'starter'); ?></h2>
 <p><?php _e('We use cookies that the site needs to work: to keep you signed in, to remember your display currency and detected country, and to protect forms against misuse. We do not use advertising cookies.', 'starter'); ?></p>
+<?php if (function_exists('antique_ga_id') && antique_ga_id() !== '') { ?>
+<p><?php _e('If you accept analytics cookies in the banner, we also use Google Analytics to count visits and see which pages are used, with IP addresses shortened. Nothing is sent to Google Analytics until you accept, and you can change your mind by clearing the site\'s cookies in your browser.', 'starter'); ?></p>
+<?php } ?>
 
 <h2><?php _e('How long we keep it', 'starter'); ?></h2>
 <p><?php _e('We keep your account information while your account is open. When you delete your account, your profile and listings are removed; records we must keep for legal or security reasons, such as bid records, may be kept for a limited time.', 'starter'); ?></p>
