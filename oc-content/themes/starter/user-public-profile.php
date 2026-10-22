@@ -38,6 +38,7 @@
                 echo osc_esc_html(implode(' · ', $sub));
               ?>
             </div>
+            <?php echo antique_rating_line(osc_user_id()); ?>
           </div>
         </div>
 
@@ -96,6 +97,22 @@
       <?php } else { ?>
         <div class="al-empty-state"><h2><?php _e('No active listings right now', 'starter'); ?></h2><p><?php _e('Save a search to hear when this seller lists something new.', 'starter'); ?></p></div>
       <?php } ?>
+
+      <?php
+        $al_rv = antique_seller_reviews(osc_user_id(), 100);
+        $al_viewer = osc_is_web_user_logged_in() ? (int)osc_logged_user_id() : 0;
+      ?>
+      <section class="al-panel al-section-block al-reviews" id="al-reviews">
+        <h2 class="al-panel-title"><?php _e('Reviews', 'starter'); ?></h2>
+        <?php if ($al_rv) { ?>
+          <?php echo antique_rating_summary(osc_user_id()); ?>
+          <div class="al-review-list">
+            <?php foreach ($al_rv as $r) { echo antique_review_html($r, $al_viewer); } ?>
+          </div>
+        <?php } else { ?>
+          <p class="al-muted"><?php echo $is_me ? __('No reviews yet. Buyers can review you after they win your auction, you accept their offer, or you talk with them about an item.', 'starter') : __('No reviews yet. Buyers can review this seller after buying from them.', 'starter'); ?></p>
+        <?php } ?>
+      </section>
 
       <?php if (!$is_me) { ?>
         <section class="al-panel al-section-block" id="al-contact">

@@ -33,6 +33,20 @@
   <a class="al-stat al-panel" href="<?php echo antique_watchlist_url(); ?>"><strong><?php echo $al_watch_n; ?></strong><span><?php _e('Watching', 'starter'); ?></span></a>
 </div>
 
+<?php $al_to_review = antique_reviews_waiting(osc_logged_user_id()); ?>
+<?php if ($al_to_review) { ?>
+  <h3 class="al-account-sub"><?php _e('Waiting for your review', 'starter'); ?></h3>
+  <div class="al-review-waiting">
+    <?php foreach ($al_to_review as $it) { ?>
+      <div class="al-panel al-review-waiting-item">
+        <?php if ($it['thumb']) { ?><img src="<?php echo osc_esc_html($it['thumb']); ?>" alt="" width="56" height="56" loading="lazy" /><?php } else { ?><span class="al-card-noimg"></span><?php } ?>
+        <span><strong><?php echo osc_esc_html($it['title']); ?></strong><em><?php echo osc_esc_html(antique_msg_user($it['user'])['name']); ?></em></span>
+        <a class="al-btn al-btn-brass" href="<?php echo antique_review_url($it['id']); ?>"><?php _e('Review', 'starter'); ?></a>
+      </div>
+    <?php } ?>
+  </div>
+<?php } ?>
+
 <h3 class="al-account-sub"><?php _e('My bids', 'starter'); ?></h3>
 <?php if (count($al_items) > 0) { ?>
   <div class="al-listing-rows">

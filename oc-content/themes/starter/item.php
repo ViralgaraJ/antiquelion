@@ -238,6 +238,7 @@
                   echo osc_esc_html(implode(' · ', $sub));
                 ?>
               </div>
+              <?php if (osc_item_user_id() > 0) { echo antique_rating_line(osc_item_user_id()); } ?>
             </div>
           </div>
 
