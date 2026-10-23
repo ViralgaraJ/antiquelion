@@ -29,7 +29,7 @@
   $al_suspend_form = function ($uid, $who) use ($al_form, $al_suspended) {
     return $al_suspended($uid)
       ? $al_form('unsuspend_user', $uid, sprintf(__('Restore %s', 'starter'), $who))
-      : $al_form('suspend_user', $uid, sprintf(__('Suspend %s', 'starter'), $who), 'is-bad', '', __('Suspend this member? They will not be able to sign in, and all their listings will be hidden.', 'starter'));
+      : $al_form('suspend_user', $uid, sprintf(__('Suspend %s', 'starter'), $who), 'is-bad', antique_moderation_fields(), __('Suspend this member? They will not be able to sign in, and all their listings will be hidden. They will be emailed the reason.', 'starter'));
   };
 ?>
 <style>
@@ -46,6 +46,8 @@
   .almk-meta { color: #6B7280; font-size: 13px; }
   .almk-actions { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; margin-top: 12px; }
   .almk-inline { display: inline-flex; align-items: center; gap: 8px; margin: 0; }
+  .almk-inline select { height: 34px; max-width: 260px; border: 1px solid #D9D2C3; border-radius: 4px; }
+  .almk-actions .almk-inline:has(select) { flex-wrap: wrap; padding: 8px; border: 1px solid #EFEAE0; border-radius: 6px; background: #FCFBF8; }
   .almk-inline input[type=text] { width: 320px; max-width: 100%; height: 34px; padding: 0 10px; border: 1px solid #D9D2C3; border-radius: 4px; }
   .almk-btn { height: 34px; padding: 0 14px; border: 1px solid #14213D; border-radius: 4px; background: #fff; color: #14213D; font-weight: 700; cursor: pointer; }
   .almk-btn.is-ok { background: #067647; border-color: #067647; color: #fff; }
@@ -172,8 +174,8 @@
         </div>
         <div class="almk-actions">
           <?php echo $al_form('clear_item_reports', $al_item['pk_i_id'], __('Dismiss reports', 'starter')); ?>
-          <?php echo $al_hidden ? $al_form('show_item', $al_item['pk_i_id'], __('Show listing again', 'starter')) : $al_form('hide_item', $al_item['pk_i_id'], __('Hide listing', 'starter'), 'is-bad'); ?>
-          <?php echo $al_form('delete_item', $al_item['pk_i_id'], __('Delete listing', 'starter'), 'is-bad', '', __('Delete this listing for good? Its photos, bids and offers are removed too.', 'starter')); ?>
+          <?php echo $al_hidden ? $al_form('show_item', $al_item['pk_i_id'], __('Show listing again', 'starter')) : $al_form('hide_item', $al_item['pk_i_id'], __('Hide listing', 'starter'), 'is-bad', antique_moderation_fields()); ?>
+          <?php echo $al_form('delete_item', $al_item['pk_i_id'], __('Delete listing', 'starter'), 'is-bad', antique_moderation_fields(), __('Delete this listing for good? Its photos, bids and offers are removed too. The seller will be emailed the reason.', 'starter')); ?>
           <?php if ($al_seller) { echo $al_suspend_form($al_seller, __('seller', 'starter')); } ?>
         </div>
       </div>

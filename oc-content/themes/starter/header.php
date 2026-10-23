@@ -23,6 +23,7 @@
   $al_search_cat = isset($al_search_cat[0]) ? (int)$al_search_cat[0] : 0;
   $al_auctions_active = (osc_is_search_page() && Params::getParam('sAuction') == '1');
 ?>
+<a class="al-skip" href="#al-main"><?php _e('Skip to content', 'starter'); ?></a>
 <header id="al-header">
   <?php osc_run_hook('header_top'); ?>
 
@@ -117,6 +118,7 @@
 
   <?php osc_run_hook('header_bottom'); ?>
 </header>
+<div id="al-main" tabindex="-1"></div>
 
 <script>
   (function() {

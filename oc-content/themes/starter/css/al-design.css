@@ -3605,3 +3605,8 @@ html:not(#al-a):not(#al-b) body:not(#al-c) .al-ie :is(.al-ie-chip, .al-ie-tool, 
 .al-unsub h1 { margin: 0 0 12px; font-family: "Cormorant Garamond", Georgia, serif; font-size: 30px; font-weight: 600; color: var(--al-ink); }
 .al-unsub p { margin: 0 0 12px; font-size: 15px; line-height: 1.6; }
 .al-unsub-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px !important; }
+
+/* Keyboard users: "Skip to content" appears on the first Tab press */
+.al-skip { position: absolute; left: 12px; top: -60px; z-index: 10000; padding: 10px 16px; border-radius: var(--al-radius); background: var(--al-ink); color: #FFFFFF !important; font-weight: 700; text-decoration: none; transition: top 0.15s; }
+.al-skip:focus { top: 12px; outline: 2px solid var(--al-brass); outline-offset: 2px; }
+#al-main:focus { outline: none; }

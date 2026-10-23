@@ -115,6 +115,33 @@ function antique_offer_set_status($offerId, $status) {
   return $db->affectedRows() > 0;
 }
 
+/**
+ * Closes the other open offers on an item once it is reserved or sold: a note in each
+ * conversation and an email to that buyer. $why: 'another' (an offer was accepted),
+ * 'sold' or 'reserved' (the seller marked the listing).
+ */
+function antique_offers_close_others($itemId, $exceptOfferId, $why) {
+  $res = antique_msg_db()->query(sprintf("SELECT * FROM `%s` WHERE fk_i_item_id = %d AND s_status = 'pending' AND pk_i_id <> %d", antique_offers_table(), (int)$itemId, (int)$exceptOfferId));
+  $notes = array(
+    'another'  => __('The offer of %s was closed because the seller accepted another offer.', 'starter'),
+    'sold'     => __('The offer of %s was closed because the item has been sold.', 'starter'),
+    'reserved' => __('The offer of %s was closed because the item is now reserved for another buyer.', 'starter')
+  );
+  $note = isset($notes[$why]) ? $notes[$why] : $notes['another'];
+  foreach (($res ? $res->result() : array()) as $o) {
+    if (!antique_offer_set_status($o['pk_i_id'], 'declined')) { continue; }
+    $money = antique_offer_money($o['d_amount'], $o['s_currency']);
+    antique_msg_add($o['fk_i_thread_id'], 0, sprintf($note, $money), 'event');
+    $thread = antique_msg_thread($o['fk_i_thread_id']);
+    if (!$thread) { continue; }
+    $title = antique_msg_item_title($itemId);
+    antique_offer_mail((int)$thread['fk_i_buyer_id'], sprintf(__('Offer closed: %s', 'starter'), $title), __('Your offer was closed', 'starter'), array(
+      sprintf($note, '<strong>' . osc_esc_html($money) . '</strong>'),
+      __('Save a search or keep watching the seller\'s shop to hear about similar pieces.', 'starter')
+    ), $thread, __('Open the conversation', 'starter'));
+  }
+}
+
 function antique_offer_set_sold_flag($itemId, $value) {
   antique_msg_db()->query(sprintf("INSERT INTO `%st_item_starter` (fk_i_item_id, i_sold) VALUES (%d, '%s') ON DUPLICATE KEY UPDATE i_sold = VALUES(i_sold)",
     DB_TABLE_PREFIX, (int)$itemId, (int)$value));
@@ -263,13 +290,7 @@ function antique_offer_post() {
     antique_offer_set_sold_flag($offer['fk_i_item_id'], 2);   // reserved for this buyer
     antique_msg_add($thread['pk_i_id'], $uid, sprintf(__('%1$s accepted the offer of %2$s. The item is now reserved.', 'starter'), $me['name'], $money), 'event');
 
-    // close the other open offers on this item
-    $res = antique_msg_db()->query(sprintf("SELECT * FROM `%s` WHERE fk_i_item_id = %d AND s_status = 'pending' AND pk_i_id <> %d", antique_offers_table(), (int)$offer['fk_i_item_id'], (int)$offer['pk_i_id']));
-    foreach (($res ? $res->result() : array()) as $o) {
-      if (antique_offer_set_status($o['pk_i_id'], 'declined')) {
-        antique_msg_add($o['fk_i_thread_id'], 0, sprintf(__('The offer of %s was closed because the seller accepted another offer.', 'starter'), antique_offer_money($o['d_amount'], $o['s_currency'])), 'event');
-      }
-    }
+    antique_offers_close_others($offer['fk_i_item_id'], $offer['pk_i_id'], 'another');
 
     $buyerId = (int)$thread['fk_i_buyer_id'];
     $sellerId = (int)$thread['fk_i_seller_id'];

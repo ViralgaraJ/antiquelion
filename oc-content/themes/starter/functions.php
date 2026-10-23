@@ -260,6 +260,9 @@ function starter_check_sold(){
       if ((string)$status === '1' && function_exists('antique_watch_notify_sold')) {
         antique_watch_notify_sold($item['pk_i_id']);
       }
+      if (in_array((string)$status, array('1', '2'), true) && function_exists('antique_offers_close_others')) {
+        antique_offers_close_others($item['pk_i_id'], 0, (string)$status === '1' ? 'sold' : 'reserved');
+      }
  
       if (osc_rewrite_enabled()) {
         $item_type_url = '?itemType=' . $item_type;

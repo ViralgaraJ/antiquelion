@@ -351,6 +351,50 @@ function antique_marketplace_admin_url($tab = '') {
 }
 
 
+/*
+ * Moderation reasons. When a listing is hidden or deleted, or a member suspended, the
+ * person is told why (a "statement of reasons", as the EU Digital Services Act expects).
+ */
+function antique_moderation_reasons() {
+  return array(
+    'prohibited' => __('The item is prohibited, stolen or not genuine', 'starter'),
+    'scam'       => __('The listing looks like spam, a scam or is misleading', 'starter'),
+    'duplicate'  => __('The same item is listed more than once', 'starter'),
+    'terms'      => __('The listing breaks our terms of use', 'starter'),
+    'reports'    => __('Several members reported problems with your account', 'starter'),
+    'other'      => __('Another reason (see the note below)', 'starter')
+  );
+}
+
+// Reason picker and note for a moderation form
+function antique_moderation_fields() {
+  $html = '<select name="reason" required><option value="">' . osc_esc_html(__('Reason (emailed to the member)', 'starter')) . '</option>';
+  foreach (antique_moderation_reasons() as $k => $label) { $html .= '<option value="' . $k . '">' . osc_esc_html($label) . '</option>'; }
+  return $html . '</select><input type="text" name="note" maxlength="500" placeholder="' . osc_esc_html(__('Note for the member (optional)', 'starter')) . '" />';
+}
+
+/**
+ * Emails the member what was done and why. $what: 'hidden', 'deleted' or 'suspended'.
+ */
+function antique_moderation_notify($what, $email, $name, $title = '') {
+  if (trim((string)$email) === '') { return; }
+  $reasons = antique_moderation_reasons();
+  $key = (string)Params::getParam('reason');
+  $note = trim(mb_substr(strip_tags((string)Params::getParam('note')), 0, 500));
+  $reason = isset($reasons[$key]) ? $reasons[$key] : $reasons['terms'];
+  $quoted = '<strong>' . osc_esc_html($title) . '</strong>';
+  $texts = array(
+    'hidden'    => array(sprintf(__('Your listing was hidden: %s', 'starter'), $title), __('We hid one of your listings', 'starter'), sprintf(__('We have hidden your listing %s. Buyers can no longer see it.', 'starter'), $quoted)),
+    'deleted'   => array(sprintf(__('Your listing was removed: %s', 'starter'), $title), __('We removed one of your listings', 'starter'), sprintf(__('We have removed your listing %s from AntiqueLion.', 'starter'), $quoted)),
+    'suspended' => array(__('Your account has been suspended', 'starter'), __('Your account has been suspended', 'starter'), __('We have suspended your account. You cannot sign in, and your listings are hidden.', 'starter'))
+  );
+  $t = $texts[$what];
+  $lines = array($t[2], sprintf(__('Reason: %s.', 'starter'), osc_esc_html($reason)));
+  if ($note !== '') { $lines[] = antique_mail_quote($note, 500); }
+  $lines[] = __('If you think this is a mistake, reply through our contact page and tell us why. We review every appeal.', 'starter');
+  antique_mail($email, $name, $t[0], $t[1], $lines, osc_contact_url(), __('Contact us', 'starter'));
+}
+
 // Decisions posted from the Marketplace page
 function antique_marketplace_admin_actions() {
   $act = Params::getParam('al_mk');
@@ -415,7 +459,11 @@ function antique_marketplace_admin_actions() {
     case 'show_item':
       $items = new ItemActions(true);
       $act == 'hide_item' ? $items->disable($id) : $items->enable($id);
-      if ($act == 'hide_item') { Item::newInstance()->clearStat($id, 'all'); }
+      if ($act == 'hide_item') {
+        Item::newInstance()->clearStat($id, 'all');
+        $item = Item::newInstance()->findByPrimaryKey($id);
+        if ($item) { antique_moderation_notify('hidden', $item['s_contact_email'], $item['s_contact_name'], $item['s_title']); }
+      }
       osc_add_flash_ok_message($act == 'hide_item' ? __('Listing hidden. Only you and the seller can see it now.', 'starter') : __('Listing is visible again.', 'starter'), 'admin');
       break;
     case 'delete_item':
@@ -423,6 +471,7 @@ function antique_marketplace_admin_actions() {
       if ($item) {
         $items = new ItemActions(true);
         $items->delete($item['s_secret'], $id);
+        antique_moderation_notify('deleted', $item['s_contact_email'], $item['s_contact_name'], $item['s_title']);
       }
       osc_add_flash_ok_message(__('Listing deleted.', 'starter'), 'admin');
       break;
@@ -432,6 +481,10 @@ function antique_marketplace_admin_actions() {
       require_once LIB_PATH . 'osclass/UserActions.php';
       $users = new UserActions(true);
       $act == 'suspend_user' ? $users->disable($id) : $users->enable($id);
+      if ($act == 'suspend_user') {
+        $u = User::newInstance()->findByPrimaryKey($id);
+        if ($u) { antique_moderation_notify('suspended', $u['s_email'], $u['s_name']); }
+      }
       osc_add_flash_ok_message($act == 'suspend_user' ? __('Member suspended. They cannot sign in and their listings are hidden.', 'starter') : __('Member restored. Their listings are visible again.', 'starter'), 'admin');
       break;
   }
