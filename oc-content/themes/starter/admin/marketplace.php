@@ -19,12 +19,9 @@
   $al_rep_reviews = $al_count("SELECT COUNT(*) AS n FROM `" . antique_reviews_table() . "` WHERE b_reported = 1");
   $al_rep_threads = $al_count("SELECT COUNT(*) AS n FROM `" . antique_msg_threads_table() . "` WHERE b_reported = 1");
   $al_p = DB_TABLE_PREFIX;
-  // listings with open reports (Osclass keeps the counters per day in t_item_stats)
-  $al_rep_sql = "SELECT s.fk_i_item_id, SUM(s.i_num_spam) AS spam, SUM(s.i_num_offensive) AS offensive, SUM(s.i_num_bad_classified) AS badcat,
-      SUM(s.i_num_repeated) AS repeated, SUM(s.i_num_expired) AS expired, MAX(s.dt_date) AS last
-    FROM `{$al_p}t_item_stats` s GROUP BY s.fk_i_item_id
-    HAVING SUM(s.i_num_spam + s.i_num_offensive + s.i_num_bad_classified + s.i_num_repeated + s.i_num_expired) > 0";
-  $al_rep_items = $al_count("SELECT COUNT(*) AS n FROM ({$al_rep_sql}) x");
+  // listings with open member reports, plus older anonymous Osclass report counters (inc.report.php)
+  $al_queue = antique_report_queue();
+  $al_rep_items = count($al_queue);
   $al_suspended = function ($uid) { $u = User::newInstance()->findByPrimaryKey($uid); return $u && !(int)$u['b_enabled']; };
   $al_suspend_form = function ($uid, $who) use ($al_form, $al_suspended) {
     return $al_suspended($uid)
@@ -140,23 +137,19 @@
     </div>
 
   <?php } elseif ($al_tab == 'listings') { ?>
-    <?php
-      // wrapped: MariaDB cannot sort by an expression over aggregate aliases
-      $res = $al_db->query("SELECT * FROM ({$al_rep_sql}) x ORDER BY (x.spam + x.offensive) DESC, x.last DESC LIMIT 200");
-      $rows = $res ? $res->result() : array();
-      $al_reasons = antique_report_reasons();
-      $al_cols = array('spam' => 'spam', 'offensive' => 'offensive', 'badcat' => 'badcat', 'repeated' => 'repeated', 'expired' => 'expired');
-    ?>
-    <p class="almk-meta"><?php _e('Listings visitors reported with "Report this listing". Hide or delete what breaks the terms, and dismiss the rest.', 'starter'); ?></p>
-    <?php if (!$rows) { ?><div class="almk-empty"><?php _e('No reported listings.', 'starter'); ?></div><?php } ?>
-    <?php foreach ($rows as $r) {
-      $al_item = Item::newInstance()->findByPrimaryKey($r['fk_i_item_id']);
+    <?php $al_reasons = antique_report_reasons(); ?>
+    <p class="almk-meta"><?php _e('Listings members reported, most urgent first. Hide or delete what breaks the terms, and dismiss the rest. Sellers never see who reported them.', 'starter'); ?></p>
+    <?php if (!$al_queue) { ?><div class="almk-empty"><?php _e('No reported listings.', 'starter'); ?></div><?php } ?>
+    <?php foreach (array_slice($al_queue, 0, 200, true) as $al_iid => $al_q) {
+      $al_item = Item::newInstance()->findByPrimaryKey($al_iid);
       if (!$al_item) { continue; }
       $al_hidden = !(int)$al_item['b_enabled'];
       $al_seller = (int)$al_item['fk_i_user_id'];
     ?>
       <div class="almk-card">
         <h3><a href="<?php echo osc_esc_html(osc_item_url_from_item($al_item)); ?>" target="_blank"><?php echo osc_esc_html($al_item['s_title']); ?></a>
+          <?php if ($al_q['urgent']) { ?><span class="almk-tag is-bad"><?php _e('Urgent', 'starter'); ?></span><?php } ?>
+          <?php if ($al_q['reports']) { ?><span class="almk-tag"><?php echo sprintf(_n('%d member report', '%d member reports', count($al_q['reports']), 'starter'), count($al_q['reports'])); ?></span><?php } ?>
           <?php if ($al_hidden) { ?><span class="almk-tag"><?php _e('Hidden', 'starter'); ?></span><?php } ?>
           <?php if ((int)$al_item['b_spam']) { ?><span class="almk-tag is-bad"><?php _e('Spam', 'starter'); ?></span><?php } ?>
         </h3>
@@ -164,14 +157,25 @@
           <?php echo sprintf(__('Seller: %1$s (%2$s)', 'starter'), osc_esc_html($al_item['s_contact_name']), osc_esc_html($al_item['s_contact_email'])); ?>
           <?php if ($al_seller && $al_suspended($al_seller)) { ?> <span class="almk-tag is-bad"><?php _e('Suspended', 'starter'); ?></span><?php } ?>
           · <?php echo sprintf(__('Listed %s', 'starter'), osc_esc_html(date('j M Y', strtotime($al_item['dt_pub_date'])))); ?>
-          · <?php echo sprintf(__('Last report %s', 'starter'), osc_esc_html(date('j M Y', strtotime($r['last'])))); ?>
           · <a href="<?php echo osc_admin_base_url(true); ?>?page=items&action=item_edit&id=<?php echo (int)$al_item['pk_i_id']; ?>"><?php _e('Edit in oc-admin', 'starter'); ?></a>
         </div>
-        <div class="almk-docs" style="margin-top:10px">
-          <?php foreach ($al_cols as $al_k => $al_col) { if ((int)$r[$al_col] < 1) { continue; } ?>
-            <span class="almk-tag<?php echo in_array($al_k, array('spam', 'offensive'), true) ? ' is-bad' : ''; ?>"><?php echo osc_esc_html($al_reasons[$al_k][0]); ?> &times; <?php echo (int)$r[$al_col]; ?></span>
-          <?php } ?>
-        </div>
+        <?php if ($al_q['reports']) { ?>
+          <div class="almk-msgs">
+            <?php foreach ($al_q['reports'] as $al_r) { $al_by = antique_msg_user($al_r['fk_i_user_id']); ?>
+              <p><strong><?php echo osc_esc_html(isset($al_reasons[$al_r['s_reason']]) ? $al_reasons[$al_r['s_reason']][0] : $al_r['s_reason']); ?></strong>
+                <span class="almk-meta"><?php echo sprintf(__('by %1$s (%2$s), %3$s', 'starter'), osc_esc_html($al_by['name']), osc_esc_html($al_by['email']), osc_esc_html(date('j M Y H:i', strtotime($al_r['dt_created'])))); ?></span>
+                <?php if (trim((string)$al_r['s_details']) !== '') { ?><br><?php echo nl2br(osc_esc_html($al_r['s_details'])); ?><?php } ?></p>
+            <?php } ?>
+          </div>
+        <?php } ?>
+        <?php if ($al_q['legacy']) { ?>
+          <div class="almk-docs" style="margin-top:10px">
+            <span class="almk-meta"><?php _e('Older anonymous reports:', 'starter'); ?></span>
+            <?php foreach ($al_q['legacy'] as $al_k => $al_n) { ?>
+              <span class="almk-tag"><?php echo osc_esc_html(isset($al_reasons[$al_k]) ? $al_reasons[$al_k][0] : $al_k); ?> &times; <?php echo (int)$al_n; ?></span>
+            <?php } ?>
+          </div>
+        <?php } ?>
         <div class="almk-actions">
           <?php echo $al_form('clear_item_reports', $al_item['pk_i_id'], __('Dismiss reports', 'starter')); ?>
           <?php echo $al_hidden ? $al_form('show_item', $al_item['pk_i_id'], __('Show listing again', 'starter')) : $al_form('hide_item', $al_item['pk_i_id'], __('Hide listing', 'starter'), 'is-bad', antique_moderation_fields()); ?>

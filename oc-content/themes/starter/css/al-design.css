@@ -3610,3 +3610,11 @@ html:not(#al-a):not(#al-b) body:not(#al-c) .al-ie :is(.al-ie-chip, .al-ie-tool, 
 .al-skip { position: absolute; left: 12px; top: -60px; z-index: 10000; padding: 10px 16px; border-radius: var(--al-radius); background: var(--al-ink); color: #FFFFFF !important; font-weight: 700; text-decoration: none; transition: top 0.15s; }
 .al-skip:focus { top: 12px; outline: 2px solid var(--al-brass); outline-offset: 2px; }
 #al-main:focus { outline: none; }
+
+/* Report this listing (members only) */
+.al-report-form { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
+.al-report-form fieldset { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; border: 0; }
+.al-report-form .al-check span { font-size: 13.5px; }
+.al-report-details { display: flex; flex-direction: column; gap: 4px; font-weight: 600; }
+.al-report-details textarea { width: 100%; min-height: 72px; padding: 8px 10px; border: 1px solid var(--al-line); border-radius: var(--al-radius); font: inherit; font-weight: 400; resize: vertical; box-sizing: border-box; }
+.al-report-form .al-btn, .al-report-signin { align-self: flex-start; }

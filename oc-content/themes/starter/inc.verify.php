@@ -453,6 +453,7 @@ function antique_marketplace_admin_actions() {
     // Reported listings (Osclass's report counters in t_item_stats)
     case 'clear_item_reports':
       Item::newInstance()->clearStat($id, 'all');
+      antique_report_close($id, 'dismissed');
       osc_add_flash_ok_message(__('Reports dismissed. The listing stays as it is.', 'starter'), 'admin');
       break;
     case 'hide_item':
@@ -461,6 +462,7 @@ function antique_marketplace_admin_actions() {
       $act == 'hide_item' ? $items->disable($id) : $items->enable($id);
       if ($act == 'hide_item') {
         Item::newInstance()->clearStat($id, 'all');
+        antique_report_close($id, 'actioned');
         $item = Item::newInstance()->findByPrimaryKey($id);
         if ($item) { antique_moderation_notify('hidden', $item['s_contact_email'], $item['s_contact_name'], $item['s_title']); }
       }
@@ -471,6 +473,7 @@ function antique_marketplace_admin_actions() {
       if ($item) {
         $items = new ItemActions(true);
         $items->delete($item['s_secret'], $id);
+        antique_report_close($id, 'actioned');
         antique_moderation_notify('deleted', $item['s_contact_email'], $item['s_contact_name'], $item['s_title']);
       }
       osc_add_flash_ok_message(__('Listing deleted.', 'starter'), 'admin');
