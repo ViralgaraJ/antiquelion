@@ -30,6 +30,7 @@ function antique_mail($to, $toName, $subject, $heading, $paragraphs, $ctaUrl = '
          . $notify['footer']
          . '</div></div></div>';
 
+  if (function_exists('antique_push_from_mail')) { antique_push_from_mail($to, $heading, $paragraphs, $ctaUrl); }
   return @osc_sendMail(array(
     'from'     => _osc_from_email_aux(),
     'to'       => $to,

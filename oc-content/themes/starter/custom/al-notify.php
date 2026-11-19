@@ -6,6 +6,7 @@
   <h2><?php _e('Email settings', 'starter'); ?></h2>
 </div>
 <p class="al-account-intro"><?php echo sprintf(__('Choose which emails we send to %s.', 'starter'), '<strong>' . osc_esc_html(osc_logged_user_email()) . '</strong>'); ?></p>
+<?php if (function_exists('antique_push_control')) { echo antique_push_control(); } ?>
 
 <form class="al-form al-notify-form" method="post" action="<?php echo osc_esc_html(osc_ajax_hook_url('al_notify')); ?>">
   <input type="hidden" name="octoken" value="<?php echo osc_csrfguard_generate_token(); ?>" />

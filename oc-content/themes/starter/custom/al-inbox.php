@@ -16,6 +16,7 @@
   <h2><?php _e('Messages', 'starter'); ?></h2>
   <?php if ($al_unread > 0) { ?><span class="al-account-count"><?php echo sprintf(_n('%d unread', '%d unread', $al_unread, 'starter'), $al_unread); ?></span><?php } ?>
 </div>
+<?php if (function_exists('antique_push_control')) { echo antique_push_control(true); } ?>
 
 <nav class="al-inbox-tabs" aria-label="<?php echo osc_esc_html(__('Filter messages', 'starter')); ?>">
   <?php foreach ($al_tabs as $k => $label) { ?>

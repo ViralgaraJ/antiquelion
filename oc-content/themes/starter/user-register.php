@@ -43,6 +43,7 @@
         <?php if ($al_mode == 'login') { ?>
           <h1><?php _e('Welcome back', 'starter'); ?></h1>
           <p class="al-auth-lead"><?php _e('Sign in to bid, message sellers and manage your listings.', 'starter'); ?></p>
+          <?php echo antique_google_button(); ?>
 
           <form action="<?php echo osc_base_url(true); ?>" method="post" class="al-form">
             <input type="hidden" name="page" value="login" />
@@ -64,6 +65,7 @@
         <?php } else { ?>
           <h1><?php _e('Create your account', 'starter'); ?></h1>
           <p class="al-auth-lead"><?php _e('Free to join. Bid on auctions, watch items and save searches. You can start selling whenever you are ready.', 'starter'); ?></p>
+          <?php echo antique_google_button(__('Sign up with Google', 'starter')); ?>
 
           <form name="register" id="register" action="<?php echo osc_base_url(true); ?>" method="post" class="al-form">
             <input type="hidden" name="page" value="register" />
