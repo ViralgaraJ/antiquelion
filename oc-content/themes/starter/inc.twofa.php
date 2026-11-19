@@ -188,10 +188,7 @@ function antique_integrations_admin_url() {
   return osc_admin_render_theme_url('oc-content/themes/' . osc_current_web_theme() . '/admin/integrations.php');
 }
 
-function antique_integrations_menu() {
-  AdminMenu::newInstance()->add_submenu('starter_menu', __('Integrations & security', 'starter'), antique_integrations_admin_url(), 'integrations_starter', 'administrator');
-}
-osc_add_hook('admin_menu_init', 'antique_integrations_menu');
+// menu link: functions.php, next to Marketplace (the admin menu is built before the theme loads)
 
 function antique_integrations_admin_actions() {
   $act = (string)Params::getParam('al_int');

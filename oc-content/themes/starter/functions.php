@@ -1802,6 +1802,7 @@ AdminMenu::newInstance()->add_submenu_divider( 'starter_menu', __('Theme Setting
 AdminMenu::newInstance()->add_submenu( 'starter_menu', __('Header logo', 'starter'), osc_admin_render_theme_url('oc-content/themes/' . osc_current_web_theme() . '/admin/header.php'), 'header_starter', 'administrator');
 AdminMenu::newInstance()->add_submenu( 'starter_menu', __('Theme settings', 'starter'), osc_admin_render_theme_url('oc-content/themes/' . osc_current_web_theme() . '/admin/settings.php'), 'settings_starter');
 AdminMenu::newInstance()->add_submenu( 'starter_menu', __('Marketplace', 'starter'), antique_marketplace_admin_url(), 'marketplace_starter', 'administrator');
+AdminMenu::newInstance()->add_submenu( 'starter_menu', __('Integrations & security', 'starter'), antique_integrations_admin_url(), 'integrations_starter', 'administrator');
 
 
 if( !function_exists('logo_header') ) {
