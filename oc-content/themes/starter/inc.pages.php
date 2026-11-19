@@ -7,7 +7,7 @@ if (!defined('ABS_PATH')) { exit('ABS_PATH is not loaded. Direct access is not a
  * URLs: osc_route_url('al-about') etc.
  */
 
-define('ANTIQUE_PAGES_UPDATED', '21 October 2026');
+define('ANTIQUE_PAGES_UPDATED', '19 November 2026');
 
 function antique_info_pages() {
   return array(

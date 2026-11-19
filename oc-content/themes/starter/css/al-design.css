@@ -3618,3 +3618,63 @@ html:not(#al-a):not(#al-b) body:not(#al-c) .al-ie :is(.al-ie-chip, .al-ie-tool, 
 .al-report-details { display: flex; flex-direction: column; gap: 4px; font-weight: 600; }
 .al-report-details textarea { width: 100%; min-height: 72px; padding: 8px 10px; border: 1px solid var(--al-line); border-radius: var(--al-radius); font: inherit; font-weight: 400; resize: vertical; box-sizing: border-box; }
 .al-report-form .al-btn, .al-report-signin { align-self: flex-start; }
+
+/* ---------- Promotions & payments (inc.payments.php) ---------- */
+.al-flags { display: flex; flex-wrap: wrap; gap: 4px; margin: 2px 0 4px; }
+.al-flag { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 800; letter-spacing: 0.4px; line-height: 1.5; text-transform: uppercase; }
+.al-flag.is-urgent { background: var(--al-danger); color: #FFFFFF; }
+.al-flag.is-top { background: var(--al-ink); color: var(--al-gilt); }
+.al-flag.is-featured { background: #FBF4E6; color: var(--al-brass-text); }
+.al-item-title + .al-flags, .al-flags + .al-item-title { margin-top: 4px; }
+
+.al-top-ads { margin: 0 0 24px; padding: 16px; border: 1px solid var(--al-gilt); border-radius: 8px; background: #FCF8EF; }
+.al-top-ads-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 0 0 12px; }
+.al-top-ads-head h2 { margin: 0; font-family: var(--al-font-display); font-size: 22px; color: var(--al-ink); }
+.al-top-ads-head a { color: var(--al-brass-text); font-size: 13px; font-weight: 700; }
+.al-top-ads .al-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+
+.al-promo-box { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--al-line-soft); }
+.al-promo-box p { margin: 0 0 10px; color: var(--al-muted); font-size: 14px; }
+.al-promo-box .al-promo-running { color: var(--al-success); font-weight: 700; }
+.al-promo-box .al-btn { width: 100%; }
+
+.al-promo-item { display: flex; align-items: center; gap: 14px; margin: 0 0 18px; padding: 14px 16px; }
+.al-promo-item img { width: 72px; height: 72px; border-radius: var(--al-radius); object-fit: cover; }
+.al-promo-item strong { display: block; color: var(--al-ink); font-size: 16px; }
+.al-promo-item span { color: var(--al-muted); font-size: 14px; }
+.al-promo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; }
+.al-promo-card { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 16px; border: 1px solid var(--al-line); border-radius: 8px; background: var(--al-paper); }
+.al-promo-card legend { float: left; width: 100%; margin: 0 0 2px; padding: 0; font-family: var(--al-font-display); font-size: 22px; font-weight: 600; color: var(--al-ink); }
+.al-promo-card legend em { margin-left: 6px; padding: 1px 8px; border-radius: 999px; background: #ECFDF3; color: var(--al-success); font-family: var(--al-font-ui); font-size: 11px; font-style: normal; font-weight: 800; vertical-align: middle; }
+.al-promo-card > p { clear: both; margin: 0 0 6px; color: var(--al-muted); font-size: 14px; }
+.al-form label.al-promo-opt, .al-promo-opt { display: flex; flex-direction: row; align-items: center; gap: 10px; text-align: left; font-weight: 600; min-height: 44px; padding: 0 12px; border: 1px solid var(--al-line); border-radius: var(--al-radius); cursor: pointer; }
+.al-promo-opt span { flex: 1; color: var(--al-text); }
+.al-promo-opt strong { color: var(--al-ink); }
+.al-promo-opt:has(input:checked) { border-color: var(--al-brass); background: #FCF8EF; box-shadow: inset 0 0 0 1px var(--al-brass); }
+.al-promo-opt input { accent-color: var(--al-brass); width: 18px; height: 18px; margin: 0; }
+.al-promo-pay { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 20px; margin: 20px 0 0; }
+.al-promo-pay p { flex: 1 1 280px; margin: 0; color: var(--al-muted); font-size: 13px; }
+
+.al-pay-result { margin: 0 0 20px; padding: 18px 20px; border: 1px solid var(--al-line); border-left-width: 4px; border-radius: 8px; background: var(--al-paper); }
+.al-pay-result h3 { margin: 0 0 6px; font-size: 18px; color: var(--al-ink); }
+.al-pay-result p { margin: 0 0 12px; color: var(--al-muted); }
+.al-pay-result.is-paid { border-left-color: var(--al-success); }
+.al-pay-result.is-pending { border-left-color: var(--al-brass); }
+.al-pay-result.is-cancelled, .al-pay-result.is-failed, .al-pay-result.is-chargedback { border-left-color: var(--al-danger); }
+.al-table-wrap { overflow-x: auto; border: 1px solid var(--al-line); border-radius: 8px; background: var(--al-paper); }
+.al-pay-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.al-pay-table th, .al-pay-table td { padding: 12px 14px; border-bottom: 1px solid var(--al-line-soft); text-align: left; vertical-align: top; }
+.al-pay-table th { color: var(--al-muted); font-size: 12px; font-weight: 800; letter-spacing: 0.4px; text-transform: uppercase; }
+.al-pay-table tr:last-child td { border-bottom: 0; }
+.al-pay-table small { display: block; color: var(--al-muted); }
+.al-status.is-paid { background: #ECFDF3; color: var(--al-success); }
+.al-status.is-cancelled, .al-status.is-refunded { background: #F2F4F7; color: #475467; }
+.al-status.is-failed, .al-status.is-chargedback { background: #FEF3F2; color: var(--al-danger); }
+@media (max-width: 640px) {
+  .al-top-ads { padding: 12px 10px; }
+  .al-top-ads .al-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .al-pay-table thead { display: none; }
+  .al-pay-table tr { display: block; padding: 10px 14px; border-bottom: 1px solid var(--al-line-soft); }
+  .al-pay-table td { display: block; padding: 2px 0; border: 0; }
+  .al-promo-pay .al-btn { width: 100%; }
+}

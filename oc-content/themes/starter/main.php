@@ -134,13 +134,13 @@
     </div>
   </section>
 
-  <?php osc_get_premiums(osc_get_preference('premium_home_count', 'starter_theme')); ?>
-  <?php if (osc_count_premiums() > 0 && osc_get_preference('premium_home', 'starter_theme') == 1) { ?>
+  <?php $al_featured = antique_featured_items((int)osc_get_preference('premium_home_count', 'starter_theme') ?: 8); ?>
+  <?php if (count($al_featured) > 0) { ?>
     <section class="al-section">
       <div class="al-wrap">
         <div class="al-section-head"><h2><?php _e('Featured listings', 'starter'); ?></h2></div>
         <div class="al-grid">
-          <?php while (osc_has_premiums()) { include __DIR__ . '/inc.al-card.php'; } ?>
+          <?php antique_render_cards($al_featured); ?>
         </div>
       </div>
     </section>

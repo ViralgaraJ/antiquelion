@@ -168,6 +168,7 @@
     <aside class="al-item-aside">
       <div class="al-panel al-summary">
         <a class="al-summary-cat" href="<?php echo osc_search_url(array('page' => 'search', 'sCategory' => osc_item_category_id())); ?>"><?php echo osc_esc_html(osc_item_category()); ?></a>
+        <?php echo antique_promo_flags(osc_item_id(), 'item'); ?>
         <h1 class="al-item-title"><?php echo osc_esc_html(osc_item_title()); ?></h1>
 
         <div class="al-tags">
@@ -226,6 +227,7 @@
               <?php } ?>
               <a class="al-btn al-btn-danger" href="<?php echo osc_item_delete_url(); ?>" onclick="return confirm('<?php echo osc_esc_js(__('Delete this listing? This cannot be undone.', 'starter')); ?>');"><?php _e('Delete', 'starter'); ?></a>
             </div>
+            <?php if (!in_array((string)$item_extra['i_sold'], array('1', '2'), true) && !osc_item_is_expired() && !osc_item_is_inactive()) { echo antique_promo_owner_box(osc_item_id()); } ?>
           </div>
         <?php } ?>
 

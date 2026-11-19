@@ -80,6 +80,9 @@
               </div>
 
               <div class="al-listing-actions">
+                <?php if (antique_pay_enabled() && $st[1] == 'is-active') { ?>
+                  <a class="al-btn al-btn-brass" href="<?php echo osc_esc_html(antique_promote_url(osc_item_id())); ?>" rel="nofollow"><?php $al_pm = antique_promo_active_map(); echo !empty($al_pm[osc_item_id()]) ? __('Promoted', 'starter') : __('Promote', 'starter'); ?></a>
+                <?php } ?>
                 <a class="al-btn al-btn-outline" href="<?php echo osc_item_edit_url(); ?>" rel="nofollow"><?php _e('Edit', 'starter'); ?></a>
                 <details class="al-more">
                   <summary aria-label="<?php echo osc_esc_html(__('More actions', 'starter')); ?>"><?php _e('More', 'starter'); ?>

@@ -3,7 +3,7 @@
   starter_backoffice_menu(__('Marketplace', 'starter'));
 
   $al_tab = Params::getParam('tab');
-  if (!in_array($al_tab, array('overview', 'listings', 'verify', 'reviews', 'messages', 'seo'), true)) { $al_tab = 'overview'; }
+  if (!in_array($al_tab, array('overview', 'listings', 'verify', 'reviews', 'messages', 'payments', 'seo'), true)) { $al_tab = 'overview'; }
   $al_db = antique_msg_db();
   $al_url = function ($tab) { return antique_marketplace_admin_url($tab); };
   $al_token = osc_csrfguard_generate_token();
@@ -82,6 +82,7 @@
     <a href="<?php echo $al_url('verify'); ?>"<?php echo $al_tab == 'verify' ? ' class="is-active"' : ''; ?>><?php _e('Seller verification', 'starter'); ?><?php if ($al_pending) { ?><em><?php echo $al_pending; ?></em><?php } ?></a>
     <a href="<?php echo $al_url('reviews'); ?>"<?php echo $al_tab == 'reviews' ? ' class="is-active"' : ''; ?>><?php _e('Reviews', 'starter'); ?><?php if ($al_rep_reviews) { ?><em><?php echo $al_rep_reviews; ?></em><?php } ?></a>
     <a href="<?php echo $al_url('messages'); ?>"<?php echo $al_tab == 'messages' ? ' class="is-active"' : ''; ?>><?php _e('Reported conversations', 'starter'); ?><?php if ($al_rep_threads) { ?><em><?php echo $al_rep_threads; ?></em><?php } ?></a>
+    <a href="<?php echo $al_url('payments'); ?>"<?php echo $al_tab == 'payments' ? ' class="is-active"' : ''; ?>><?php _e('Payments', 'starter'); ?></a>
     <a href="<?php echo $al_url('seo'); ?>"<?php echo $al_tab == 'seo' ? ' class="is-active"' : ''; ?>><?php _e('SEO and analytics', 'starter'); ?></a>
   </nav>
 
@@ -309,6 +310,8 @@
         <input type="text" name="seo_bing_verify" maxlength="100" value="<?php echo osc_esc_html(antique_seo_pref('seo_bing_verify')); ?>" /></label>
       <div class="almk-actions"><button type="submit" class="almk-btn is-ok"><?php _e('Save', 'starter'); ?></button></div>
     </form>
+  <?php } elseif ($al_tab == 'payments') { ?>
+    <?php include __DIR__ . '/payments.php'; ?>
   <?php } else { ?>
     <?php
       $res = $al_db->query("SELECT * FROM `" . antique_msg_threads_table() . "` WHERE b_reported = 1 ORDER BY dt_last DESC LIMIT 100");

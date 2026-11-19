@@ -52,19 +52,24 @@
 <h2><?php _e('7. Prices and currency', 'starter'); ?></h2>
 <p><?php _e('The seller\'s price in the seller\'s currency is the price. Converted amounts are estimates based on daily exchange rates and are shown for convenience only.', 'starter'); ?></p>
 
-<h2><?php _e('8. Content you post', 'starter'); ?></h2>
+<h2><?php _e('8. Paid promotions and refunds', 'starter'); ?></h2>
+<p><?php _e('Sellers can pay to promote a listing (Bump up, Top ad, Urgent, Featured). Payments are taken by PayHere, a licensed payment provider; AntiqueLion never sees or stores your card details. The price, currency and number of days are shown before you pay, and a promotion starts as soon as the payment is confirmed. Buying the same promotion again adds its days after the current one.', 'starter'); ?></p>
+<p><?php _e('Promotions change where a listing appears; they do not guarantee views, enquiries or a sale. Promotions are not transferable to another listing.', 'starter'); ?></p>
+<p><?php echo sprintf(__('Refunds: if you were charged but the promotion did not start, or you were charged twice, we refund the payment in full. If we remove a listing that breaks these terms, the unused promotion is not refunded. For any other request, <a href="%s">contact us</a> within 7 days of payment with your order number and we will refund the unused days where fair. Refunds go back to the card or account you paid with and can take up to 14 working days to appear.', 'starter'), osc_contact_url()); ?></p>
+
+<h2><?php _e('9. Content you post', 'starter'); ?></h2>
 <p><?php _e('You keep ownership of your photos and text. You allow AntiqueLion to display, resize and share them to operate and promote the site while your listing is live and for a reasonable time afterwards. Do not post content you do not have the right to use.', 'starter'); ?></p>
 
-<h2><?php _e('9. Suspension', 'starter'); ?></h2>
+<h2><?php _e('10. Suspension', 'starter'); ?></h2>
 <p><?php _e('We may limit, suspend or close accounts that break these terms or the law, or that put other users at risk. You can delete your account at any time from Account settings.', 'starter'); ?></p>
 
-<h2><?php _e('10. Liability', 'starter'); ?></h2>
+<h2><?php _e('11. Liability', 'starter'); ?></h2>
 <p><?php _e('We work to keep the site available and accurate, but it is provided as it is. To the extent the law allows, AntiqueLion is not liable for the items listed, for what users say or do, or for losses arising from a transaction between users. Nothing in these terms limits liability that cannot be limited by law.', 'starter'); ?></p>
 
-<h2><?php _e('11. Changes', 'starter'); ?></h2>
+<h2><?php _e('12. Changes', 'starter'); ?></h2>
 <p><?php _e('We may update these terms. The date below shows the latest version; continuing to use the site after a change means you accept it.', 'starter'); ?></p>
 
-<h2><?php _e('12. Contact', 'starter'); ?></h2>
+<h2><?php _e('13. Contact', 'starter'); ?></h2>
 <p><?php echo sprintf(__('Questions about these terms? <a href="%s">Contact us</a>.', 'starter'), osc_contact_url()); ?></p>
 
 <?php antique_info_page_close(); ?>
