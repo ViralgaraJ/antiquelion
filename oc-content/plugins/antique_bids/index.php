@@ -240,6 +240,14 @@ function antique_bids_sidebar_widget() {
             <div class="stat-col">
                 <span class="label" id="live-bid-label"><?php echo $statLabel; ?></span>
                 <span class="value gold-accent" id="live-highest-bid"><?php echo osc_esc_html(antique_bids_money($statAmount, $currency)); ?></span>
+                <?php
+                  // bids are placed in the seller's currency; show visitors a rough figure in theirs
+                  $visitorCur = function_exists('antique_visitor_currency') ? antique_visitor_currency() : $currency;
+                  $fxRate = ($visitorCur !== $currency && function_exists('antique_convert')) ? antique_convert(1, $currency, $visitorCur) : null;
+                ?>
+                <?php if ($fxRate): ?>
+                  <span class="bid-approx" id="live-bid-approx" data-rate="<?php echo osc_esc_html($fxRate); ?>" data-cur="<?php echo osc_esc_html($visitorCur); ?>">&asymp; <?php echo osc_esc_html(antique_bids_money(round($statAmount * $fxRate, $statAmount * $fxRate >= 100 ? -1 : 0), $visitorCur)); ?></span>
+                <?php endif; ?>
             </div>
             <div class="stat-col">
                 <span class="label">Time left</span>
@@ -419,6 +427,12 @@ function antique_bids_sidebar_widget() {
             if (newEnd && newEnd !== endTime) { endTime = newEnd; tick(); }
             if (st.hasBids) { $('live-bid-label').textContent = 'Current bid'; }
             $('live-highest-bid').textContent = money(st.amount);
+            var ap = $('live-bid-approx');
+            if (ap) {
+                var est = st.amount * parseFloat(ap.getAttribute('data-rate'));
+                est = est >= 100 ? Math.round(est / 10) * 10 : Math.round(est);
+                ap.textContent = '\u2248 ' + ap.getAttribute('data-cur') + ' ' + est.toLocaleString('en-US');
+            }
             $('al-bid-count').textContent = st.bids == 1 ? '1 bid' : st.bids + ' bids';
             var r = $('al-bid-reserve');
             if (r) { r.textContent = st.reserve === 'met' ? 'Reserve met' : 'Reserve not met'; r.classList.toggle('is-met', st.reserve === 'met'); }

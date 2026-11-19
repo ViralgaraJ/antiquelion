@@ -1,6 +1,6 @@
 <?php
   require_once 'functions.php';
-  starter_backoffice_menu(__('Settings', 'starter'));
+  starter_backoffice_menu(__('Theme settings', 'starter'));
 ?>
 
 
@@ -84,16 +84,6 @@ if(Params::getParam('starter_images') == 'done') {
 
 
 <div class="mb-body">
-  <div class="mb-info-box" style="margin:5px 0 30px 0;">
-    <div class="mb-line"><strong><?php _e('Plugins for this theme', 'starter'); ?></strong></div>
-    <div class="mb-line"><?php _e('We have modified for you many plugins to fit theme design that will work without need of any modifications', 'starter'); ?>.</div>
-    <div class="mb-line"><?php _e('Plugins are not delivered in theme package, must be downloaded separately', 'starter'); ?>.</div>
-    <div class="mb-line" style="margin:10px 0;"><a href="https://osclasspoint.com/theme-plugins/starter_plugins_20180406_aa82fd.zip" target="_blank" class="mb-button-white"><i class="fa fa-download"></i> <?php _e('Download plugins', 'starter'); ?></a></div>
-    <div class="mb-line" style="margin-top:15px;">- <?php _e('upload and extract downloaded file <strong>starter-plugins.zip</strong> into folder <strong>oc-content/plugins/</strong> on your hosting', 'starter'); ?>.</div>
-    <div class="mb-line">- <?php _e('go to <strong>oc-admin > Plugins</strong> and install plugins you like', 'starter'); ?>.</div>
-  </div>
-
-
   <!-- GENERAL -->
   <div class="mb-box">
     <div class="mb-head"><i class="fa fa-cog"></i> <?php _e('General settings', 'starter'); ?></div>

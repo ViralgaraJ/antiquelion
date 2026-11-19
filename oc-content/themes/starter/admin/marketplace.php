@@ -295,7 +295,7 @@
         <?php if ($al_sm_n) { ?><?php echo sprintf(__('%1$d addresses, built %2$s.', 'starter'), $al_sm_n, $al_built ? osc_esc_html(date('j M Y H:i', $al_built)) : '–'); ?> <a href="<?php echo osc_base_url(); ?>sitemap.xml" target="_blank">sitemap.xml</a> · <a href="<?php echo osc_base_url(); ?>robots.txt" target="_blank">robots.txt</a><?php } else { _e('Not built yet.', 'starter'); } ?>
         <br><?php echo sprintf(__('Rebuilt automatically every %d hours. Submit %s in Google Search Console and Bing Webmaster Tools.', 'starter'), ANTIQUE_SEO_SITEMAP_HOURS, '<strong>' . osc_base_url() . 'sitemap.xml</strong>'); ?>
       </p>
-      <div class="almk-actions"><?php echo $al_form('sitemap', 0, __('Rebuild now', 'starter'), 'is-ok'); ?></div>
+      <div class="almk-actions"><?php echo $al_form('sitemap', 0, __('Rebuild now', 'starter'), 'is-primary'); ?></div>
     </div>
     <form method="post" action="<?php echo osc_esc_html(antique_marketplace_admin_url('seo')); ?>" class="almk-card almk-seo">
       <input type="hidden" name="octoken" value="<?php echo $al_token; ?>" /><input type="hidden" name="al_mk" value="seo_save" /><input type="hidden" name="tab" value="seo" />
@@ -308,7 +308,7 @@
         <input type="text" name="seo_google_verify" maxlength="100" value="<?php echo osc_esc_html(antique_seo_pref('seo_google_verify')); ?>" /></label>
       <label><strong><?php _e('Bing Webmaster verification code', 'starter'); ?></strong><span class="almk-meta"><?php _e('The content value of the msvalidate.01 meta tag.', 'starter'); ?></span>
         <input type="text" name="seo_bing_verify" maxlength="100" value="<?php echo osc_esc_html(antique_seo_pref('seo_bing_verify')); ?>" /></label>
-      <div class="almk-actions"><button type="submit" class="almk-btn is-ok"><?php _e('Save', 'starter'); ?></button></div>
+      <div class="almk-actions"><button type="submit" class="almk-btn is-primary"><?php _e('Save', 'starter'); ?></button></div>
     </form>
   <?php } elseif ($al_tab == 'payments') { ?>
     <?php include __DIR__ . '/payments.php'; ?>

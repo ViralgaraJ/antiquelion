@@ -1266,6 +1266,7 @@ h1, h2, h3, .al-display {
 .al-item-aside .antique-bidding-card .bid-header h3 { font-family: var(--al-font-display) !important; font-size: 26px !important; font-weight: 600 !important; color: var(--al-ink) !important; }
 .al-item-aside .antique-bidding-card .label { color: var(--al-muted) !important; letter-spacing: 1px; }
 .al-item-aside .antique-bidding-card .gold-accent { color: var(--al-brass-text) !important; }
+.antique-bidding-card .bid-approx { display: block; margin-top: 2px; color: var(--al-muted, #6B7280); font-size: 12px; font-weight: 600; }
 .al-item-aside .antique-bidding-card .live-indicator { color: var(--al-danger) !important; }
 .al-item-aside .antique-bidding-card .live-indicator.expired { color: var(--al-muted) !important; }
 .al-item-aside .antique-bidding-card .btn-primary,

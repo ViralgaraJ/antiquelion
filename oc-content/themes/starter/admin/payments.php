@@ -32,7 +32,7 @@
   <p class="almk-meta"><?php _e('Sandbox: create a free account at sandbox.payhere.lk, then Integrations > Add Domain/App to get a Merchant ID and Merchant Secret for this domain. Live: use the Merchant ID and the secret for this domain from your approved payhere.lk account. Sandbox and live keys are different.', 'starter'); ?></p>
   <label><span><input type="checkbox" name="pay_enabled" value="1"<?php echo antique_pay_setting('enabled', '0') === '1' ? ' checked' : ''; ?> /> <strong><?php _e('Sellers can buy promotions', 'starter'); ?></strong></span></label>
   <label><strong><?php _e('Mode', 'starter'); ?></strong>
-    <select name="pay_mode" style="max-width:260px;height:36px">
+    <select name="pay_mode" style="max-width:320px">
       <option value="sandbox"<?php echo !antique_pay_live() ? ' selected' : ''; ?>><?php _e('Sandbox (test cards, no real money)', 'starter'); ?></option>
       <option value="live"<?php echo antique_pay_live() ? ' selected' : ''; ?>><?php _e('Live (real payments)', 'starter'); ?></option>
     </select></label>
@@ -44,7 +44,9 @@
   <label><strong><?php _e('Merchant Secret', 'starter'); ?></strong>
     <span class="almk-meta"><?php echo antique_pay_setting('merchant_secret') !== '' ? __('Saved. Leave empty to keep it; paste a new one to replace it.', 'starter') : __('Not set yet.', 'starter'); ?></span>
     <input type="password" name="pay_merchant_secret" value="" autocomplete="new-password" /></label>
-  <p class="almk-meta"><?php _e('Notify URL (sent to PayHere with every payment, nothing to set up):', 'starter'); ?> <code><?php echo osc_esc_html($al_notify); ?></code></p>
+  <label><strong><?php _e('Notify URL', 'starter'); ?></strong>
+    <span class="almk-meta"><?php _e('Sent to PayHere with every payment. Nothing to set up.', 'starter'); ?></span>
+    <code><?php echo osc_esc_html($al_notify); ?></code></label>
 
   <h3 style="margin-top:18px"><?php _e('Prices (USD)', 'starter'); ?></h3>
   <p class="almk-meta"><?php _e('Visitors pay in their own currency when PayHere supports it (LKR, USD, GBP, EUR, AUD), converted at the daily rate and rounded; everyone else pays in USD.', 'starter'); ?></p>
@@ -58,7 +60,7 @@
       </tr>
     <?php } ?>
   </table>
-  <div class="almk-actions"><button type="submit" class="almk-btn is-ok"><?php _e('Save', 'starter'); ?></button></div>
+  <div class="almk-actions"><button type="submit" class="almk-btn is-primary"><?php _e('Save', 'starter'); ?></button></div>
 </form>
 
 <form method="post" action="<?php echo osc_esc_html(antique_marketplace_admin_url('payments')); ?>" class="almk-card">
@@ -108,7 +110,7 @@
   <label style="margin-top:14px"><strong><?php echo sprintf(__('Listing pack (%d days)', 'starter'), ANTIQUE_MEMBER_PACK_DAYS); ?></strong>
     <span style="display:flex;gap:10px;align-items:center;font-weight:400"><input type="number" name="member_pack_slots" min="1" value="<?php echo (int)$al_mpack['slots']; ?>" style="width:90px" /> <?php _e('extra listings for USD', 'starter'); ?>
     <input type="number" step="0.01" min="0.5" name="member_pack_usd" value="<?php echo osc_esc_html($al_mpack['usd']); ?>" style="width:90px" /></span></label>
-  <div class="almk-actions"><button type="submit" class="almk-btn is-ok"><?php _e('Save', 'starter'); ?></button></div>
+  <div class="almk-actions"><button type="submit" class="almk-btn is-primary"><?php _e('Save', 'starter'); ?></button></div>
 </form>
 
 <form method="post" action="<?php echo osc_esc_html(antique_marketplace_admin_url('payments')); ?>" class="almk-card">

@@ -10,19 +10,28 @@ function starter_backoffice_menu($title = NULL) {
   echo '<script src="' . osc_current_web_theme_url('admin/js/bootstrap-switch.js') . '"></script>';
 
 
+  echo '<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet" type="text/css" />';
+  echo '<link href="' . osc_current_web_theme_url('admin/css/al-admin.css') . '?v=' . (int)@filemtime(osc_themes_path() . osc_current_web_theme() . '/admin/css/al-admin.css') . '" rel="stylesheet" type="text/css" />';
+
   if( $title == '') { $title = __('Settings', 'starter'); }
 
-  $text  = '<div class="mb-head">';
-  $text .= '<div class="mb-head-left">';
-  $text .= '<h1>' . $title . '</h1>';
-  $text .= '<h2>Starter Theme</h2>';
-  $text .= '</div>';
-  $text .= '<div class="mb-head-right">';
-  $text .= '<ul class="mb-menu">';
-  $text .= '<li><a href="' . osc_base_url() . 'oc-admin/index.php?page=appearance&action=render&file=oc-content/themes/starter/admin/settings.php"><i class="fa fa-wrench"></i><span>' . __('Settings', 'starter') . '</span></a></li>';
-  $text .= '<li><a href="' . osc_base_url() . 'oc-admin/index.php?page=appearance&action=render&file=oc-content/themes/starter/admin/header.php"><i class="fa fa-desktop"></i><span>' . __('Header', 'starter') . '</span></a></li>';
-  $text .= '</ul>';
-  $text .= '</div>';
+  // one tab per Theme Setting page; the current one is taken from the rendered file name
+  $base = osc_admin_base_url(true) . '?page=appearance&action=render&file=oc-content/themes/' . osc_current_web_theme() . '/admin/';
+  $file = basename((string)Params::getParam('file'));
+  $tabs = array(
+    'marketplace.php' => array(function_exists('antique_marketplace_admin_url') ? antique_marketplace_admin_url('overview') : $base . 'marketplace.php', 'fa-line-chart', __('Marketplace', 'starter')),
+    'integrations.php' => array(function_exists('antique_integrations_admin_url') ? antique_integrations_admin_url() : $base . 'integrations.php', 'fa-shield', __('Integrations & security', 'starter')),
+    'settings.php' => array($base . 'settings.php', 'fa-sliders', __('Theme settings', 'starter')),
+    'header.php' => array($base . 'header.php', 'fa-picture-o', __('Header logo', 'starter'))
+  );
+
+  $text  = '<div class="al-adm-head">';
+  $text .= '<div class="al-adm-title"><small>' . osc_esc_html(osc_page_title()) . '</small><h1>' . osc_esc_html($title) . '</h1></div>';
+  $text .= '<nav class="al-adm-nav" aria-label="' . osc_esc_html(__('Theme Setting', 'starter')) . '">';
+  foreach ($tabs as $f => $t) {
+    $text .= '<a href="' . osc_esc_html($t[0]) . '"' . ($f === $file ? ' class="is-active" aria-current="page"' : '') . '><i class="fa ' . $t[1] . '"></i>' . osc_esc_html($t[2]) . '</a>';
+  }
+  $text .= '</nav>';
   $text .= '</div>';
 
   echo $text;
@@ -32,15 +41,7 @@ function starter_backoffice_menu($title = NULL) {
 
 function starter_footer() {
   $themeInfo = starter_theme_info();
-  $text  = '<div class="mb-footer">';
-  $text .= '<a target="_blank" class="mb-developer" href="https://mb-themes.com"><img src="https://mb-themes.com/favicon.ico" alt="MB Themes" /> MB-Themes.com</a>';
-  $text .= '<a target="_blank" href="' . $themeInfo['support_uri'] . '"><i class="fa fa-bug"></i> ' . __('Report Bug', 'starter') . '</a>';
-  $text .= '<a target="_blank" href="https://forums.mb-themes.com/"><i class="fa fa-comments"></i> ' . __('Support Forums', 'starter') . '</a>';
-  $text .= '<a target="_blank" class="mb-last" href="mailto:info@mb-themes.com"><i class="fa fa-envelope"></i> ' . __('Contact Us', 'starter') . '</a>';
-  $text .= '<span class="mb-version">v' . $themeInfo['version'] . '</span>';
-  $text .= '</div>';
-
-  return $text;
+  return '<div class="al-adm-foot">' . osc_esc_html(osc_page_title()) . ' &middot; ' . sprintf(__('Theme %s', 'starter'), osc_esc_html($themeInfo['version'])) . ' &middot; <a href="https://www.viralgaraj.com/" target="_blank" rel="noopener">ViralGaraj</a></div>';
 }
 
 
