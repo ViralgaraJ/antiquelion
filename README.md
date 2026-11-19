@@ -37,8 +37,15 @@ define('WEB_PATH', 'http://localhost:8000/');
 XAMPP's data folder belongs to the `_mysql` user, so starting MySQL asks for your
 Mac password:
 
-- **Applications → XAMPP → manager-osx → Manage Servers → MySQL Database → Start**, or
-- `sudo /Applications/XAMPP/xamppfiles/xampp startmysql`
+```sh
+sudo /Applications/XAMPP/xamppfiles/xampp startmysql   # stop: ... xampp stopmysql
+```
+
+The XAMPP manager app (**manager-osx → Manage Servers → MySQL Database → Start**)
+does the same thing, but it is an old Intel app and may not open on newer macOS
+versions.
+
+The local MySQL login is `root` with an empty password (also used by phpMyAdmin).
 
 ### 3. Start the site
 
