@@ -29,6 +29,7 @@ require_once __DIR__ . '/inc.google.php';
 require_once __DIR__ . '/inc.stats.php';
 require_once __DIR__ . '/inc.pwa.php';
 require_once __DIR__ . '/inc.twofa.php';
+require_once __DIR__ . '/inc.assets.php';
 
 // "JPG, PNG or GIF" from the allowed upload extensions (Settings > Media)
 function antique_upload_formats() {

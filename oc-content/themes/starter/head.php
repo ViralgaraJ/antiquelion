@@ -93,13 +93,10 @@ osc_remove_style('font-awesome44');
 osc_remove_style('font-awesome45');
 osc_remove_style('font-awesome47');
 
-osc_enqueue_style('style', osc_current_web_theme_url('css/style.css?v=' . filemtime(__DIR__ . '/css/style.css')));
-osc_enqueue_style('responsive', osc_current_web_theme_url('css/responsive.css?v=' . filemtime(__DIR__ . '/css/responsive.css')));
 osc_enqueue_style('google-fonts', 'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap');
 echo '<style>body, html, button, input, select, textarea, h4, h5, h6, .category-name, .hero-subtitle, .product-title { font-family: "Manrope", system-ui, sans-serif !important; } h1, h2, h3, .hero-title { font-family: "Cormorant Garamond", Georgia, serif !important; }</style>';
-osc_enqueue_style('custom-home', osc_current_web_theme_url('css/custom-home.css') . '?v=' . filemtime(__DIR__ . '/css/custom-home.css'));
-osc_enqueue_style('antique', osc_current_web_theme_url('css/antique.css') . '?v=' . filemtime(__DIR__ . '/css/antique.css'));
-osc_enqueue_style('al-design', osc_current_web_theme_url('css/al-design.css') . '?v=' . filemtime(__DIR__ . '/css/al-design.css'));
+// theme stylesheets as one minified file (inc.assets.php); same order as before
+antique_enqueue_css_bundle('al-theme', array('css/style.css', 'css/responsive.css', 'css/custom-home.css', 'css/antique.css', 'css/al-design.css', 'css/al-extras.css'));
 
 // Site dropdowns (styled listbox over every native select)
 echo '<script>window.alSelect = ' . json_encode(array('search' => __('Search', 'starter'))) . ';</script>' . PHP_EOL;
@@ -428,10 +425,10 @@ echo '<style>
 
 if ($jquery_version == '1') {
   osc_enqueue_style('fancy', osc_current_web_theme_js_url('fancybox/jquery.fancybox.css'));
-  osc_enqueue_style('jquery-ui', osc_current_web_theme_url('css/jquery-ui.min.css'));
+  if (osc_is_publish_page() || osc_is_edit_page()) { osc_enqueue_style('jquery-ui', osc_current_web_theme_url('css/jquery-ui.min.css')); }
 } else {
   osc_enqueue_style('fancy', osc_assets_url('css/jquery.fancybox.min.css'));
-  osc_enqueue_style('jquery-ui', osc_assets_url('js/jquery3/jquery-ui/jquery-ui.min.css'));
+  if (osc_is_publish_page() || osc_is_edit_page()) { osc_enqueue_style('jquery-ui', osc_assets_url('js/jquery3/jquery-ui/jquery-ui.min.css')); }
 }
 
 if(starter_is_rtl()) {
@@ -519,7 +516,10 @@ if(starter_ajax_image_upload() && (osc_is_publish_page() || osc_is_edit_page()))
 }
 
 
-osc_enqueue_script('jquery-ui');
+// jQuery UI (255 KB) only on the sell/edit form: location autocomplete and date fields
+if (osc_is_publish_page() || osc_is_edit_page()) {
+  osc_enqueue_script('jquery-ui');
+}
 osc_enqueue_script('global');
 
 ?>

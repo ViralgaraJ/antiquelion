@@ -66,11 +66,6 @@ function antique_pwa_sw_url() { return osc_base_url() . 'index.php?page=ajax&act
 
 osc_add_route('al-offline', 'offline/?(?:\?.*)?$', 'offline/', 'al-offline.php', false, 'custom', 'al-offline', __('You are offline', 'starter'));
 
-function antique_pwa_assets() {
-  osc_enqueue_style('al-extras', osc_current_web_theme_url('css/al-extras.css') . '?v=' . filemtime(__DIR__ . '/css/al-extras.css'));
-}
-osc_add_hook('init', 'antique_pwa_assets');
-
 function antique_pwa_head() {
   $cfg = array(
     'sw' => antique_pwa_sw_url(),

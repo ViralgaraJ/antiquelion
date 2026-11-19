@@ -1483,35 +1483,13 @@ $(document).ready(function(){
 
   if (($(window).width() + scrollCompensate()) > 767) {
 
-    // NICE TOOLTIPS FOR ITEM BUTTONS
+    // NICE TOOLTIPS (jQuery UI is loaded only on the sell/edit form now)
     $(function() {
-      $('#item-buttons').tooltip({
-        position: { my: "center top-58", at: "center" }
-      });
-    });
-
-
-    // NICE TOOLTIPS FOR DEMO BANNERS
-    $(function() {
-      $('.banner-theme.is-demo.blank').tooltip({
-        position: { my: "center top-58", at: "center" }
-      });
-    });
-
-
-    // NICE TOOLTIPS FOR ITEM STATS IN USER ACCOUNT
-    $(function() {
-      $('.user_account .card.item .stats > div').tooltip({
-        position: { my: "center top-40", at: "center" }
-      });
-    });
-
-
-    // NICE TOOLTIPS FOR HOME PAGE CATEGORIES
-    $(function() {
-      $('.open-home-cat').tooltip({
-        position: { my: "center top-95", at: "center" }
-      });
+      if (!$.fn.tooltip) { return; }
+      $('#item-buttons').tooltip({ position: { my: "center top-58", at: "center" } });
+      $('.banner-theme.is-demo.blank').tooltip({ position: { my: "center top-58", at: "center" } });
+      $('.user_account .card.item .stats > div').tooltip({ position: { my: "center top-40", at: "center" } });
+      $('.open-home-cat').tooltip({ position: { my: "center top-95", at: "center" } });
     });
   
   }

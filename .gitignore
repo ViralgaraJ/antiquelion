@@ -28,3 +28,6 @@ oc-content/uploads/shops/
 /sitemap.xml
 /robots.txt
 oc-content/uploads/temp/
+
+# Minified CSS bundle built by the theme (inc.assets.php)
+oc-content/uploads/cache/
