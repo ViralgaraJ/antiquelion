@@ -66,6 +66,17 @@ Right after every import, run the local SQL script that turns mail off
 (kept in the git-ignored `_local_tools/sql/local-dev-disable-mail.sql`), or the
 local site can send email to real users.
 
+## Tests
+
+```sh
+php tests/run.php
+```
+
+Unit tests for PayHere hashing and pricing, admin two-step sign-in (RFC 6238 vectors),
+Web Push signing and the CSS bundle minifier. GitHub Actions (`.github/workflows/ci.yml`)
+runs them on PHP 8.1 to 8.3 on every push, together with a syntax check of every theme
+and `antique_bids` PHP file and the theme's JavaScript.
+
 ## Deploy
 
 The live `public_html` is a git checkout of this repository (branch `main`).

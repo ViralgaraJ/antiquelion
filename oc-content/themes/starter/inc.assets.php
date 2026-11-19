@@ -61,9 +61,18 @@ function antique_minify_css($css, $base) {
     return 'url(' . $m[1] . $base . $m[2] . $m[1] . ')';
   }, $css);
   $css = preg_replace('#/\*(?!!).*?\*/#s', '', $css);
+  // quoted strings ([style*="display: none"], content: "...") must stay exactly as written
+  $strings = array();
+  $css = preg_replace_callback('/"(?:[^"\\\\\r\n]|\\\\.)*"|\'(?:[^\'\\\\\r\n]|\\\\.)*\'/', function ($m) use (&$strings) {
+    $strings[] = $m[0];
+    return "\x01" . (count($strings) - 1) . "\x02";
+  }, $css);
   $css = preg_replace('/\s+/', ' ', $css);
-  // only around characters where spacing never matters (not ":" — "a :hover" differs from "a:hover")
+  // only around characters where spacing never matters (not before ":" — "a :hover" differs from "a:hover")
   $css = preg_replace('/\s*([{};,])\s*/', '$1', $css);
+  // a space after ":" never matters ("color: red", "(max-width: 640px)")
+  $css = preg_replace('/:\s+/', ':', $css);
   $css = str_replace(';}', '}', $css);
+  $css = preg_replace_callback('/\x01(\d+)\x02/', function ($m) use ($strings) { return $strings[(int)$m[1]]; }, $css);
   return trim($css);
 }

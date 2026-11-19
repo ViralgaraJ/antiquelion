@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  php:
+    name: PHP ${{ matrix.php }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.1', '8.2', '8.3']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: curl, openssl, mbstring, mysqli
+          coverage: none
+      - name: Syntax check (theme, custom plugin, tests)
+        run: |
+          find oc-content/themes/starter oc-content/plugins/antique_bids tests -name '*.php' -print0 \
+            | xargs -0 -n1 -P4 php -l > /tmp/lint.txt 2>&1 || { grep -v '^No syntax errors' /tmp/lint.txt; exit 1; }
+          echo "$(grep -c '^No syntax errors' /tmp/lint.txt) files OK"
+      - name: Unit tests
+        run: php tests/run.php
+
+  js:
+    name: JavaScript syntax
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Check theme scripts
+        run: |
+          for f in oc-content/themes/starter/js/al-*.js oc-content/themes/starter/js/global.js; do
+            if [ "$f" = "oc-content/themes/starter/js/al-sw.js" ]; then
+              { echo 'var AL = {};'; cat "$f"; } > /tmp/sw.js && node --check /tmp/sw.js
+            else
+              node --check "$f"
+            fi
+          done
+          echo "all scripts parse"
