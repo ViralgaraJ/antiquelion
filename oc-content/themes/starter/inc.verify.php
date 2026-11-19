@@ -186,7 +186,7 @@ function antique_seller_badge($uid, $size = 'normal') {
   $label = !empty($u['b_company']) ? __('Verified dealer', 'starter') : __('Verified seller', 'starter');
   return '<span class="al-verified' . ($size == 'small' ? ' is-small' : '') . '" title="' . osc_esc_html(__('The site team checked this seller\'s identity and contact details.', 'starter')) . '">'
     . '<svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 1.8l2.4 1.8 3-.1.9 2.8 2.5 1.7-1 2.8 1 2.8-2.5 1.7-.9 2.8-3-.1L12 22.2l-2.4-1.8-3 .1-.9-2.8-2.5-1.7 1-2.8-1-2.8 2.5-1.7.9-2.8 3 .1z"/><path d="m8 12.2 2.7 2.7L16.2 9.4" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>'
-    . osc_esc_html($label) . '</span>';
+    . osc_esc_html($label) . '</span>' . (function_exists('antique_member_badge') ? antique_member_badge($uid) : '');
 }
 
 /**

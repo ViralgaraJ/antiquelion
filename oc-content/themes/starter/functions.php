@@ -24,6 +24,7 @@ require_once __DIR__ . '/inc.shop.php';
 require_once __DIR__ . '/inc.photos.php';
 require_once __DIR__ . '/inc.seo.php';
 require_once __DIR__ . '/inc.payments.php';
+require_once __DIR__ . '/inc.membership.php';
 
 // "JPG, PNG or GIF" from the allowed upload extensions (Settings > Media)
 function antique_upload_formats() {
@@ -613,6 +614,7 @@ function antique_account_nav($compact = false) {
         array(__('Sell an item', 'starter'), osc_item_post_url(), false, null),
         array(__('My shop page', 'starter'), osc_user_public_profile_url($uid), $loc == 'user' && $sec == 'pub_profile', null),
         array(__('Shop settings', 'starter'), antique_shop_settings_url(), $route == 'al-shop', null),
+        array(__('Seller plan', 'starter'), antique_plans_url(), $route == 'al-plans', null),
         array(__('Promotions & payments', 'starter'), antique_payments_url(), in_array($route, array('al-payments', 'al-promote')), null),
         array(antique_seller_verified($uid) ? __('Verified', 'starter') : __('Get verified', 'starter'), antique_verify_url(), $route == 'al-verify', null)
       )

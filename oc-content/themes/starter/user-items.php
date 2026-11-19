@@ -32,6 +32,7 @@
       </div>
 
       <?php echo antique_verify_banner(); ?>
+      <?php echo antique_member_usage_bar(); ?>
       <?php osc_run_hook('user_items_top'); ?>
 
       <?php if (osc_count_items() > 0) { ?>

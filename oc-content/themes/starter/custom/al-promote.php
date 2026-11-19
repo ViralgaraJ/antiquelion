@@ -38,6 +38,9 @@
       <?php } else { ?>
         <span><?php _e('Pick a promotion. It starts as soon as your payment goes through.', 'starter'); ?></span>
       <?php } ?>
+      <?php $al_off = function_exists('antique_member_discount') ? antique_member_discount($al_uid) : 0; if ($al_off > 0) { ?>
+        <span class="al-promo-discount"><?php echo osc_esc_html(sprintf(__('Your plan saves you %d%% on every promotion. Prices below include it.', 'starter'), $al_off)); ?></span>
+      <?php } ?>
     </div>
   </div>
 
@@ -49,7 +52,7 @@
         <fieldset class="al-promo-card al-promo-<?php echo $al_key; ?>">
           <legend><?php echo osc_esc_html($al_p['name']); ?><?php if (in_array($al_key, $al_running, true)) { ?> <em><?php _e('Running', 'starter'); ?></em><?php } ?></legend>
           <p><?php echo osc_esc_html($al_p['desc']); ?></p>
-          <?php foreach ($al_p['prices'] as $al_days => $al_usd) { list($al_amt, $al_c) = antique_pay_quote($al_usd, $al_cur); ?>
+          <?php foreach ($al_p['prices'] as $al_days => $al_usd) { list($al_amt, $al_c) = antique_pay_quote(antique_promo_price($al_usd, $al_uid), $al_cur); ?>
             <label class="al-promo-opt">
               <input type="radio" name="al_pick" value="<?php echo $al_key . ':' . (int)$al_days; ?>" required<?php echo $al_first ? ' checked' : ''; ?> />
               <span><?php echo sprintf(_n('%d day', '%d days', $al_days, 'starter'), $al_days); ?></span>

@@ -261,39 +261,96 @@ function antique_promote_post() {
   if (!isset($products[$product]['prices'][$days])) {
     antique_msg_reply(false, __('Please choose a promotion.', 'starter'), $back);
   }
-  $usd = (float)$products[$product]['prices'][$days];
-  list($amount, $currency) = antique_pay_quote($usd, antique_pay_currency());
+  $usd = antique_promo_price((float)$products[$product]['prices'][$days], $uid);
+  $order = antique_pay_create_order($uid, $itemId, $product, $days, $usd);
+  if (!$order) { antique_msg_reply(false, __('We could not start the payment. Please try again.', 'starter'), $back); }
+  antique_pay_render_checkout($order);
+}
+osc_add_hook('ajax_al_promote', 'antique_promote_post');
 
+// Promotion price after the seller's membership discount (inc.membership.php)
+function antique_promo_price($usd, $uid) {
+  $off = function_exists('antique_member_discount') ? antique_member_discount($uid) : 0;
+  return $off > 0 ? round($usd * (100 - $off) / 100, 2) : (float)$usd;
+}
+
+/**
+ * New pending order, priced in the visitor's currency. Returns the order row or null.
+ * $itemId is 0 for orders that are not about a listing (memberships).
+ */
+function antique_pay_create_order($uid, $itemId, $product, $days, $usd) {
+  list($amount, $currency) = antique_pay_quote($usd, antique_pay_currency());
   $db = antique_pay_db();
   $ok = $db->query(sprintf("INSERT INTO `%s` (s_ref, fk_i_user_id, fk_i_item_id, s_product, i_days, d_amount, s_currency, d_usd, s_status, s_mode, dt_created)
     VALUES ('', %d, %d, %s, %d, %s, %s, %s, 'pending', %s, %s)",
-    antique_orders_table(), $uid, $itemId, $db->escape($product), $days, antique_pay_amount_str($amount), $db->escape($currency),
+    antique_orders_table(), (int)$uid, (int)$itemId, $db->escape($product), (int)$days, antique_pay_amount_str($amount), $db->escape($currency),
     antique_pay_amount_str($usd), $db->escape(antique_pay_live() ? 'live' : 'sandbox'), $db->escape(antique_pay_now())));
   $id = $ok ? (int)$db->insertedId() : 0;
-  if ($id < 1) { antique_msg_reply(false, __('We could not start the payment. Please try again.', 'starter'), $back); }
+  if ($id < 1) { return null; }
   $ref = 'AL' . str_pad($id, 6, '0', STR_PAD_LEFT) . '-' . strtoupper(bin2hex(random_bytes(3)));
   $db->query(sprintf("UPDATE `%s` SET s_ref = %s WHERE pk_i_id = %d", antique_orders_table(), $db->escape($ref), $id));
-
-  antique_pay_render_checkout(antique_order_by_ref($ref), $item);
+  return antique_order_by_ref($ref);
 }
-osc_add_hook('ajax_al_promote', 'antique_promote_post');
+
+function antique_pay_is_promo($order) {
+  return array_key_exists($order['s_product'], antique_promo_products());
+}
+
+/**
+ * What an order is for, e.g. "Urgent, 7 days: Teak chair" or "Dealer Pro, 3 months".
+ */
+function antique_pay_order_label($order, $withTitle = true) {
+  if (antique_pay_is_promo($order)) {
+    $products = antique_promo_products();
+    $label = sprintf('%s, %s', $products[$order['s_product']]['name'], sprintf(_n('%d day', '%d days', $order['i_days'], 'starter'), $order['i_days']));
+    if ($withTitle) {
+      $item = Item::newInstance()->findByPrimaryKey($order['fk_i_item_id']);
+      if ($item) { $label .= ': ' . $item['s_title']; }
+    }
+    return $label;
+  }
+  return function_exists('antique_member_order_label') ? antique_member_order_label($order) : $order['s_product'];
+}
+
+// Start what a paid order bought
+function antique_pay_fulfil($order) {
+  if (antique_pay_is_promo($order)) {
+    antique_promo_start($order['fk_i_item_id'], $order['s_product'], $order['i_days'], $order['pk_i_id']);
+  } elseif (function_exists('antique_member_fulfil')) {
+    antique_member_fulfil($order);
+  }
+}
+
+// Stop what a refunded or charged-back order bought
+function antique_pay_unfulfil($orderId) {
+  antique_promo_cancel_order($orderId);
+  if (function_exists('antique_member_cancel_order')) { antique_member_cancel_order($orderId); }
+}
+
+// Where the buyer goes after paying
+function antique_pay_order_url($order) {
+  if (antique_pay_is_promo($order)) {
+    $item = Item::newInstance()->findByPrimaryKey($order['fk_i_item_id']);
+    return $item ? osc_item_url_from_item($item) : osc_user_list_items_url();
+  }
+  return function_exists('antique_plans_url') ? antique_plans_url() : antique_payments_url();
+}
 
 /**
  * Self-submitting form to the PayHere checkout (PayHere only accepts a browser POST).
  */
-function antique_pay_render_checkout($order, $item) {
+function antique_pay_render_checkout($order) {
   $user = User::newInstance()->findByPrimaryKey($order['fk_i_user_id']);
   $name = trim(preg_replace('/\s+/', ' ', (string)$user['s_name']));
   $parts = explode(' ', $name, 2);
   $phone = trim((string)($user['s_phone_mobile'] ?: $user['s_phone_land']));
-  $products = antique_promo_products();
   $fields = array(
     'merchant_id' => antique_pay_setting('merchant_id'),
     'return_url'  => antique_payments_url(array('order' => $order['s_ref'])),
     'cancel_url'  => antique_payments_url(array('order' => $order['s_ref'], 'cancelled' => 1)),
     'notify_url'  => osc_ajax_hook_url('al_payhere_notify'),
     'order_id'    => $order['s_ref'],
-    'items'       => mb_substr(sprintf('%s (%d days): %s', $products[$order['s_product']]['name'], $order['i_days'], $item['s_title']), 0, 250),
+    'items'       => mb_substr(antique_pay_order_label($order), 0, 250),
     'currency'    => $order['s_currency'],
     'amount'      => antique_pay_amount_str($order['d_amount']),
     'first_name'  => $parts[0] !== '' ? $parts[0] : 'AntiqueLion',
@@ -367,7 +424,7 @@ function antique_payhere_notify() {
       break;
     case -3:
       antique_pay_update($order, 'chargedback', $p);
-      antique_promo_cancel_order($order['pk_i_id']);
+      antique_pay_unfulfil($order['pk_i_id']);
       break;
   }
   header('Content-Type: text/plain');
@@ -394,23 +451,21 @@ function antique_pay_mark_paid($order, $p) {
     antique_orders_table(), $db->escape($now), $db->escape($now), $db->escape(mb_substr($p('payment_id'), 0, 64)),
     $db->escape(mb_substr($p('method'), 0, 30)), $db->escape(mb_substr($p('status_message'), 0, 255)), (int)$order['pk_i_id']));
   if (!$claim || $db->affectedRows() < 1) { return; }
-  antique_promo_start($order['fk_i_item_id'], $order['s_product'], $order['i_days'], $order['pk_i_id']);
+  antique_pay_fulfil($order);
   antique_pay_receipt(antique_order_by_ref($order['s_ref']));
 }
 
 function antique_pay_receipt($order) {
   $user = User::newInstance()->findByPrimaryKey($order['fk_i_user_id']);
-  $item = Item::newInstance()->findByPrimaryKey($order['fk_i_item_id']);
-  if (!$user || !$item || !function_exists('antique_mail')) { return; }
-  $products = antique_promo_products();
-  $name = isset($products[$order['s_product']]) ? $products[$order['s_product']]['name'] : $order['s_product'];
-  $end = antique_promo_end($order['fk_i_item_id'], $order['s_product']);
+  if (!$user || !function_exists('antique_mail')) { return; }
+  $promo = antique_pay_is_promo($order);
+  $end = $promo ? antique_promo_end($order['fk_i_item_id'], $order['s_product']) : (function_exists('antique_member_order_end') ? antique_member_order_end($order) : null);
   antique_mail(
     $user['s_email'], $user['s_name'],
     sprintf(__('Payment received: %s', 'starter'), $order['s_ref']),
-    __('Thank you. Your promotion is live.', 'starter'),
+    $promo ? __('Thank you. Your promotion is live.', 'starter') : __('Thank you. Your purchase is active.', 'starter'),
     array_values(array_filter(array(
-      sprintf(__('%1$s for %2$s is now running.', 'starter'), '<strong>' . osc_esc_html($name) . '</strong>', '<strong>' . osc_esc_html($item['s_title']) . '</strong>'),
+      sprintf(__('%s is now active.', 'starter'), '<strong>' . osc_esc_html(antique_pay_order_label($order)) . '</strong>'),
       $end ? sprintf(__('It runs until %s.', 'starter'), osc_esc_html(date('j M Y, H:i', strtotime($end)))) : '',
       sprintf(__('Amount paid: %1$s. Order %2$s, PayHere payment %3$s.', 'starter'), '<strong>' . osc_esc_html(antique_pay_money($order['d_amount'], $order['s_currency'])) . '</strong>', osc_esc_html($order['s_ref']), osc_esc_html((string)$order['s_gateway_id']))
     ))),
@@ -672,7 +727,7 @@ function antique_pay_admin_actions() {
       $id = (int)Params::getParam('id');
       $db = antique_pay_db();
       $db->query(sprintf("UPDATE `%s` SET s_status = 'refunded', dt_updated = %s WHERE pk_i_id = %d AND s_status = 'paid'", antique_orders_table(), $db->escape(antique_pay_now()), $id));
-      if ($db->affectedRows() > 0) { antique_promo_cancel_order($id); }
+      if ($db->affectedRows() > 0) { antique_pay_unfulfil($id); }
       osc_add_flash_ok_message(__('Order marked as refunded and its promotion stopped.', 'starter'), 'admin');
       break;
   }

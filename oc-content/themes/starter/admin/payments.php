@@ -13,6 +13,7 @@
   $al_orders = $al_ord_res ? $al_ord_res->result() : array();
   $al_notify = osc_ajax_hook_url('al_payhere_notify');
 ?>
+<style>.almk-prices { border-collapse: collapse; margin: 6px 0; } .almk-prices th, .almk-prices td { padding: 6px 10px 6px 0; text-align: left; vertical-align: middle; } .almk-prices th { color: #14213D; font-size: 13px; }</style>
 <h3 class="almk-h"><?php _e('Last 30 days (live payments)', 'starter'); ?></h3>
 <div class="almk-grid">
   <div class="almk-stat is-ok"><strong>USD <?php echo number_format($al_usd30, 2); ?></strong><span><?php _e('Revenue (list price in USD)', 'starter'); ?></span></div>
@@ -74,6 +75,65 @@
   </div>
 </form>
 
+<?php
+  $al_mplans = antique_member_plans();
+  $al_mpack = antique_member_pack();
+  $al_mres = $al_db->query("SELECT m.*, u.s_email FROM `" . antique_members_table() . "` m LEFT JOIN `" . DB_TABLE_PREFIX . "t_user` u ON u.pk_i_id = m.fk_i_user_id
+    WHERE m.b_cancelled = 0 AND m.dt_end > NOW() ORDER BY m.dt_end ASC LIMIT 200");
+  $al_members = $al_mres ? $al_mres->result() : array();
+?>
+<form method="post" action="<?php echo osc_esc_html(antique_marketplace_admin_url('payments')); ?>" class="almk-card almk-seo">
+  <input type="hidden" name="octoken" value="<?php echo $al_token; ?>" />
+  <input type="hidden" name="al_mk" value="member_save" />
+  <input type="hidden" name="tab" value="payments" />
+  <h3><?php _e('Seller plans and listing limits', 'starter'); ?>
+    <span class="almk-tag<?php echo antique_member_on() ? ' is-ok' : ' is-bad'; ?>"><?php echo antique_member_on() ? __('On', 'starter') : __('Off', 'starter'); ?></span></h3>
+  <p class="almk-meta"><?php _e('Limits only apply to sellers who can buy (in sandbox mode: the test members above). Listings already online are never hidden; sellers over the limit just cannot add new ones.', 'starter'); ?>
+    <a href="<?php echo osc_esc_html(antique_plans_url()); ?>" target="_blank"><?php _e('View the plans page', 'starter'); ?></a></p>
+  <label><span><input type="checkbox" name="member_enabled" value="1"<?php echo antique_member_on() ? ' checked' : ''; ?> /> <strong><?php _e('Sell plans and limit free listings', 'starter'); ?></strong></span></label>
+  <label><strong><?php _e('Free plan: live listings per seller', 'starter'); ?></strong>
+    <input type="number" name="member_free_limit" min="1" value="<?php echo (int)antique_member_free_limit(); ?>" style="width:120px" /></label>
+  <table class="almk-prices">
+    <tr><th></th><th><?php _e('Live listings (0 = unlimited)', 'starter'); ?></th><th><?php _e('Promotion discount %', 'starter'); ?></th><th><?php _e('USD: 1 month', 'starter'); ?></th><th><?php _e('3 months', 'starter'); ?></th><th><?php _e('12 months', 'starter'); ?></th></tr>
+    <?php foreach ($al_mplans as $al_k => $al_p) { ?>
+      <tr><th><?php echo osc_esc_html($al_p['name']); ?></th>
+        <td><input type="number" min="0" name="plan[<?php echo $al_k; ?>][limit]" value="<?php echo (int)$al_p['limit']; ?>" style="width:90px" /></td>
+        <td><input type="number" min="0" max="90" name="plan[<?php echo $al_k; ?>][discount]" value="<?php echo (int)$al_p['discount']; ?>" style="width:80px" /></td>
+        <?php foreach ($al_p['prices'] as $al_d => $al_usd) { ?>
+          <td><input type="number" step="0.01" min="0.5" name="plan[<?php echo $al_k; ?>][prices][<?php echo (int)$al_d; ?>]" value="<?php echo osc_esc_html($al_usd); ?>" style="width:90px" /></td>
+        <?php } ?>
+      </tr>
+    <?php } ?>
+  </table>
+  <label style="margin-top:14px"><strong><?php echo sprintf(__('Listing pack (%d days)', 'starter'), ANTIQUE_MEMBER_PACK_DAYS); ?></strong>
+    <span style="display:flex;gap:10px;align-items:center;font-weight:400"><input type="number" name="member_pack_slots" min="1" value="<?php echo (int)$al_mpack['slots']; ?>" style="width:90px" /> <?php _e('extra listings for USD', 'starter'); ?>
+    <input type="number" step="0.01" min="0.5" name="member_pack_usd" value="<?php echo osc_esc_html($al_mpack['usd']); ?>" style="width:90px" /></span></label>
+  <div class="almk-actions"><button type="submit" class="almk-btn is-ok"><?php _e('Save', 'starter'); ?></button></div>
+</form>
+
+<form method="post" action="<?php echo osc_esc_html(antique_marketplace_admin_url('payments')); ?>" class="almk-card">
+  <input type="hidden" name="octoken" value="<?php echo $al_token; ?>" />
+  <input type="hidden" name="al_mk" value="member_grant" />
+  <input type="hidden" name="tab" value="payments" />
+  <h3><?php _e('Give a plan or listing pack', 'starter'); ?></h3>
+  <p class="almk-meta"><?php _e('For launch offers, partners or a payment taken outside the site. No order is created.', 'starter'); ?></p>
+  <div class="almk-actions">
+    <label class="almk-inline"><?php _e('Member ID or email', 'starter'); ?> <input type="text" name="member" style="width:220px" required /></label>
+    <label class="almk-inline"><select name="plan_key"><?php foreach ($al_mplans as $al_k => $al_p) { ?><option value="<?php echo $al_k; ?>"><?php echo osc_esc_html($al_p['name']); ?></option><?php } ?><option value="pack"><?php _e('Listing pack', 'starter'); ?></option></select></label>
+    <label class="almk-inline"><?php _e('Days', 'starter'); ?> <input type="text" name="days" value="30" style="width:60px" /></label>
+    <button type="submit" class="almk-btn"><?php _e('Give', 'starter'); ?></button>
+  </div>
+</form>
+
+<h3 class="almk-sub"><?php echo sprintf(__('Running plans and packs (%d)', 'starter'), count($al_members)); ?></h3>
+<?php if (!$al_members) { ?><div class="almk-empty"><?php _e('No paid plans yet.', 'starter'); ?></div><?php } ?>
+<?php foreach ($al_members as $m) { $al_mname = $m['s_plan'] === 'pack' ? sprintf(__('Listing pack +%d', 'starter'), $m['i_slots']) : (isset($al_mplans[$m['s_plan']]) ? $al_mplans[$m['s_plan']]['name'] : $m['s_plan']); ?>
+  <div class="almk-row">
+    <div><strong><?php echo osc_esc_html($al_mname); ?></strong> <span class="almk-meta"><?php echo osc_esc_html(sprintf('%s · %s → %s%s', (string)$m['s_email'], $m['dt_start'], $m['dt_end'], $m['fk_i_order_id'] ? '' : ' · ' . __('given by admin', 'starter'))); ?></span></div>
+    <?php echo $al_form('member_stop', $m['pk_i_id'], __('Stop', 'starter'), 'is-bad', '', __('Stop this plan now? The member is not refunded automatically.', 'starter')); ?>
+  </div>
+<?php } ?>
+
 <h3 class="almk-sub"><?php _e('Orders', 'starter'); ?></h3>
 <?php if (!$al_orders) { ?><div class="almk-empty"><?php _e('No orders yet.', 'starter'); ?></div><?php } ?>
 <?php foreach ($al_orders as $r) { $al_st = $r['s_status']; ?>
@@ -83,12 +143,12 @@
       <span class="almk-tag<?php echo $al_st === 'paid' ? ' is-ok' : (in_array($al_st, array('failed', 'chargedback'), true) ? ' is-bad' : ''); ?>"><?php echo osc_esc_html(antique_order_status_label($al_st)); ?></span>
       <?php if ($r['s_mode'] !== 'live') { ?><span class="almk-tag"><?php _e('Sandbox', 'starter'); ?></span><?php } ?>
       <div class="almk-meta">
-        <?php echo osc_esc_html(sprintf('%s · %s, %d days · %s · %s', $r['dt_created'], isset($al_products[$r['s_product']]) ? $al_products[$r['s_product']]['name'] : $r['s_product'], $r['i_days'], antique_pay_money($r['d_amount'], $r['s_currency']), (string)$r['s_email'])); ?>
-        · <a href="<?php echo osc_esc_html(osc_admin_base_url(true) . '?page=items&action=item_edit&id=' . (int)$r['fk_i_item_id']); ?>">#<?php echo (int)$r['fk_i_item_id']; ?> <?php echo osc_esc_html((string)$r['s_title']); ?></a>
+        <?php echo osc_esc_html(sprintf('%s · %s · %s · %s', $r['dt_created'], antique_pay_order_label($r, false), antique_pay_money($r['d_amount'], $r['s_currency']), (string)$r['s_email'])); ?>
+        <?php if ((int)$r['fk_i_item_id'] > 0) { ?>· <a href="<?php echo osc_esc_html(osc_admin_base_url(true) . '?page=items&action=item_edit&id=' . (int)$r['fk_i_item_id']); ?>">#<?php echo (int)$r['fk_i_item_id']; ?> <?php echo osc_esc_html((string)$r['s_title']); ?></a><?php } ?>
         <?php if ($r['s_gateway_id']) { ?> · PayHere <?php echo osc_esc_html($r['s_gateway_id'] . ($r['s_method'] ? ' (' . $r['s_method'] . ')' : '')); ?><?php } ?>
         <?php if ($r['s_message'] && $al_st !== 'paid') { ?> · <?php echo osc_esc_html($r['s_message']); ?><?php } ?>
       </div>
     </div>
-    <?php if ($al_st === 'paid') { echo $al_form('pay_mark', $r['pk_i_id'], __('Mark refunded', 'starter'), 'is-bad', '', __('Only do this after refunding the payment in the PayHere portal. The promotion stops now.', 'starter')); } ?>
+    <?php if ($al_st === 'paid') { echo $al_form('pay_mark', $r['pk_i_id'], __('Mark refunded', 'starter'), 'is-bad', '', __('Only do this after refunding the payment in the PayHere portal. What the order bought (promotion, plan or listing pack) stops now.', 'starter')); } ?>
   </div>
 <?php } ?>
