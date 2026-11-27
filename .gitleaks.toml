@@ -1,0 +1,15 @@
+# gitleaks config for the "Secret scan" CI job (ANTIQUE-9).
+# Default gitleaks rules, plus an allowlist for sample files that only hold
+# placeholder values. Never put real values in these files.
+
+title = "AntiqueLion gitleaks config"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Sample config files with fake values only"
+paths = [
+  '''^config-sample\.php$''',
+  '''(^|/)\.env\.example$''',
+]
