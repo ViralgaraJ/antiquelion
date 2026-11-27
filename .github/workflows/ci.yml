@@ -31,6 +31,47 @@ jobs:
       - name: Unit tests
         run: php tests/run.php
 
+  secrets:
+    # Keep this name exactly: it is a required check in the protect-main ruleset.
+    name: Secret scan
+    runs-on: ubuntu-latest
+    env:
+      GITLEAKS_VERSION: 8.30.1
+      GITLEAKS_SHA256: 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Install gitleaks CLI
+        run: |
+          curl -sSfL -o /tmp/gitleaks.tar.gz \
+            "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          echo "${GITLEAKS_SHA256}  /tmp/gitleaks.tar.gz" | sha256sum -c -
+          tar -xzf /tmp/gitleaks.tar.gz -C /tmp gitleaks
+          /tmp/gitleaks version
+      - name: Scan new commits only
+        # Old, rotated secrets are still in history (ANTIQUE-2), so never scan
+        # the whole history: only the commits this PR or push adds.
+        env:
+          EVENT: ${{ github.event_name }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+          PUSH_BEFORE: ${{ github.event.before }}
+          PUSH_AFTER: ${{ github.sha }}
+        run: |
+          if [ "$EVENT" = "pull_request" ]; then
+            BASE=$(git merge-base "$PR_BASE" "$PR_HEAD")
+            RANGE="$BASE..$PR_HEAD"
+          elif [ -n "$PUSH_BEFORE" ] && [ "$PUSH_BEFORE" != "0000000000000000000000000000000000000000" ] \
+               && git cat-file -e "$PUSH_BEFORE^{commit}" 2>/dev/null; then
+            RANGE="$PUSH_BEFORE..$PUSH_AFTER"
+          else
+            RANGE="$PUSH_AFTER^!"   # new branch or unknown base: just the tip commit
+          fi
+          echo "Scanning $RANGE ($(git rev-list --count $RANGE) commits)"
+          /tmp/gitleaks git --config .gitleaks.toml --log-opts="$RANGE" \
+            --redact --verbose --no-banner --exit-code 1 .
+
   js:
     name: JavaScript syntax
     runs-on: ubuntu-latest
