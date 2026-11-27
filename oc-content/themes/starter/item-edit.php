@@ -563,10 +563,11 @@
 
 
     // CATEGORY CHECK IF PARENT
+    // Osclass core prints var categories_<id> for parents; read it from window, never eval (ANTIQUE-5).
     <?php if(!osc_selectable_parent_categories()) { ?>
       $(document).ready(function(){
         if(typeof window['categories_' + $('#catId').val()] !== 'undefined'){
-          if(eval('categories_' + $('#catId').val()) != '') {
+          if(window['categories_' + $('#catId').val()] != '') {
             $('#catId').val('');
           }
         }
@@ -574,7 +575,7 @@
 
       $('#catId').on('change', function(){
         if(typeof window['categories_' + $(this).val()] !== 'undefined'){
-          if(eval('categories_' + $(this).val()) != '') {
+          if(window['categories_' + $(this).val()] != '') {
             $(this).val('');
           }
         }
