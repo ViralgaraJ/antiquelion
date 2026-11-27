@@ -1,0 +1,8 @@
+# Developer files only, never served on the live site (ANTIQUE-7).
+# Deploy is a git pull into public_html, so this folder is on the server.
+<IfModule mod_authz_core.c>
+  Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+  Deny from all
+</IfModule>
