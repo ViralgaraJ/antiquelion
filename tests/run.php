@@ -50,10 +50,17 @@ function check($name, $actual, $expected) {
 }
 
 echo "PayHere\n";
-$GLOBALS['prefs'] = array('pay_merchant_id' => '1211149', 'pay_merchant_secret' => 'MzE2NjU4NTUxODE5MTkzNzg2MjA0NDE4ODMxMjE2OTg5NzE2');
+// Fake values only. Never put real PayHere credentials in tests: this file is public on GitHub.
+$fake_merchant_id = '1000000';
+$fake_merchant_secret = 'TEST_ONLY_NOT_A_REAL_SECRET';
+$GLOBALS['prefs'] = array('pay_merchant_id' => $fake_merchant_id, 'pay_merchant_secret' => $fake_merchant_secret);
 check('checkout hash = MD5(id + order + amount + currency + MD5(secret)), uppercase',
   antique_pay_hash('ItemNo12345', 1000, 'LKR'),
-  strtoupper(md5('1211149' . 'ItemNo12345' . '1000.00' . 'LKR' . strtoupper(md5('MzE2NjU4NTUxODE5MTkzNzg2MjA0NDE4ODMxMjE2OTg5NzE2')))));
+  strtoupper(md5($fake_merchant_id . 'ItemNo12345' . '1000.00' . 'LKR' . strtoupper(md5($fake_merchant_secret)))));
+// Fixed expected value, so a change to the formula itself is also caught (not only computed the same way).
+check('checkout hash, known value for the fake credentials',
+  antique_pay_hash('ItemNo12345', 1000, 'LKR'),
+  'D846DE5C655CF74D1049E79AAE050DEF');
 check('amount always has two decimals', antique_pay_amount_str(5), '5.00');
 check('amount rounding', antique_pay_amount_str(12.345), '12.35');
 $GLOBALS['visitor_currency'] = 'LKR';
