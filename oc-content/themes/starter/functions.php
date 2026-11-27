@@ -2010,6 +2010,8 @@ osc_add_hook('edited_item', 'starter_update_fields');
 
 // GET STARTER ITEM EXTRA VALUES
 function starter_item_extra($item_id) {
+  // Cast first: on PHP 8 a string like "5 OR 1=1" passes "> 0" and would reach the SQL (ANTIQUE-4).
+  $item_id = (int)$item_id;
   if($item_id > 0) {
     $db_prefix = DB_TABLE_PREFIX;
 
@@ -2037,6 +2039,7 @@ function starter_item_extra($item_id) {
 
 // GET STARTER CATEGORY EXTRA VALUES
 function starter_category_extra($category_id) {
+  $category_id = (int)$category_id; // ANTIQUE-4: never put a raw value into the SQL
   if($category_id > 0) {
     $db_prefix = DB_TABLE_PREFIX;
 
@@ -2266,7 +2269,8 @@ function zara_ajax_url() {
 
 // COUNT PHONE CLICKS ON ITEM
 function starter_phone_clicks( $item_id ) {
-  if( $item_id <> '' ) {
+  $item_id = (int)$item_id; // ANTIQUE-4: never put a raw value into the SQL
+  if( $item_id > 0 ) {
     $db_prefix = DB_TABLE_PREFIX;
 
     $query = "SELECT sum(coalesce(i_num_phone_clicks, 0)) as phone_clicks FROM {$db_prefix}t_item_stats_starter s WHERE fk_i_item_id = " . $item_id . ";";
