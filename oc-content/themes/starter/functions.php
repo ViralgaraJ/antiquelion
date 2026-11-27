@@ -359,11 +359,28 @@ function starter_flat_category_select(){
   $html .= '<div class="category-box" hidden></div>';
   $html .= '<script>
     jQuery(function ($) {
+      // One place keeps the label, the tile highlight and the picker in step with #catId,
+      // whichever control changed it (top-level tile or subcategory picker). ANTIQUE-8.
+      var $label = $(".row.category.flat > label");
+      var labelDefault = $label.html();
+      function alCatSync(id) {
+        var $single = id ? $("#flat-cat-fancy .single[data-id=\"" + id + "\"]").first() : $();
+        $(".al-cat-pick").removeClass("is-selected").attr("aria-pressed", "false");
+        $(".flat-wrap .single").removeClass("selected");
+        if (!$single.length) { $label.html(labelDefault).removeClass("done"); return; }
+        $single.addClass("selected");
+        $label.text($.trim($single.children("span").first().text())).addClass("done");
+        // top-level ancestor: the outermost sub-list holding this category, or the category itself
+        var rootId = $single.parents(".flat-wrap").not(".root").last().attr("data-parent-id") || id;
+        $(".al-cat-pick[data-id=\"" + rootId + "\"]").addClass("is-selected").attr("aria-pressed", "true");
+      }
+      $(document).on("change", "#catId", function () { alCatSync(parseInt(this.value, 10) || 0); });
+      // after the form\'s own ready code, which may clear a parent category without firing change
+      setTimeout(function () { alCatSync(parseInt($("#catId").val(), 10) || 0); }, 0);
+
       $(document).on("click", ".al-cat-pick", function () {
         var btn = $(this);
         if (btn.data("children") == 1) { $("#flat-cat .category-box").trigger("click"); return; }
-        $(".al-cat-pick").removeClass("is-selected").attr("aria-pressed", "false");
-        btn.addClass("is-selected").attr("aria-pressed", "true");
         $("#catId").val(btn.data("id")).trigger("click").trigger("change");
         if ($("#catId").closest("form").data("validator")) { $("#catId").valid(); }
       });
