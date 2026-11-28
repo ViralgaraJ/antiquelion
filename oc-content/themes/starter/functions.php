@@ -9,6 +9,7 @@ require_once __DIR__ . '/inc.currency.php';
 require_once __DIR__ . '/inc.phone.php';
 require_once __DIR__ . '/inc.pages.php';
 require_once __DIR__ . '/inc.watchlist.php';
+require_once __DIR__ . '/inc.recent.php';
 require_once __DIR__ . '/inc.countries.php';
 require_once __DIR__ . '/inc.details.php';
 require_once __DIR__ . '/inc.report.php';
