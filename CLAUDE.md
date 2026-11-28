@@ -53,6 +53,7 @@ CI (`.github/workflows/ci.yml`) runs on every push to `main` and on every PR: `p
 - MariaDB can't `ORDER BY` an expression over aggregate aliases, so wrap the query in a subquery.
 - Live server may lack PHP `fileinfo`. The verify upload sniffs file bytes instead (`inc.verify.php`).
 - The root `/.htaccess` (rewrites, HTTPS/www redirect, security headers) is **git-ignored** and only exists on the server. Changes there are not versioned. (ANTIQUE-7)
+- Item pages are **not** LiteSpeed page-cached (checked 2026-11-28: no `x-litespeed-cache` header, PHP sends `Cache-Control: no-store`). Per-visitor cookies depend on this: Recently viewed (`al_recent`), currency and geo. Before turning on LSCache or adding cache rules to the root `.htaccess`, vary on those cookies or keep item pages uncached. (ANTIQUE-10)
 - `oc-content/uploads/` files are partly tracked. An e2e test that uploads photos can overwrite them (restore with `git checkout`).
 - Local admin testing needs a temporary `oc_t_admin` row. Delete it afterwards.
 - `origin/staging` is far behind `main`, and a staging copy at a `staging-*.antiquelion.com` subdomain may exist. (verify: is staging still used? Payments are tested on live in PayHere sandbox mode, limited by the `pay_testers` setting.)
