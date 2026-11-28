@@ -38,6 +38,7 @@ require $THEME . 'inc.twofa.php';
 require $THEME . 'inc.pwa.php';
 require $THEME . 'inc.assets.php';
 require $THEME . 'inc.stats.php';
+require $THEME . 'inc.recent.php';
 
 /* ---------- Tiny test runner ---------- */
 $fails = 0; $count = 0;
@@ -142,6 +143,25 @@ echo "Analytics\n";
 check('change vs previous period', antique_stats_change(150, 100), '+50%');
 check('drop vs previous period', antique_stats_change(75, 100), '-25%');
 check('nothing to compare', antique_stats_change(10, 0), '');
+
+echo "Recently viewed\n";
+check('empty cookie', antique_recent_parse(''), array());
+check('not a string', antique_recent_parse(array('1')), array());
+check('ints kept in order', antique_recent_parse('11,4,10'), array(11, 4, 10));
+check('junk, zero, negative and SQL dropped', antique_recent_parse('5,abc,0,-3, 7 ,1 OR 1=1,8x,'), array(5, 7));
+check('duplicates dropped', antique_recent_parse('3,3,2,3'), array(3, 2));
+check('capped at ' . ANTIQUE_RECENT_MAX, count(antique_recent_parse(implode(',', range(1, 30)))), ANTIQUE_RECENT_MAX);
+check('push puts new item first', antique_recent_push(array(4, 10), 11), array(11, 4, 10));
+check('push moves existing item to front', antique_recent_push(array(4, 10, 11), 10), array(10, 4, 11));
+check('push trims to max', count(antique_recent_push(range(1, ANTIQUE_RECENT_MAX), 99)), ANTIQUE_RECENT_MAX);
+check('push ignores bad id', antique_recent_push(array(4), 0), array(4));
+// No IDs left -> array() before any DB call (Item/DB_TABLE_PREFIX don't exist here, so a query would fatal)
+$_COOKIE[ANTIQUE_RECENT_COOKIE] = '5';
+check('only the current listing -> no query, empty', antique_recent_items(5), array());
+$_COOKIE[ANTIQUE_RECENT_COOKIE] = 'abc,0,-1';
+check('only junk -> no query, empty', antique_recent_items(5), array());
+unset($_COOKIE[ANTIQUE_RECENT_COOKIE]);
+check('no cookie -> no query, empty', antique_recent_items(5), array());
 
 echo "\n" . ($count - $fails) . "/$count passed\n";
 exit($fails > 0 ? 1 : 0);

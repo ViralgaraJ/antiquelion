@@ -474,6 +474,22 @@
     </section>
   <?php } } ?>
 
+  <?php
+    // Recently viewed: from this browser's al_recent cookie (inc.recent.php), never this listing
+    if ($content_only == 0) {
+      $al_recent_items = antique_recent_items(osc_item_id(), 4);
+      if (count($al_recent_items) > 0) {
+  ?>
+    <section class="al-related al-recent">
+      <div class="al-section-head">
+        <h2><?php _e('Recently viewed', 'starter'); ?></h2>
+      </div>
+      <div class="al-grid">
+        <?php antique_render_cards($al_recent_items); ?>
+      </div>
+    </section>
+  <?php } } ?>
+
   <?php osc_run_hook('item_bottom'); ?>
 </div>
 

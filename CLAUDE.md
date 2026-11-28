@@ -27,7 +27,7 @@ Buyers contact sellers and pay off-site; the site earns from seller-paid promoti
 cp config-sample.php config.php          # first time; local values in README
 sudo /Applications/XAMPP/xamppfiles/xampp startmysql   # needs the Mac admin password
 ./dev-server.sh                          # http://localhost:8000  (admin: /oc-admin/)
-php tests/run.php                        # unit tests (42 checks, CLI only)
+php tests/run.php                        # unit tests (56 checks, CLI only)
 ```
 
 CI (`.github/workflows/ci.yml`) runs on every push to `main` and on every PR: `php -l` on the theme, `antique_bids` and `tests` on PHP 8.1/8.2/8.3, `tests/run.php`, and `node --check` on `js/al-*.js` and `js/global.js`.
